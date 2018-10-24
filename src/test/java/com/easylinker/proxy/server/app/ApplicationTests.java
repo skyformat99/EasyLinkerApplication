@@ -27,27 +27,27 @@ public class ApplicationTests {
     public void contextLoads() {
         VertXMqttRemoteClient vertxMqttRemoteClient = new VertXMqttRemoteClient();
         vertxMqttRemoteClient.setId(System.currentTimeMillis());
-        vertxMqttRemoteClient.setClientId("testClientId001");
-        vertxMqttRemoteClient.setUsername("username");
-        vertxMqttRemoteClient.setPassword("password");
+        vertxMqttRemoteClient.setClientId("testClientId002");
+        vertxMqttRemoteClient.setUsername("username1");
+        vertxMqttRemoteClient.setPassword("password2");
         vertxMqttRemoteClient.setName("GPS");
         vertxMqttRemoteClient.setInfo("This is some info");
         vertxMqttRemoteClient.setLocation(new String[]{"120", "200"});
         vertxMqttRemoteClient.setTopics(new String[]{"/1", "/2", "/3"});
         vertXMqttRemoteClientService.save(vertxMqttRemoteClient);
-        Page<VertXMqttRemoteClient> page = vertXMqttRemoteClientService.getAll(PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "_id")));
-        for (VertXMqttRemoteClient client : page.getContent()) {
-            System.out.println(client.toString());
-        }
+//        Page<VertXMqttRemoteClient> page = vertXMqttRemoteClientService.getAll(PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "_id")));
+//        for (VertXMqttRemoteClient client : page.getContent()) {
+//            System.out.println(client.toString());
+//        }
 
 
 //
-        AppUser appUser = new AppUser();
-        appUser.setUsername("username");
-        appUser.setPassword(Md5Util.encodingMD5("password"));
-        appUser.setEmail("test@test.com");
-        appUser.setPhone("1101101101");
-        appUserService.save(appUser);
+//        AppUser appUser = new AppUser();
+//        appUser.setUsername("username");
+//        appUser.setPassword(Md5Util.encodingMD5("password"));
+//        appUser.setEmail("test@test.com");
+//        appUser.setPhone("1101101101");
+//        appUserService.save(appUser);
 
 
     }

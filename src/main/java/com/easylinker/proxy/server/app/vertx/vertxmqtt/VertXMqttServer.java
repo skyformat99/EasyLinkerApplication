@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -114,6 +115,8 @@ public class VertXMqttServer extends AbstractVerticle {
                                     }
                                 }
                                 break;
+                            case "anonymous":
+                                endpoint.accept(true);
                             default:
                                 break;
                         }
@@ -127,34 +130,63 @@ public class VertXMqttServer extends AbstractVerticle {
                      */
                     if (endpoint.isConnected()) {
                         endpoint.subscribeHandler(subscribe -> {
-
-                            VertXMqttRemoteClient vertXMqttRemoteClient = vertXMqttRemoteClientService.findTopByUsernameAndPassword(username, password);
-                            if (vertXMqttRemoteClient != null) {
-                                String topics[] = vertXMqttRemoteClient.getTopics();
-                                //获取客户端的所有订阅主题
-                                List<MqttTopicSubscription> topicSubscriptions = subscribe.topicSubscriptions();
-                                for (MqttTopicSubscription mqttTopicSubscription : topicSubscriptions) {
-                                    if (Arrays.asList(topics).contains(mqttTopicSubscription.topicName())) {
-                                        logger.info("通过订阅Topic!" + mqttTopicSubscription.topicName());
-                                        List<MqttQoS> grantedQosLevels = new ArrayList<>();
-                                        grantedQosLevels.add(mqttTopicSubscription.qualityOfService());
-                                        // 确认订阅请求
-                                        endpoint.subscribeAcknowledge(subscribe.messageId(), grantedQosLevels);
-
-                                    } else {
-                                        logger.info("ACL拒绝订阅Topic!" + mqttTopicSubscription.topicName());
-
-                                    }
-
-
-                                }
+                            List<MqttQoS> grantedQosLevels = new ArrayList<>();
+                            for (MqttTopicSubscription s : subscribe.topicSubscriptions()) {
+                                System.out.println("Subscription for " + s.topicName() + " with QoS " + s.qualityOfService());
+                                grantedQosLevels.add(s.qualityOfService());
                             }
+                            // 确认订阅请求
+                            endpoint.subscribeAcknowledge(subscribe.messageId(), grantedQosLevels);
+                            for (int i = 0; i < 10; i++) {
+                                endpoint.publish("/1", Buffer.buffer("Hello from the Vert.x MQTT server"), MqttQoS.EXACTLY_ONCE, false, false);
+
+                            }
+
+//
+//                            VertXMqttRemoteClient vertXMqttRemoteClient = vertXMqttRemoteClientService.findTopByUsernameAndPassword(username, password);
+//                            if (vertXMqttRemoteClient != null) {
+//                                String topics[] = vertXMqttRemoteClient.getTopics();
+//                                //获取客户端的所有订阅主题
+//                                List<MqttTopicSubscription> topicSubscriptions = subscribe.topicSubscriptions();
+//                                for (MqttTopicSubscription mqttTopicSubscription : topicSubscriptions) {
+//                                    if (Arrays.asList(topics).contains(mqttTopicSubscription.topicName())) {
+//                                        logger.info("通过订阅Topic!" + mqttTopicSubscription.topicName());
+//                                        List<MqttQoS> grantedQosLevels = new ArrayList<>();
+//                                        grantedQosLevels.add(mqttTopicSubscription.qualityOfService());
+//                                        // 确认订阅请求
+//                                        endpoint.subscribeAcknowledge(subscribe.messageId(), grantedQosLevels);
+//
+//                                    } else {
+//                                        logger.info("ACL拒绝订阅Topic!" + mqttTopicSubscription.topicName());
+//
+//                                    }
+//
+//
+//                                }
+//                            }
 
 
                         });
+                        endpoint.unsubscribeHandler(unsubscribe -> {
 
+                            for (String t : unsubscribe.topics()) {
+                                System.out.println("Unsubscription for " + t);
+                            }
+                            // 确认订阅请求
+                            endpoint.unsubscribeAcknowledge(unsubscribe.messageId());
+                        });
                         endpoint.publishHandler(message -> {
-                            System.out.println(message.payload());
+
+                            System.out.println("Just received message [" + message.payload().toString(Charset.defaultCharset()) + "] with QoS [" + message.qosLevel() + "]");
+
+                            if (message.qosLevel() == MqttQoS.AT_LEAST_ONCE) {
+                                endpoint.publishAcknowledge(message.messageId());
+                            } else if (message.qosLevel() == MqttQoS.EXACTLY_ONCE) {
+                                endpoint.publishRelease(message.messageId());
+                            }
+
+                        }).publishReleaseHandler(messageId -> {
+
                         });
 
                         endpoint.disconnectHandler(v -> {
