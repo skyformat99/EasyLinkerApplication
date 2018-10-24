@@ -1,9 +1,11 @@
 package com.easylinker.proxy.server.app.vertx.vertxmqtt;
- import com.easylinker.proxy.server.app.vertx.vertxmqtt.client.model.VertXMqttRemoteClient;
- import com.easylinker.proxy.server.app.vertx.vertxmqtt.client.service.VertXMqttRemoteClientService;
- import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
- import io.netty.handler.codec.mqtt.MqttQoS;
- import io.vertx.core.AbstractVerticle;
+
+import com.easylinker.proxy.server.app.vertx.vertxmqtt.client.model.VertXMqttRemoteClient;
+import com.easylinker.proxy.server.app.vertx.vertxmqtt.client.service.VertXMqttRemoteClientService;
+import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
+import io.netty.handler.codec.mqtt.MqttQoS;
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.mqtt.MqttEndpoint;
 import io.vertx.mqtt.MqttServer;
 import io.vertx.mqtt.MqttTopicSubscription;
@@ -13,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -26,7 +29,7 @@ import java.util.List;
  */
 @Component
 public class VertXMqttServer extends AbstractVerticle {
-    Logger logger = LoggerFactory.getLogger(VertXMqttServer.class);
+    private Logger logger = LoggerFactory.getLogger(VertXMqttServer.class);
     @Autowired
     VertXMqttRemoteClientService vertXMqttRemoteClientService;
     @Autowired
@@ -47,6 +50,7 @@ public class VertXMqttServer extends AbstractVerticle {
 
         }
         logger.info("恢复完毕！");
+
 
         mqttServer
                 .endpointHandler(endpoint -> {
@@ -83,6 +87,7 @@ public class VertXMqttServer extends AbstractVerticle {
                                         vertXMqttRemoteClient.setOnLine(true);
                                         vertXMqttRemoteClientService.save(vertXMqttRemoteClient);
                                         logger.info("客户端鉴权成功！连接成功！");
+
                                     }
                                 }
                                 break;
@@ -120,51 +125,47 @@ public class VertXMqttServer extends AbstractVerticle {
                     /**
                      * 处理订阅事件
                      */
-                    endpoint.subscribeHandler(subscribe -> {
-                        VertXMqttRemoteClient vertXMqttRemoteClient = vertXMqttRemoteClientService.findTopByUsernameAndPassword(username, password);
-                        if (vertXMqttRemoteClient != null) {
-                            String topics[] = vertXMqttRemoteClient.getTopics();
-                            //获取客户端的所有订阅主题
-                            List<MqttTopicSubscription> topicSubscriptions = subscribe.topicSubscriptions();
-                            for (MqttTopicSubscription mqttTopicSubscription : topicSubscriptions) {
-                                if (Arrays.asList(topics).contains(mqttTopicSubscription.topicName())) {
-                                    logger.info("通过订阅Topic!" + mqttTopicSubscription.topicName());
+                    if (endpoint.isConnected()) {
+                        endpoint.subscribeHandler(subscribe -> {
 
-                                } else {
-                                    logger.info("ACL拒绝订阅Topic!" + mqttTopicSubscription.topicName());
-                                    endpoint.unsubscribeAcknowledge(128);
+                            VertXMqttRemoteClient vertXMqttRemoteClient = vertXMqttRemoteClientService.findTopByUsernameAndPassword(username, password);
+                            if (vertXMqttRemoteClient != null) {
+                                String topics[] = vertXMqttRemoteClient.getTopics();
+                                //获取客户端的所有订阅主题
+                                List<MqttTopicSubscription> topicSubscriptions = subscribe.topicSubscriptions();
+                                for (MqttTopicSubscription mqttTopicSubscription : topicSubscriptions) {
+                                    if (Arrays.asList(topics).contains(mqttTopicSubscription.topicName())) {
+                                        logger.info("通过订阅Topic!" + mqttTopicSubscription.topicName());
+                                        List<MqttQoS> grantedQosLevels = new ArrayList<>();
+                                        grantedQosLevels.add(mqttTopicSubscription.qualityOfService());
+                                        // 确认订阅请求
+                                        endpoint.subscribeAcknowledge(subscribe.messageId(), grantedQosLevels);
+
+                                    } else {
+                                        logger.info("ACL拒绝订阅Topic!" + mqttTopicSubscription.topicName());
+
+                                    }
+
+
                                 }
-
-
                             }
-                        }
 
 
-                    });
+                        });
 
-                    endpoint.unsubscribeHandler(unsubscribe -> {
+                        endpoint.publishHandler(message -> {
+                            System.out.println(message.payload());
+                        });
 
-                    });
+                        endpoint.disconnectHandler(v -> {
 
-                    endpoint.pingHandler(v -> {
+                            handler(auth, endpoint, username, password, clientId);
+                        });
+                        endpoint.closeHandler(v -> {
+                            handler(auth, endpoint, username, password, clientId);
+                        });
+                    }
 
-                        logger.info("收到心跳包,客户端ID：" + endpoint.clientIdentifier());
-                    });
-//
-//                    // handling disconnect message
-                    /**
-                     * 这个响应是客户端主动断开产生的
-                     */
-                    endpoint.disconnectHandler(v -> {
-
-                        handler(auth, endpoint, username, password, clientId);
-                    });
-                    /**
-                     * 这个响应是客户端异常断开，比如突然断电
-                     */
-                    endpoint.closeHandler(v -> {
-                        handler(auth, endpoint, username, password, clientId);
-                    });
 
                 })
                 .listen(vertXMqttConfig.getPort(), vertXMqttConfig.getHost(), ar -> {
