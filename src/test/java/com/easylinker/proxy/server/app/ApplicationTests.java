@@ -1,17 +1,12 @@
 package com.easylinker.proxy.server.app;
 
-import com.easylinker.proxy.server.app.config.securityconfig.user.model.AppUser;
-import com.easylinker.proxy.server.app.config.securityconfig.user.service.AppUserService;
-import com.easylinker.proxy.server.app.utils.Md5Util;
-import com.easylinker.proxy.server.app.vertx.vertxmqtt.client.model.VertXMqttRemoteClient;
-import com.easylinker.proxy.server.app.vertx.vertxmqtt.client.service.VertXMqttRemoteClientService;
+import com.easylinker.proxy.server.app.config.security.user.service.AppUserService;
+import com.easylinker.proxy.server.app.model.MqttRemoteClient;
+import com.easylinker.proxy.server.app.service.MqttRemoteClientService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringRunner;
 
 
@@ -19,13 +14,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest
 public class ApplicationTests {
     @Autowired
-    VertXMqttRemoteClientService vertXMqttRemoteClientService;
+    MqttRemoteClientService MqttRemoteClientService;
     @Autowired
     AppUserService appUserService;
 
     @Test
     public void contextLoads() {
-        VertXMqttRemoteClient vertxMqttRemoteClient = new VertXMqttRemoteClient();
+        MqttRemoteClient vertxMqttRemoteClient = new MqttRemoteClient();
         vertxMqttRemoteClient.setId(System.currentTimeMillis());
         vertxMqttRemoteClient.setClientId("testClientId002");
         vertxMqttRemoteClient.setUsername("username1");
@@ -34,7 +29,7 @@ public class ApplicationTests {
         vertxMqttRemoteClient.setInfo("This is some info");
         vertxMqttRemoteClient.setLocation(new String[]{"120", "200"});
         vertxMqttRemoteClient.setTopics(new String[]{"/1", "/2", "/3"});
-        vertXMqttRemoteClientService.save(vertxMqttRemoteClient);
+        MqttRemoteClientService.save(vertxMqttRemoteClient);
 //        Page<VertXMqttRemoteClient> page = vertXMqttRemoteClientService.getAll(PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "_id")));
 //        for (VertXMqttRemoteClient client : page.getContent()) {
 //            System.out.println(client.toString());

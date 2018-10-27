@@ -1,30 +1,18 @@
 package com.easylinker.proxy.server.app;
 
-import com.easylinker.proxy.server.app.config.quartz.BaseJob;
 import com.easylinker.proxy.server.app.config.quartz.MyJob;
-import com.easylinker.proxy.server.app.vertx.vertxmqtt.MqttServerRunner;
-import com.easylinker.proxy.server.app.vertx.vertxmqtt.VertXMqttServer;
-import io.vertx.core.Verticle;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
-
-import java.util.Base64;
 
 @SpringBootApplication
 public class Main implements CommandLineRunner {
     @Autowired
     @Qualifier("Scheduler")
     Scheduler scheduler;
-
-    @Bean
-    public Verticle runMqttServer() {
-        return MqttServerRunner.run(new VertXMqttServer());
-    }
 
     public static void main(String[] args) {
         SpringApplication.run(Main.class, args);
