@@ -37,7 +37,8 @@ public class EasyLinkerMqttServer extends BrokerService {
             }
         });
 
-        setTransportConnectorURIs(new String[]{"mqtt://localhost:1883"});
+
+        setTransportConnectorURIs(new String[]{"mqtt://0.0.0.0:1883?wireFormat.maxInactivityDuration=30000&amp;wireFormat.maxInactivityDurationInitalDelay=10000"});
 
     }
 
