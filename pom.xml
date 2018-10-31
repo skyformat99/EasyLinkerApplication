@@ -166,10 +166,16 @@
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.apache.activemq/activemq-all -->
+        <!--<dependency>-->
+            <!--<groupId>org.apache.activemq</groupId>-->
+            <!--<artifactId>activemq-all</artifactId>-->
+            <!--<version>5.15.6</version>-->
+        <!--</dependency>-->
+        <!-- https://mvnrepository.com/artifact/org.apache.activemq/activemq-core -->
         <dependency>
             <groupId>org.apache.activemq</groupId>
-            <artifactId>activemq-all</artifactId>
-            <version>5.15.6</version>
+            <artifactId>activemq-core</artifactId>
+            <version>5.7.0</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.fusesource.mqtt-client/mqtt-client -->
@@ -190,6 +196,12 @@
             <groupId>org.fusesource.hawtbuf</groupId>
             <artifactId>hawtbuf</artifactId>
             <version>1.11</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.activemq/artemis-jms-client -->
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>artemis-jms-client</artifactId>
+            <version>2.6.3</version>
         </dependency>
 
     </dependencies>
