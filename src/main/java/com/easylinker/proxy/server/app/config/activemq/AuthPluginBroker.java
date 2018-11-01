@@ -4,12 +4,11 @@ import com.easylinker.proxy.server.app.model.MqttRemoteClient;
 import com.easylinker.proxy.server.app.service.MqttRemoteClientService;
 import org.apache.activemq.broker.Broker;
 import org.apache.activemq.broker.ConnectionContext;
-import org.apache.activemq.command.*;
+import org.apache.activemq.command.ConnectionInfo;
 import org.apache.activemq.security.AbstractAuthenticationBroker;
 import org.apache.activemq.security.SecurityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.security.acl.GroupImpl;
 
 import java.security.Principal;
 import java.security.cert.X509Certificate;
@@ -32,16 +31,30 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
 
     @Override
     public void addConnection(ConnectionContext context, ConnectionInfo info) throws Exception {
-        log.debug("addConnection");
-        SecurityContext securityContext = context.getSecurityContext();
-        if (securityContext == null) {
-            securityContext = authenticate(info.getUserName(), info.getPassword(), null);
-            context.setSecurityContext(securityContext);
-            securityContexts.add(securityContext);
+        System.out.println("addConnection:username:" + info.getUserName() + "_password:" + info.getPassword() + "_" + info.getClientId());
+
+        SecurityContext securityContext = null;
+
+        switch (authType) {
+            case 1:
+                securityContext = authenticateByUsernameAndPassword(info.getUserName(), info.getPassword());
+
+                break;
+            case 2:
+                securityContext = authenticateByClientId(info.getClientId());
+                break;
+            case 3:
+                authAnonymous();
+
+                break;
+            default:
+                break;
         }
 
         try {
-            super.addConnection(context, info);
+            context.setSecurityContext(securityContext);
+            securityContexts.add(securityContext);
+            addConnection(context, info);
         } catch (Exception e) {
             securityContexts.remove(securityContext);
             context.setSecurityContext(null);
@@ -51,60 +64,47 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
 
 
     @Override
-    public SecurityContext authenticate(String username, String password, X509Certificate[] peerCertificates) throws SecurityException {
-        SecurityContext securityContext;
+    public SecurityContext authenticate(String username, String password, X509Certificate[] peerCertificates) {
+        MqttRemoteClient mqttRemoteClient = service.findOneByUsernameAndPassword(username, password);
+
+        return getSecurityContext(username, mqttRemoteClient);
+
+    }
+
+    public SecurityContext authenticateByUsernameAndPassword(String username, String password) {
         MqttRemoteClient mqttRemoteClient = service.findOneByUsernameAndPassword(username, password);
         if (mqttRemoteClient != null) {
-            System.out.println("设备不存在");
-            securityContext = new SecurityContext(username) {
+            System.out.println("设备存在");
+        } else {
+            System.out.println("不存在");
+        }
+
+        return getSecurityContext(username, mqttRemoteClient);
+
+    }
+
+    private SecurityContext authenticateByClientId(String clientId) {
+        MqttRemoteClient mqttRemoteClient = service.findOneByClientId(clientId);
+        return getSecurityContext(clientId, mqttRemoteClient);
+
+    }
+
+    private SecurityContext getSecurityContext(String param, MqttRemoteClient mqttRemoteClient) {
+        if (mqttRemoteClient != null) {
+            return new SecurityContext(param) {
                 @Override
                 public Set<Principal> getPrincipals() {
                     Set<Principal> groups = new HashSet<>();
-                    groups.add(new GroupImpl("clients"));
+                    groups.add(() -> "Clients");
                     return groups;
                 }
 
             };
         } else {
-            throw new SecurityException("验证失败");
-
+            throw new SecurityException("Client auth failure!");
         }
-        switch (authType) {
-            case 1:
-                authByClientId();
-                break;
-            case 2:
-                authByUsernameAndPassword();
-                break;
-            case 3:
-                authAnonymous();
-                break;
-            default:
-                break;
-        }
-
-
-        return securityContext;
     }
 
-    /**
-     * 根据ID认证
-     */
-    private void authByClientId() {
-
-    }
-
-    /**
-     * 用户账号密码认证
-     */
-
-    private void authByUsernameAndPassword() {
-
-    }
-
-    /**
-     * 匿名
-     */
 
     private void authAnonymous() {
 

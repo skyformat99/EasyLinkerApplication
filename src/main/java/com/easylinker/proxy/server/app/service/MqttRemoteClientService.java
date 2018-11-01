@@ -32,9 +32,12 @@ public class MqttRemoteClientService implements BaseService<MqttRemoteClient> {
         return mqttRemoteClientRepository.findAll(pageable);
     }
 
-    public MqttRemoteClient findOneByUsernameAndPassword(String username, String passwords) {
-        return mqttRemoteClientRepository.findTopByUsernameAndPassword(username, passwords);
+    public MqttRemoteClient findOneByUsernameAndPassword(String username, String password) {
+        return mqttRemoteClientRepository.findTopByUsernameAndPassword(username, password);
     }
 
 
+    public MqttRemoteClient findOneByClientId(String clientId) {
+        return mqttRemoteClientRepository.findTopByClientId(clientId);
+    }
 }
