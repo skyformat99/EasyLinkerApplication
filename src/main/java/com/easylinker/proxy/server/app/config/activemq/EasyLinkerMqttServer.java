@@ -5,8 +5,10 @@ import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.broker.TransportConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.validation.Valid;
 import java.net.URI;
 
 /**
@@ -14,6 +16,7 @@ import java.net.URI;
  */
 @Component
 public class EasyLinkerMqttServer extends BrokerService {
+
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public EasyLinkerMqttServer() throws Exception {
@@ -24,7 +27,7 @@ public class EasyLinkerMqttServer extends BrokerService {
 
 
         TransportConnector connector = new TransportConnector();
-        connector.setUri(new URI("tcp://localhost:1883"));
+        connector.setUri(new URI("mqtt://localhost:1883"));
 
         addConnector(connector);
 
@@ -32,14 +35,14 @@ public class EasyLinkerMqttServer extends BrokerService {
 
     }
 
-    public static void main(String[] args) throws Exception {
-        EasyLinkerMqttServer easyLinkerMqttServer = new EasyLinkerMqttServer();
-        try {
-            easyLinkerMqttServer.start();
-        } catch (Exception e) {
-            System.out.println("----------------");
-        }
-    }
+//    public static void main(String[] args) throws Exception {
+//        EasyLinkerMqttServer easyLinkerMqttServer = new EasyLinkerMqttServer();
+//        try {
+//            easyLinkerMqttServer.start();
+//        } catch (Exception e) {
+//            System.out.println("----------------");
+//        }
+//    }
 
 
 }
