@@ -21,6 +21,7 @@ public class QuartzConfig {
 
     /**
      * 配置一个JOB任务工厂
+     *
      * @return
      */
     @Bean
@@ -29,13 +30,12 @@ public class QuartzConfig {
     }
 
 
-
-    @Bean(name="SchedulerFactory")
+    @Bean(name = "SchedulerFactory")
     public SchedulerFactoryBean schedulerFactoryBean() throws IOException {
         SchedulerFactoryBean factory = new SchedulerFactoryBean();
         factory.setAutoStartup(true);
         factory.setQuartzProperties(quartzProperties());
-        factory.setJobFactory(jobFactory() );
+        factory.setJobFactory(jobFactory());
         return factory;
     }
 
@@ -43,7 +43,6 @@ public class QuartzConfig {
     public Properties quartzProperties() throws IOException {
         PropertiesFactoryBean propertiesFactoryBean = new PropertiesFactoryBean();
         propertiesFactoryBean.setLocation(new ClassPathResource("/quartz.properties"));
-        //在quartz.properties中的属性被读取并注入后再初始化对象
         propertiesFactoryBean.afterPropertiesSet();
         return propertiesFactoryBean.getObject();
     }
@@ -59,7 +58,7 @@ public class QuartzConfig {
     /*
      * 通过SchedulerFactoryBean获取Scheduler的实例
      */
-    @Bean(name="Scheduler")
+    @Bean(name = "Scheduler")
     public Scheduler scheduler() throws IOException {
         return schedulerFactoryBean().getScheduler();
     }

@@ -1,54 +1,112 @@
 package com.easylinker.proxy.server.app.config.activemq;
 
+import com.easylinker.proxy.server.app.model.MqttRemoteClient;
+import com.easylinker.proxy.server.app.service.MqttRemoteClientService;
 import org.apache.activemq.broker.Broker;
-import org.apache.activemq.broker.BrokerFilter;
 import org.apache.activemq.broker.ConnectionContext;
-import org.apache.activemq.broker.region.Subscription;
-import org.apache.activemq.command.ConnectionInfo;
-import org.apache.activemq.command.ConsumerInfo;
-import org.apache.activemq.command.SessionInfo;
+import org.apache.activemq.command.*;
+import org.apache.activemq.security.AbstractAuthenticationBroker;
+import org.apache.activemq.security.SecurityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.security.acl.GroupImpl;
 
-class AuthPluginBroker extends BrokerFilter {
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
+import java.security.Principal;
+import java.security.cert.X509Certificate;
+import java.util.HashSet;
+import java.util.Set;
 
-    AuthPluginBroker(Broker next) {
+/**
+ * 认证插件
+ */
+class AuthPluginBroker extends AbstractAuthenticationBroker {
+    private static Logger log = LoggerFactory.getLogger(AuthPluginBroker.class);
+    private MqttRemoteClientService service;
+    private int authType;
+
+    AuthPluginBroker(Broker next, MqttRemoteClientService service, int authType) {
         super(next);
-    }
-
-    @Override
-    public Subscription addConsumer(ConnectionContext context, ConsumerInfo info) throws Exception {
-        logger.info("来自客户端的订阅请求,Topic:" + info.getDestination().getQualifiedName());
-        return super.addConsumer(context, info);
+        this.service = service;
+        this.authType = authType;
     }
 
     @Override
     public void addConnection(ConnectionContext context, ConnectionInfo info) throws Exception {
-        logger.info("addConnection:" + info.getClientId());
+        log.debug("addConnection");
+        SecurityContext securityContext = context.getSecurityContext();
+        if (securityContext == null) {
+            securityContext = authenticate(info.getUserName(), info.getPassword(), null);
+            context.setSecurityContext(securityContext);
+            securityContexts.add(securityContext);
+        }
 
-        super.addConnection(context, info);
+        try {
+            super.addConnection(context, info);
+        } catch (Exception e) {
+            securityContexts.remove(securityContext);
+            context.setSecurityContext(null);
+            throw e;
+        }
     }
+
 
     @Override
-    public void removeConnection(ConnectionContext context, ConnectionInfo info, Throwable error) throws Exception {
+    public SecurityContext authenticate(String username, String password, X509Certificate[] peerCertificates) throws SecurityException {
+        SecurityContext securityContext;
+        MqttRemoteClient mqttRemoteClient = service.findOneByUsernameAndPassword(username, password);
+        if (mqttRemoteClient != null) {
+            System.out.println("设备不存在");
+            securityContext = new SecurityContext(username) {
+                @Override
+                public Set<Principal> getPrincipals() {
+                    Set<Principal> groups = new HashSet<>();
+                    groups.add(new GroupImpl("clients"));
+                    return groups;
+                }
 
-        super.removeConnection(context, info, error);
-        logger.info("removeConnection:" + info.getClientId());
+            };
+        } else {
+            throw new SecurityException("验证失败");
 
+        }
+        switch (authType) {
+            case 1:
+                authByClientId();
+                break;
+            case 2:
+                authByUsernameAndPassword();
+                break;
+            case 3:
+                authAnonymous();
+                break;
+            default:
+                break;
+        }
+
+
+        return securityContext;
+    }
+
+    /**
+     * 根据ID认证
+     */
+    private void authByClientId() {
 
     }
 
-    @Override
-    public void removeSession(ConnectionContext context, SessionInfo info) throws Exception {
-        super.removeSession(context, info);
-        logger.info("removeSession:" + info.toString());
+    /**
+     * 用户账号密码认证
+     */
+
+    private void authByUsernameAndPassword() {
+
     }
 
-    @Override
-    public void removeConsumer(ConnectionContext context, ConsumerInfo info) throws Exception {
-        super.removeConsumer(context, info);
-        logger.info("removeConsumer:" + info.toString());
-    }
+    /**
+     * 匿名
+     */
 
+    private void authAnonymous() {
+
+    }
 }

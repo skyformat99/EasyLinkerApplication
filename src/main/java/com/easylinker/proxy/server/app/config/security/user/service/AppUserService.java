@@ -2,19 +2,19 @@ package com.easylinker.proxy.server.app.config.security.user.service;
 
 import com.easylinker.proxy.server.app.config.security.user.dao.AppUserRepository;
 import com.easylinker.proxy.server.app.config.security.user.model.AppUser;
-import com.easylinker.proxy.server.app.service.BaseServive;
+import com.easylinker.proxy.server.app.service.BaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service(value = "AppUserService")
-public class AppUserService implements BaseServive<AppUser>{
+public class AppUserService implements BaseService<AppUser> {
     @Autowired
     AppUserRepository appUserRepository;
 
 
-    public AppUser getAAppUserWithUsername(String username) {
+    AppUser getAAppUserWithUsername(String username) {
         return appUserRepository.findTopByUsername(username);
     }
 
@@ -33,4 +33,7 @@ public class AppUserService implements BaseServive<AppUser>{
     public Page<AppUser> getAll(Pageable pageable) {
         return appUserRepository.findAll(pageable);
     }
+
+
+
 }

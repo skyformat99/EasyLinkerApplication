@@ -1,29 +1,17 @@
 package com.easylinker.proxy.server.app;
 
-import com.easylinker.proxy.server.app.config.quartz.MyJob;
-import org.quartz.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.quartz.Scheduler;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class Main implements CommandLineRunner {
-    @Autowired
+public class Main {
     @Qualifier("Scheduler")
     Scheduler scheduler;
 
     public static void main(String[] args) {
         SpringApplication.run(Main.class, args);
-
-    }
-
-    @Override
-    public void run(String... args) throws Exception {
-//        MyJob myJob = new MyJob();
-//        myJob.setCronExpression("* * * * * ? *");
-//        addJob(myJob);
 
     }
 
