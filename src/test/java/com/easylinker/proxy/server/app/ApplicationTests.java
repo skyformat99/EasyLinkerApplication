@@ -1,6 +1,7 @@
 package com.easylinker.proxy.server.app;
 
 import com.easylinker.proxy.server.app.config.security.user.service.AppUserService;
+import com.easylinker.proxy.server.app.model.ClientACLEntry;
 import com.easylinker.proxy.server.app.model.MqttRemoteClient;
 import com.easylinker.proxy.server.app.service.MqttRemoteClientService;
 import org.junit.Test;
@@ -28,7 +29,10 @@ public class ApplicationTests {
         mqttRemoteClient.setName("GPS");
         mqttRemoteClient.setInfo("This is some info");
         mqttRemoteClient.setLocation(new String[]{"120", "200"});
-        mqttRemoteClient.setTopics(new String[]{"/1", "/2", "/3"});
+        ClientACLEntry defaultACLEntry = new ClientACLEntry();
+        defaultACLEntry.setTopic("/test");
+        defaultACLEntry.setAcl(2);
+        mqttRemoteClient.setAclEntry(new ClientACLEntry[]{defaultACLEntry});
         MqttRemoteClientService.save(mqttRemoteClient);
 
 

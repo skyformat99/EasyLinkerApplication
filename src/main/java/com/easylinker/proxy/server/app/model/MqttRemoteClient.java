@@ -1,7 +1,5 @@
 package com.easylinker.proxy.server.app.model;
 
-import java.util.Arrays;
-
 /**
  * 持久户化的设备客户端
  * 这个类用来关联状态
@@ -15,13 +13,14 @@ public class MqttRemoteClient extends BaseEntity {
     private String username;
     private String password;
     private String clientId;
-    private String topics[];
     private Boolean onLine = false;
     //下面是一些业务逻辑级别的扩展字段
     private String name;
     private String info;
     private String location[];
 
+    //ACL 描述
+    private ClientACLEntry aclEntry[];
 
     public String getName() {
         return name;
@@ -55,13 +54,6 @@ public class MqttRemoteClient extends BaseEntity {
         this.onLine = onLine;
     }
 
-    public String[] getTopics() {
-        return topics;
-    }
-
-    public void setTopics(String[] topics) {
-        this.topics = topics;
-    }
 
     public String getUsername() {
         return username;
@@ -88,14 +80,22 @@ public class MqttRemoteClient extends BaseEntity {
         this.clientId = clientId;
     }
 
+    public ClientACLEntry[] getAclEntry() {
+
+        return aclEntry;
+    }
+
+    public void setAclEntry(ClientACLEntry aclEntry[]) {
+
+        this.aclEntry = aclEntry;
+    }
+
     @Override
     public String toString() {
-        return this.getId() + "|" +
-                this.getClientId() + "|"
-                + this.getUsername() + "|"
-                + this.getPassword() + "|"
-                + Arrays.deepToString(this.getTopics())
-
-                + "|";
+        return "{" + this.getId() + "," +
+                this.getClientId() + ","
+                + this.getUsername() + ","
+                + this.getPassword() + ","
+                + "}";
     }
 }
