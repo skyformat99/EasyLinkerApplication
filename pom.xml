@@ -6,7 +6,10 @@
     <groupId>com.easylinker.proxy.server.app</groupId>
     <artifactId>EasyLinkerApplication</artifactId>
     <version>3.0.0-A</version>
-    <packaging>jar</packaging>
+    <modules>
+        <module>easylinker-client-service</module>
+    </modules>
+    <packaging>pom</packaging>
 
     <name>EasyLinkerApplication</name>
     <description>EasyLinkerServer</description>
@@ -165,11 +168,29 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.easylinker.proxy.server.app.Main</mainClass>
+                </configuration>
             </plugin>
 
         </plugins>
 
     </build>
+
+
+    <repositories>
+        <repository>
+            <id>aliyun-repos</id>
+            <name>Aliyun Repository</name>
+            <url>http://maven.aliyun.com/nexus/content/groups/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
 
 </project>
