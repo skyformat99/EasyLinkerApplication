@@ -19,7 +19,7 @@ import java.util.Set;
  * 认证插件
  */
 class AuthPluginBroker extends AbstractAuthenticationBroker {
-    private static Logger log = LoggerFactory.getLogger(AuthPluginBroker.class);
+    private static Logger logger = LoggerFactory.getLogger(AuthPluginBroker.class);
     private MqttRemoteClientService service;
     private int authType;
 
@@ -31,30 +31,30 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
 
     @Override
     public void addConnection(ConnectionContext context, ConnectionInfo info) throws Exception {
-        System.out.println("addConnection:username:" + info.getUserName() + "_password:" + info.getPassword() + "_" + info.getClientId());
+        System.out.println("客户端请求连接: " + info.toString());
 
-        SecurityContext securityContext = null;
+        SecurityContext securityContext;
 
         switch (authType) {
             case 1:
                 securityContext = authenticateByUsernameAndPassword(info.getUserName(), info.getPassword());
-
                 break;
             case 2:
                 securityContext = authenticateByClientId(info.getClientId());
                 break;
             case 3:
-                authAnonymous();
+                securityContext = authAnonymous();
 
                 break;
             default:
+                securityContext = null;
                 break;
         }
 
         try {
             context.setSecurityContext(securityContext);
             securityContexts.add(securityContext);
-            addConnection(context, info);
+            super.addConnection(context, info);
         } catch (Exception e) {
             securityContexts.remove(securityContext);
             context.setSecurityContext(null);
@@ -62,28 +62,30 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
         }
     }
 
-
+    /**
+     * 这个是默认的认证方式，
+     * 满足不了我们自己的认证过程所以仅仅实现而已
+     *
+     * @param s
+     * @param s1
+     * @param x509Certificates
+     * @return
+     * @throws SecurityException
+     */
     @Override
-    public SecurityContext authenticate(String username, String password, X509Certificate[] peerCertificates) {
-        MqttRemoteClient mqttRemoteClient = service.findOneByUsernameAndPassword(username, password);
+    public SecurityContext authenticate(String s, String s1, X509Certificate[] x509Certificates) throws SecurityException {
+        return null;
+    }
 
+    private SecurityContext authenticateByUsernameAndPassword(String username, String password) {
+        logger.info("认证方式为:1");
+        MqttRemoteClient mqttRemoteClient = service.findOneByUsernameAndPassword(username, password);
         return getSecurityContext(username, mqttRemoteClient);
 
     }
 
-    public SecurityContext authenticateByUsernameAndPassword(String username, String password) {
-        MqttRemoteClient mqttRemoteClient = service.findOneByUsernameAndPassword(username, password);
-        if (mqttRemoteClient != null) {
-            System.out.println("设备存在");
-        } else {
-            System.out.println("不存在");
-        }
-
-        return getSecurityContext(username, mqttRemoteClient);
-
-    }
-
-    private SecurityContext authenticateByClientId(String clientId) {
+    private SecurityContext authenticateByClientId(String clientId)  throws SecurityException{
+        logger.info("认证方式为:2");
         MqttRemoteClient mqttRemoteClient = service.findOneByClientId(clientId);
         return getSecurityContext(clientId, mqttRemoteClient);
 
@@ -91,6 +93,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
 
     private SecurityContext getSecurityContext(String param, MqttRemoteClient mqttRemoteClient) {
         if (mqttRemoteClient != null) {
+            logger.info("客户端连接授权成功");
             return new SecurityContext(param) {
                 @Override
                 public Set<Principal> getPrincipals() {
@@ -100,13 +103,16 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                 }
 
             };
+
         } else {
             throw new SecurityException("Client auth failure!");
         }
     }
 
 
-    private void authAnonymous() {
+    private SecurityContext authAnonymous() {
+        logger.info("允许匿名连接!");
 
+        return null;
     }
 }

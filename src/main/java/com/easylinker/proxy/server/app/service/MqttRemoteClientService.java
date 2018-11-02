@@ -19,6 +19,7 @@ public class MqttRemoteClientService implements BaseService<MqttRemoteClient> {
 
     @Override
     public void save(MqttRemoteClient mqttRemoteClient) {
+        this.mqttRemoteClientRepository.save(mqttRemoteClient);
 
     }
 
