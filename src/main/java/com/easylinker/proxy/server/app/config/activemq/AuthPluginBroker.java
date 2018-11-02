@@ -66,14 +66,14 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
      * 这个是默认的认证方式，
      * 满足不了我们自己的认证过程所以仅仅实现而已
      *
-     * @param s
-     * @param s1
+     * @param username
+     * @param password
      * @param x509Certificates
      * @return
      * @throws SecurityException
      */
     @Override
-    public SecurityContext authenticate(String s, String s1, X509Certificate[] x509Certificates) throws SecurityException {
+    public SecurityContext authenticate(String username, String password, X509Certificate[] x509Certificates) throws SecurityException {
         return null;
     }
 
