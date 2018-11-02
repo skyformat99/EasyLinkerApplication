@@ -14,6 +14,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+
 @Component
 public class LoginFailureHandler implements AuthenticationFailureHandler {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationFailureHandler.class);
@@ -33,16 +34,11 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
             resultJson.put("message", "登录失败!");
         }
 
-        try {
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            response.getWriter().write(resultJson.toJSONString());
-            response.getWriter().flush();
-        } catch (IOException e1) {
-            logger.error("输出流写入JSON失败!");
-            //logPrinter.log("向输出流写入数据的时候", "写入失败", "HttpResponse");
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(resultJson.toJSONString());
+        response.getWriter().flush();
 
-        }
 
     }
 }
