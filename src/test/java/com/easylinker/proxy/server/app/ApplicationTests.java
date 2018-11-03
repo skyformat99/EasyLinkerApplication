@@ -4,11 +4,17 @@ import com.easylinker.proxy.server.app.config.security.user.service.AppUserServi
 import com.easylinker.proxy.server.app.model.ClientACLEntry;
 import com.easylinker.proxy.server.app.model.MqttRemoteClient;
 import com.easylinker.proxy.server.app.service.MqttRemoteClientService;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.concurrent.TimeUnit;
 
 
 @RunWith(SpringRunner.class)
@@ -18,6 +24,18 @@ public class ApplicationTests {
     MqttRemoteClientService MqttRemoteClientService;
     @Autowired
     AppUserService appUserService;
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    //@Test
+    public void test() throws Exception {
+        stringRedisTemplate.opsForValue().set("name", "wwhai");
+        System.out.println(stringRedisTemplate.opsForValue().get("name"));
+    }
+
 
     @Test
     public void contextLoads() {
@@ -28,10 +46,9 @@ public class ApplicationTests {
         mqttRemoteClient.setPassword("password");
         mqttRemoteClient.setName("GPS");
         mqttRemoteClient.setInfo("This is some info");
-        mqttRemoteClient.setLocation(new String[]{"120", "200"});
+        mqttRemoteClient.setLocation(new String[]{"0", "0"});
         ClientACLEntry defaultACLEntry = new ClientACLEntry();
         defaultACLEntry.setTopic("/test");
-        defaultACLEntry.setAcl(2);
         mqttRemoteClient.setAclEntry(new ClientACLEntry[]{defaultACLEntry});
         MqttRemoteClientService.save(mqttRemoteClient);
 

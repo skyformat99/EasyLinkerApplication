@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -30,14 +32,17 @@ import java.net.URI;
 public class EasyLinkerMqttServer extends BrokerService {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
+
     @Value("${easylinker.mqtt.server.host}")
     String host = "Localhost";
     @Value("${easylinker.mqtt.server.port}")
     int port = 1883;
+    @Value("${easylinker.mqtt.server.auth}")
+    int authType = 1;
 
     @Autowired
-    public EasyLinkerMqttServer(MqttRemoteClientService service) throws Exception {
-        setPlugins(new BrokerPlugin[]{new AuthPluginInstaller(service)});
+    public EasyLinkerMqttServer(MqttRemoteClientService service, StringRedisTemplate stringRedisTemplate, RedisTemplate redisTemplate) throws Exception {
+        setPlugins(new BrokerPlugin[]{new AuthPluginInstaller(service, authType, stringRedisTemplate, redisTemplate)});
         setAdvisorySupport(false);
         setPersistent(false);
         TransportConnector connector = new TransportConnector();

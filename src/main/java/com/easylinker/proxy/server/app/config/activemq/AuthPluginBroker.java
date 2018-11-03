@@ -1,5 +1,7 @@
 package com.easylinker.proxy.server.app.config.activemq;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.easylinker.proxy.server.app.model.ClientACLEntry;
 import com.easylinker.proxy.server.app.model.MqttRemoteClient;
 import com.easylinker.proxy.server.app.service.MqttRemoteClientService;
@@ -14,6 +16,8 @@ import org.apache.activemq.security.AbstractAuthenticationBroker;
 import org.apache.activemq.security.SecurityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.security.Principal;
 import java.security.cert.X509Certificate;
@@ -27,14 +31,21 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
     private static Logger logger = LoggerFactory.getLogger(AuthPluginBroker.class);
     private MqttRemoteClientService service;
     private int authType;
-    private static final int SUB_PERMISSION = 0x01;
-    private static final int PUB_PERMISSION = 0x10;
-    private static final int PUB_AND_SUB_PERMISSION = 0x11;
+    private static final int SUB_PERMISSION = 1;
+    private static final int PUB_PERMISSION = 2;
+    private static final int PUB_AND_SUB_PERMISSION = 3;
 
-    AuthPluginBroker(Broker next, MqttRemoteClientService service, int authType) {
+    private StringRedisTemplate stringRedisTemplate;
+
+
+    private RedisTemplate redisTemplate;
+
+    AuthPluginBroker(Broker next, MqttRemoteClientService service, int authType, StringRedisTemplate stringRedisTemplate, RedisTemplate redisTemplate) {
         super(next);
         this.service = service;
         this.authType = authType;
+        this.stringRedisTemplate = stringRedisTemplate;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -119,7 +130,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
      *
      * @param param
      * @param mqttRemoteClient
-     * @return
+     * @return {
      */
 
     private SecurityContext getSecurityContext(String param, MqttRemoteClient mqttRemoteClient) {
@@ -127,6 +138,25 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
             logger.info("客户端连接授权成功");
             mqttRemoteClient.setOnLine(true);
             service.save(mqttRemoteClient);
+
+            try {
+                switch (authType) {
+                    case 1://username 认证
+                        cacheClientInfo(mqttRemoteClient.getUsername(), clientInfoToCacheJson(mqttRemoteClient));
+                        break;
+                    case 2://clientId认证
+                        cacheClientInfo(mqttRemoteClient.getClientId(), clientInfoToCacheJson(mqttRemoteClient));
+                        break;
+                    default:
+                        break;
+                }
+
+
+            } catch (Exception e) {
+                System.out.println("Redis 缓存出错");
+                e.printStackTrace();
+                //e.printStackTrace();
+            }
             //至此数据库显示上线成功
             return new SecurityContext(param) {
                 @Override
@@ -214,14 +244,11 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
 
         String toTopic = replaceWildcardCharacter(messageSend.getDestination().getPhysicalName());
         String username = producerExchange.getConnectionContext().getConnectionState().getInfo().getUserName();
-        String password = producerExchange.getConnectionContext().getConnectionState().getInfo().getPassword();
         String clientId = producerExchange.getConnectionContext().getConnectionState().getInfo().getClientId();
-        MqttRemoteClient mqttRemoteClient;
         switch (authType) {
             case 1://username 认证
-                mqttRemoteClient = service.findOneByUsernameAndPassword(username, password);
 
-                if (checkPubSubAcl(mqttRemoteClient, toTopic)) {
+                if (checkPubSubAcl(getCachedClientInfo(username), toTopic)) {
                     System.out.println("通过审核");
                     super.send(producerExchange, messageSend);
                 } else {
@@ -229,21 +256,52 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                 }
                 break;
             case 2://clientId认证
-                mqttRemoteClient = service.findOneByClientId(clientId);
-                if (checkPubSubAcl(mqttRemoteClient, toTopic)) {
+                if (checkPubSubAcl(getCachedClientInfo(clientId), toTopic)) {
                     System.out.println("通过审核");
                     super.send(producerExchange, messageSend);
                 } else {
                     throw new SecurityException("ACL拒绝:[" + toTopic + "]因为该Topic不在ACL允许的范围之内!");
                 }
+
                 break;
             case 3://匿名模式
                 authAnonymous();
-                //throw new SecurityException("匿名模式:" + toTopic);
+                super.send(producerExchange, messageSend);
                 break;
             default:
                 break;
         }
+
+
+//
+//        MqttRemoteClient mqttRemoteClient;
+//        switch (authType) {
+//            case 1://username 认证
+//                mqttRemoteClient = service.findOneByUsernameAndPassword(username, password);
+//
+//                if (checkPubSubAcl(mqttRemoteClient, toTopic)) {
+//                    System.out.println("通过审核");
+//                    super.send(producerExchange, messageSend);
+//                } else {
+//                    throw new SecurityException("ACL拒绝:[" + toTopic + "]因为该Topic不在ACL允许的范围之内!");
+//                }
+//                break;
+//            case 2://clientId认证
+//                mqttRemoteClient = service.findOneByClientId(clientId);
+//                if (checkPubSubAcl(mqttRemoteClient, toTopic)) {
+//                    System.out.println("通过审核");
+//                    super.send(producerExchange, messageSend);
+//                } else {
+//                    throw new SecurityException("ACL拒绝:[" + toTopic + "]因为该Topic不在ACL允许的范围之内!");
+//                }
+//                break;
+//            case 3://匿名模式
+//                authAnonymous();
+//                //throw new SecurityException("匿名模式:" + toTopic);
+//                break;
+//            default:
+//                break;
+//        }
         //每次到这里多要查库  判断这个Topic的 ACL
 
 
@@ -299,7 +357,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                     if (toTopic.equals(aClientACLEntry.getTopic())) {
                         int acl = aClientACLEntry.getAcl();
                         System.out.println("toTopic:" + toTopic + "|Acl:" + acl);
-                        if ((acl == 1) || (acl == 3)) {
+                        if ((acl == PUB_PERMISSION) || (acl == PUB_AND_SUB_PERMISSION)) {
                             return true;
                         }
                     }
@@ -310,6 +368,41 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
         return false;
     }
 
+    /**
+     * 重写的ACL鉴权方法
+     * 这个是针对Redis的
+     *
+     * @param jsonObject
+     * @param toTopic
+     * @return
+     */
+
+    private boolean checkPubSubAcl(JSONObject jsonObject, String toTopic) {
+//    {
+//        "acls": [
+//        {
+//            "topic": "/test",
+//                "acl": 1,
+//                "group": [
+//            "DEFAULT_GROUP"
+//            ]
+//        }
+//    ],
+//        "clientKey": "username"
+//    }
+
+        JSONArray aclsArray = jsonObject.getJSONArray("acls");
+        for (Object o : aclsArray) {
+            if (toTopic.equals(((JSONObject) o).getString("topic"))) {
+                int acl = ((JSONObject) o).getInteger("acl");
+                System.out.println("toTopic:" + toTopic + "|Acl:" + acl);
+                if ((acl == PUB_PERMISSION) || (acl == PUB_AND_SUB_PERMISSION)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     @Override
     public void removeConnection(ConnectionContext context, ConnectionInfo info, Throwable error) throws Exception {
@@ -324,6 +417,9 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                     mqttRemoteClient.setOnLine(false);
                     service.save(mqttRemoteClient);
                 }
+                System.out.println("客户端断开连接:" + info.toString());
+                super.removeConnection(context, info, error);
+                deleteCacheClientInfo(mqttRemoteClient.getUsername());
 
                 break;
             case 2://clientId认证
@@ -332,14 +428,102 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                     mqttRemoteClient.setOnLine(false);
                     service.save(mqttRemoteClient);
                 }
+                System.out.println("客户端断开连接:" + info.toString());
+                super.removeConnection(context, info, error);
+
+                deleteCacheClientInfo(mqttRemoteClient.getClientId());
+
                 break;
             case 3://匿名模式
                 authAnonymous();
+                super.removeConnection(context, info, error);
                 break;
             default:
+                System.out.println("客户端断开连接:" + info.toString());
+                super.removeConnection(context, info, error);
                 break;
         }
-        System.out.println("客户端断开连接:" + info.toString());
-        super.removeConnection(context, info, error);
+
     }
+
+    /**
+     * 使用redis缓存连接信息
+     *
+     * @param param
+     * @throws Exception 缓存进去的数据格式
+     *                   clientID: topic,acl,group
+     */
+
+    private void cacheClientInfo(String param, JSONObject clientInfo) {
+        stringRedisTemplate.opsForValue().set(param, clientInfo.toJSONString());
+    }
+
+    /**
+     * 删除redis缓存
+     *
+     * @param clientKey
+     */
+    private void deleteCacheClientInfo(String clientKey) {
+        stringRedisTemplate.delete(clientKey);
+    }
+
+    /**
+     * 获取Redis缓存的Info
+     *
+     * @param clientKey
+     * @return
+     * @throws Exception
+     */
+    private JSONObject getCachedClientInfo(String clientKey) throws Exception {
+
+        return (JSONObject) JSONObject.parse(stringRedisTemplate.opsForValue().get(clientKey));
+
+    }
+
+
+    /**
+     * 转化成redis可以存储的JSON格式
+     *
+     * @param mqttRemoteClient
+     * @return
+     */
+    private JSONObject clientInfoToCacheJson(MqttRemoteClient mqttRemoteClient) {
+        JSONObject returnJson = new JSONObject();
+        JSONArray aclArrays = new JSONArray();
+        switch (authType) {
+            case 1://username
+                returnJson.put("clientKey", mqttRemoteClient.getUsername());
+                clientACLEntryToJson(mqttRemoteClient, aclArrays);
+                returnJson.put("acls", aclArrays);
+                return returnJson;
+
+            case 2://ClientID
+                returnJson.put("clientKey", mqttRemoteClient.getClientId());
+                clientACLEntryToJson(mqttRemoteClient, aclArrays);
+                returnJson.put("acls", aclArrays);
+                return returnJson;
+
+            default:
+                return returnJson;
+        }
+
+    }
+
+    /**
+     * ACL 描述转换成JSON便于查询
+     *
+     * @param mqttRemoteClient
+     * @param aclArrays
+     */
+    private void clientACLEntryToJson(MqttRemoteClient mqttRemoteClient, JSONArray aclArrays) {
+        for (ClientACLEntry clientACLEntry : mqttRemoteClient.getAclEntry()) {
+            JSONObject clientACLEntryJson = new JSONObject();
+            clientACLEntryJson.put("topic", clientACLEntry.getTopic());
+            clientACLEntryJson.put("acl", clientACLEntry.getAcl());
+            clientACLEntryJson.put("group", clientACLEntry.getGroup());
+            aclArrays.add(clientACLEntryJson);
+
+        }
+    }
+
 }

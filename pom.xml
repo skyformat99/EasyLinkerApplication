@@ -6,10 +6,10 @@
     <groupId>com.easylinker.proxy.server.app</groupId>
     <artifactId>EasyLinkerApplication</artifactId>
     <version>3.0.0-A</version>
-    <modules>
-        <module>easylinker-client-service</module>
-    </modules>
-    <packaging>pom</packaging>
+    <!--<modules>-->
+        <!--<module>easylinker-client-service</module>-->
+    <!--</modules>-->
+    <packaging>jar</packaging>
 
     <name>EasyLinkerApplication</name>
     <description>EasyLinkerServer</description>
@@ -100,6 +100,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>2.7.3</version>
         </dependency>
 
 
