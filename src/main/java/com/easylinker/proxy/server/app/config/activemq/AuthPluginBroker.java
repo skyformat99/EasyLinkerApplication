@@ -31,8 +31,9 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
     private static Logger logger = LoggerFactory.getLogger(AuthPluginBroker.class);
     private MqttRemoteClientService service;
     private int authType;
-    private static final int SUB_PERMISSION = 1;
-    private static final int PUB_PERMISSION = 2;
+
+    private static final int PUB_PERMISSION = 1;
+    private static final int SUB_PERMISSION = 2;
     private static final int PUB_AND_SUB_PERMISSION = 3;
 
     private StringRedisTemplate stringRedisTemplate;
@@ -240,8 +241,6 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
     @Override
     //思路:根据发送的消息的topic的ACL值来判断是否有发送权限，如果是1 sub 则不允许发送
     public void send(ProducerBrokerExchange producerExchange, Message messageSend) throws Exception {
-        System.out.println("测试拦截器,消息内容:" + producerExchange.getConnectionContext().getConnectionState().getInfo().getUserName());
-
         String toTopic = replaceWildcardCharacter(messageSend.getDestination().getPhysicalName());
         String username = producerExchange.getConnectionContext().getConnectionState().getInfo().getUserName();
         String clientId = producerExchange.getConnectionContext().getConnectionState().getInfo().getClientId();
@@ -249,7 +248,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
             case 1://username 认证
 
                 if (checkPubSubAcl(getCachedClientInfo(username), toTopic)) {
-                    System.out.println("通过审核");
+                    //System.out.println("通过审核");
                     super.send(producerExchange, messageSend);
                 } else {
                     throw new SecurityException("ACL拒绝:[" + toTopic + "]因为该Topic不在ACL允许的范围之内!");
@@ -257,7 +256,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                 break;
             case 2://clientId认证
                 if (checkPubSubAcl(getCachedClientInfo(clientId), toTopic)) {
-                    System.out.println("通过审核");
+                    //System.out.println("通过审核");
                     super.send(producerExchange, messageSend);
                 } else {
                     throw new SecurityException("ACL拒绝:[" + toTopic + "]因为该Topic不在ACL允许的范围之内!");
@@ -272,36 +271,6 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                 break;
         }
 
-
-//
-//        MqttRemoteClient mqttRemoteClient;
-//        switch (authType) {
-//            case 1://username 认证
-//                mqttRemoteClient = service.findOneByUsernameAndPassword(username, password);
-//
-//                if (checkPubSubAcl(mqttRemoteClient, toTopic)) {
-//                    System.out.println("通过审核");
-//                    super.send(producerExchange, messageSend);
-//                } else {
-//                    throw new SecurityException("ACL拒绝:[" + toTopic + "]因为该Topic不在ACL允许的范围之内!");
-//                }
-//                break;
-//            case 2://clientId认证
-//                mqttRemoteClient = service.findOneByClientId(clientId);
-//                if (checkPubSubAcl(mqttRemoteClient, toTopic)) {
-//                    System.out.println("通过审核");
-//                    super.send(producerExchange, messageSend);
-//                } else {
-//                    throw new SecurityException("ACL拒绝:[" + toTopic + "]因为该Topic不在ACL允许的范围之内!");
-//                }
-//                break;
-//            case 3://匿名模式
-//                authAnonymous();
-//                //throw new SecurityException("匿名模式:" + toTopic);
-//                break;
-//            default:
-//                break;
-//        }
         //每次到这里多要查库  判断这个Topic的 ACL
 
 
@@ -345,32 +314,18 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
      * 1:sub
      * 2:pub
      * 3:sub&pub
-     *
-     * @return
-     */
-    private boolean checkPubSubAcl(MqttRemoteClient mqttRemoteClient, String toTopic) {
-        if (mqttRemoteClient != null) {
-            ClientACLEntry clientACLEntries[] = mqttRemoteClient.getAclEntry();
-            //遍历数据库里面的ACL权限
-            if (clientACLEntries.length > 0) {
-                for (ClientACLEntry aClientACLEntry : clientACLEntries) {
-                    if (toTopic.equals(aClientACLEntry.getTopic())) {
-                        int acl = aClientACLEntry.getAcl();
-                        System.out.println("toTopic:" + toTopic + "|Acl:" + acl);
-                        if ((acl == PUB_PERMISSION) || (acl == PUB_AND_SUB_PERMISSION)) {
-                            return true;
-                        }
-                    }
-                }
-            }
-
-        }
-        return false;
-    }
-
-    /**
-     * 重写的ACL鉴权方法
-     * 这个是针对Redis的
+     * //    {
+     * //        "acls": [
+     * //        {
+     * //            "topic": "/test",
+     * //                "acl": 1,
+     * //                "group": [
+     * //            "DEFAULT_GROUP"
+     * //            ]
+     * //        }
+     * //    ],
+     * //        "clientKey": "username"
+     * //    }
      *
      * @param jsonObject
      * @param toTopic
@@ -378,24 +333,13 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
      */
 
     private boolean checkPubSubAcl(JSONObject jsonObject, String toTopic) {
-//    {
-//        "acls": [
-//        {
-//            "topic": "/test",
-//                "acl": 1,
-//                "group": [
-//            "DEFAULT_GROUP"
-//            ]
-//        }
-//    ],
-//        "clientKey": "username"
-//    }
 
-        JSONArray aclsArray = jsonObject.getJSONArray("acls");
-        for (Object o : aclsArray) {
+
+        for (Object o : jsonObject.getJSONArray("acls")) {
             if (toTopic.equals(((JSONObject) o).getString("topic"))) {
-                int acl = ((JSONObject) o).getInteger("acl");
-                System.out.println("toTopic:" + toTopic + "|Acl:" + acl);
+                int acl = ((JSONObject) o).getIntValue("acl");
+                //System.out.println("toTopic:[" + toTopic + "]Acl:[" + acl + "]");
+                //ystem.out.println((acl == PUB_PERMISSION) || (acl == PUB_AND_SUB_PERMISSION));
                 if ((acl == PUB_PERMISSION) || (acl == PUB_AND_SUB_PERMISSION)) {
                     return true;
                 }
@@ -406,6 +350,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
 
     @Override
     public void removeConnection(ConnectionContext context, ConnectionInfo info, Throwable error) throws Exception {
+        System.out.println("客户端断开连接:-------" + info.toString());
         String username = info.getUserName();
         String password = info.getPassword();
         String clientId = info.getClientId();
@@ -417,7 +362,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                     mqttRemoteClient.setOnLine(false);
                     service.save(mqttRemoteClient);
                 }
-                System.out.println("客户端断开连接:" + info.toString());
+                //System.out.println("客户端断开连接:" + info.toString());
                 super.removeConnection(context, info, error);
                 deleteCacheClientInfo(mqttRemoteClient.getUsername());
 
@@ -428,7 +373,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                     mqttRemoteClient.setOnLine(false);
                     service.save(mqttRemoteClient);
                 }
-                System.out.println("客户端断开连接:" + info.toString());
+                //System.out.println("客户端断开连接:" + info.toString());
                 super.removeConnection(context, info, error);
 
                 deleteCacheClientInfo(mqttRemoteClient.getClientId());
@@ -439,7 +384,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                 super.removeConnection(context, info, error);
                 break;
             default:
-                System.out.println("客户端断开连接:" + info.toString());
+                //System.out.println("客户端断开连接:" + info.toString());
                 super.removeConnection(context, info, error);
                 break;
         }
