@@ -20,7 +20,7 @@
             <scope>compile</scope>
         </dependency>
     </dependencies>
-    <artifactId>schedule-service</artifactId>
+    <artifactId>easylinker-schedule-service</artifactId>
 
 
 </project>
