@@ -7,7 +7,6 @@ import org.apache.activemq.broker.TransportConnector;
 import org.apache.activemq.util.IOExceptionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -32,16 +31,24 @@ import java.net.URI;
 public class EasyLinkerMqttServer extends BrokerService {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
+//
+//    @Value("${easylinker.mqtt.server.host}")
+//    String host = "Localhost";
+//    @Value("${easylinker.mqtt.server.port}")
+//    int port = 1883;
+//    @Value("${easylinker.mqtt.server.auth}")
+//    int authType = 1;
 
-    @Value("${easylinker.mqtt.server.host}")
-    String host = "Localhost";
-    @Value("${easylinker.mqtt.server.port}")
-    int port = 1883;
-    @Value("${easylinker.mqtt.server.auth}")
-    int authType = 1;
-
-    @Autowired
-    public EasyLinkerMqttServer(MqttRemoteClientService service, StringRedisTemplate stringRedisTemplate, RedisTemplate redisTemplate) throws Exception {
+    public EasyLinkerMqttServer(@Value("${easylinker.mqtt.server.host}")
+                                        String host,
+                                @Value("${easylinker.mqtt.server.port}")
+                                        int port,
+                                @Value("${easylinker.mqtt.server.auth}")
+                                        int authType,
+                                MqttRemoteClientService service,
+                                StringRedisTemplate stringRedisTemplate,
+                                RedisTemplate redisTemplate
+    ) throws Exception {
         setPlugins(new BrokerPlugin[]{new AuthPluginInstaller(service, authType, stringRedisTemplate, redisTemplate)});
         setAdvisorySupport(false);
         setPersistent(false);
