@@ -24,8 +24,6 @@ public class CustomUsernamePasswordFilter extends UsernamePasswordAuthentication
 
     private static final String DEFAULT_LOGIN_URL = "/userLogin";
     private static final String DEFAULT_LOGIN_METHOD = "POST";
-    private Log logger = LogFactory.getLog(CustomUsernamePasswordFilter.class);
-    private LoginParameterCatcher loginParameterCatcher = null;
 
 
     public CustomUsernamePasswordFilter() {
@@ -38,13 +36,13 @@ public class CustomUsernamePasswordFilter extends UsernamePasswordAuthentication
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) {
 
         setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher(DEFAULT_LOGIN_URL, DEFAULT_LOGIN_METHOD));
-        loginParameterCatcher = new LoginParameterCatcher(request);
+        LoginParameterCatcher loginParameterCatcher = new LoginParameterCatcher(request);
 
         String loginParam = loginParameterCatcher.getloginParam();
         String password = loginParameterCatcher.getPassword();
 
 
-        Authentication authentication = null;
+        Authentication authentication;
 
         if (!request.getMethod().equals("POST")) {
             throw new AuthenticationServiceException("Only support http post method!");

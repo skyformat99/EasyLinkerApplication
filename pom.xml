@@ -19,6 +19,7 @@
         <module>easylinker-dependencies</module>
         <module>easylinker-proxy-service</module>
         <module>easylinker-client-service</module>
+        <module>schedule-service</module>
     </modules>
 
 
