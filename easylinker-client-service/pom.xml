@@ -1,28 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
-    <!-- 依赖父级项目 com.easylinker.proxy.server.app -->
     <parent>
-        <artifactId>EasyLinkerApplication</artifactId>
-        <groupId>com.easylinker.proxy.server.app</groupId>
+        <groupId>com.easylinker.application</groupId>
+        <artifactId>easylinker-dependencies</artifactId>
         <version>3.0.0-A</version>
-        <relativePath>../pom.xml</relativePath>
+        <relativePath>../easylinker-dependencies/pom.xml</relativePath>
     </parent>
 
     <artifactId>easylinker-client-service</artifactId>
     <packaging>jar</packaging>
 
     <name>easylinker-client-service</name>
+    <description>客户端</description>
 
     <dependencies>
 
     </dependencies>
-
-    <build>
-
-    </build>
 
 </project>
