@@ -11,8 +11,6 @@
 
     <artifactId>easylinker-client-service</artifactId>
     <packaging>jar</packaging>
-
-    <name>easylinker-client-service</name>
     <description>客户端</description>
 
     <dependencies>
