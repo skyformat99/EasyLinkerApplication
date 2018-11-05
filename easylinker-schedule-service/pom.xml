@@ -12,7 +12,7 @@
     </parent>
 
     <artifactId>easylinker-schedule-service</artifactId>
-    <packaging>jar</packaging>
+    
     <description>时间调度</description>
 
     <dependencies>
