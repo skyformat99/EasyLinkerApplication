@@ -1,5 +1,6 @@
 package com.easylinker.proxy.server.app;
 
+import com.easylinker.proxy.server.app.config.security.user.model.AppUser;
 import com.easylinker.proxy.server.app.config.security.user.service.AppUserService;
 import com.easylinker.proxy.server.app.model.ClientACLEntry;
 import com.easylinker.proxy.server.app.model.MqttRemoteClient;
@@ -33,7 +34,7 @@ public class ApplicationTests {
     }
 
 
-    @Test
+    //@Test
     public void contextLoads() {
         MqttRemoteClient mqttRemoteClient = new MqttRemoteClient();
         mqttRemoteClient.setId(System.currentTimeMillis());
@@ -49,6 +50,13 @@ public class ApplicationTests {
         MqttRemoteClientService.save(mqttRemoteClient);
 
 
+    }
+    @Test
+    public  void addTestUser(){
+        AppUser appUser=new AppUser();
+        appUser.setUsername("username");
+        appUser.setPassword("14c4b06b824ec593239362517f538b29");
+        appUserService.save(appUser);
     }
 
 
