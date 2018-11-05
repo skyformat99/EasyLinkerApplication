@@ -1,7 +1,5 @@
 package com.easylinker.proxy.server.app;
 
-import org.quartz.Scheduler;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
