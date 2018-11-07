@@ -2,8 +2,8 @@ package com.easylinker.proxy.server.app;
 
 import com.easylinker.proxy.server.app.config.security.user.model.AppUser;
 import com.easylinker.proxy.server.app.config.security.user.service.AppUserService;
-import com.easylinker.proxy.server.app.model.ClientACLEntry;
-import com.easylinker.proxy.server.app.model.MqttRemoteClient;
+import com.easylinker.proxy.server.app.model.mqtt.ClientACLEntry;
+import com.easylinker.proxy.server.app.model.mqtt.MqttRemoteClient;
 import com.easylinker.proxy.server.app.service.MqttRemoteClientService;
 import org.junit.Test;
 import org.junit.runner.RunWith;

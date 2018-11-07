@@ -2,6 +2,7 @@ package com.easylinker.proxy.server.app.config.security.handler;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.easylinker.proxy.server.app.config.jwt.JwtHelper;
 import com.easylinker.proxy.server.app.config.security.user.model.AppUser;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -32,11 +33,15 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         jsonObject.put("phone", appUser.getPhone());
         jsonObject.put("username", appUser.getUsername());
         returnJson.put("state", 1);
+
+        returnJson.put("token", JwtHelper.generateToken(appUser.getId()));
         returnJson.put("data", jsonObject);
         returnJson.put("message", "登陆成功!");
         httpServletResponse.setContentType("application/json");
         httpServletResponse.setCharacterEncoding("UTF-8");
         httpServletResponse.getWriter().write(returnJson.toJSONString());
         httpServletResponse.getWriter().flush();
+
+
     }
 }

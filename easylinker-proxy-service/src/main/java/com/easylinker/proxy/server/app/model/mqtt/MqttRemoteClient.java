@@ -1,4 +1,6 @@
-package com.easylinker.proxy.server.app.model;
+package com.easylinker.proxy.server.app.model.mqtt;
+
+import com.easylinker.proxy.server.app.model.BaseEntity;
 
 /**
  * 持久户化的设备客户端

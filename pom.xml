@@ -10,6 +10,12 @@
             <version>RELEASE</version>
             <scope>test</scope>
         </dependency>
+        <!--spring session 与redis应用基本环境配置,需要开启redis后才可以使用，不然启动Spring boot会报错 -->
+        <dependency>
+            <groupId>org.springframework.session</groupId>
+            <artifactId>spring-session-data-redis</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -67,6 +73,7 @@
         <module>easylinker-client-service</module>
         <module>easylinker-schedule-service</module>
         <module>easylinker-3rdparty-service</module>
+        <module>easylinker-api-service</module>
     </modules>
 
 

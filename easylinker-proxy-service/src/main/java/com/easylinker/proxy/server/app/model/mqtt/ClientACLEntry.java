@@ -1,4 +1,6 @@
-package com.easylinker.proxy.server.app.model;
+package com.easylinker.proxy.server.app.model.mqtt;
+
+import com.easylinker.proxy.server.app.model.BaseEntity;
 
 /**
  * 客户端ACL描述类

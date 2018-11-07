@@ -2,8 +2,8 @@ package com.easylinker.proxy.server.app.config.activemq;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.easylinker.proxy.server.app.model.ClientACLEntry;
-import com.easylinker.proxy.server.app.model.MqttRemoteClient;
+import com.easylinker.proxy.server.app.model.mqtt.ClientACLEntry;
+import com.easylinker.proxy.server.app.model.mqtt.MqttRemoteClient;
 import com.easylinker.proxy.server.app.service.MqttRemoteClientService;
 import org.apache.activemq.broker.Broker;
 import org.apache.activemq.broker.ConnectionContext;
