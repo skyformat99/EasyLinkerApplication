@@ -27,6 +27,6 @@ public class AuthPluginInstaller implements BrokerPlugin {
 
     @Override
     public Broker installPlugin(Broker broker) {
-        return new AuthPluginBroker(broker, service, authType, stringRedisTemplate, redisTemplate);
+        return new AuthPluginBroker(broker, service, authType, stringRedisTemplate);
     }
 }

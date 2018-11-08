@@ -338,9 +338,8 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
             if (toTopic.equals(((JSONObject) o).getString("topic"))) {
                 int acl = ((JSONObject) o).getInteger("acl");
                 System.out.println("toTopic:" + toTopic + "|Acl:" + acl);
-                if ((acl == PUB_PERMISSION) || (acl == PUB_AND_SUB_PERMISSION)) {
-                    return true;
-                }
+                if ((acl == PUB_PERMISSION) || (acl == PUB_AND_SUB_PERMISSION)) return true;
+                if (acl == SUB_PERMISSION) return false;
             }
         }
         return false;

@@ -48,7 +48,7 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(WebSecurity web) {
         web.ignoring().mvcMatchers(
-
+                "/static/**",
                 "/css/**",
                 "/avatar/**",//头像
                 "/js/**");//css路径放行
