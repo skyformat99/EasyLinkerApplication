@@ -73,7 +73,6 @@
         <module>easylinker-client-service</module>
         <module>easylinker-schedule-service</module>
         <module>easylinker-3rdparty-service</module>
-        <module>easylinker-api-service</module>
     </modules>
 
 

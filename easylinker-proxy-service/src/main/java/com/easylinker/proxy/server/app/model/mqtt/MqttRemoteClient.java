@@ -2,6 +2,8 @@ package com.easylinker.proxy.server.app.model.mqtt;
 
 import com.easylinker.proxy.server.app.model.BaseEntity;
 
+import java.util.UUID;
+
 /**
  * 持久户化的设备客户端
  * 这个类用来关联状态
@@ -12,13 +14,13 @@ public class MqttRemoteClient extends BaseEntity {
     //MQTT 协议本身支持的鉴权：username password
     //本设计为了实现统计在线效果，扩展了一个是否在线标记
     //同时增加了ACL属性
-    private String username;
-    private String password;
+    private String username= UUID.randomUUID().toString();
+    private String password= UUID.randomUUID().toString();
     private String clientId;
     private Boolean onLine = false;
     //下面是一些业务逻辑级别的扩展字段
-    private String name;
-    private String info;
+    private String name= UUID.randomUUID().toString().substring(0,10);
+    private String info="Nothing";
     private String location[];
 
     //ACL 描述

@@ -108,6 +108,11 @@
                 <artifactId>hawtbuf</artifactId>
                 <version>${fusesource-hawtbuf.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.baidubce</groupId>
+                <artifactId>bce-java-sdk</artifactId>
+               <version>0.10.40</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

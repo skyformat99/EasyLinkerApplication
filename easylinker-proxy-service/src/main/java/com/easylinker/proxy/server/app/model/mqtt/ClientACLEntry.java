@@ -11,9 +11,9 @@ import com.easylinker.proxy.server.app.model.BaseEntity;
  * 3:sub&pub
  */
 public class ClientACLEntry extends BaseEntity {
-    private String topic;
-    private int acl=1;
-    private String group[]=new String[]{"DEFAULT_GROUP"};
+    private String topic = "NO";
+    private int acl = 1;
+    private String group[] = new String[]{"DEFAULT_GROUP"};
 
     public String[] getGroup() {
         return group;

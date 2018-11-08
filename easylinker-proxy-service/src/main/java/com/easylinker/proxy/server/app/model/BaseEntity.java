@@ -2,7 +2,9 @@ package com.easylinker.proxy.server.app.model;
 
 import org.springframework.data.annotation.Id;
 
-public class BaseEntity {
+import java.io.Serializable;
+
+public class BaseEntity implements Serializable {
     @Id
     private Long id = System.currentTimeMillis() + (long) (Math.random() * 100000L);
 
