@@ -16,7 +16,6 @@ import org.apache.activemq.security.AbstractAuthenticationBroker;
 import org.apache.activemq.security.SecurityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.security.Principal;
@@ -26,6 +25,9 @@ import java.util.Set;
 
 /**
  * 认证插件
+ * 插件开发看这个帖子
+ * https://www.cnblogs.com/huangzhex/p/6339761.html
+ * 官网文档:http://activemq.apache.org/developing-plugins.html
  */
 class AuthPluginBroker extends AbstractAuthenticationBroker {
     private static Logger logger = LoggerFactory.getLogger(AuthPluginBroker.class);
@@ -34,18 +36,13 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
     private static final int SUB_PERMISSION = 1;
     private static final int PUB_PERMISSION = 2;
     private static final int PUB_AND_SUB_PERMISSION = 3;
-
     private StringRedisTemplate stringRedisTemplate;
 
-
-    private RedisTemplate redisTemplate;
-
-    AuthPluginBroker(Broker next, MqttRemoteClientService service, int authType, StringRedisTemplate stringRedisTemplate, RedisTemplate redisTemplate) {
+    AuthPluginBroker(Broker next, MqttRemoteClientService service, int authType, StringRedisTemplate stringRedisTemplate) {
         super(next);
         this.service = service;
         this.authType = authType;
         this.stringRedisTemplate = stringRedisTemplate;
-        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -239,8 +236,9 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
 
     @Override
     //思路:根据发送的消息的topic的ACL值来判断是否有发送权限，如果是1 sub 则不允许发送
-    public void send(ProducerBrokerExchange producerExchange, Message messageSend) throws Exception {
-        System.out.println("测试拦截器,消息内容:" + producerExchange.getConnectionContext().getConnectionState().getInfo().getUserName());
+    public void send(ProducerBrokerExchange producerExchange,
+                     Message messageSend) throws Exception {
+        System.out.println("拦截的消息内容:" + new String(messageSend.getContent().getData()).trim());
 
         String toTopic = replaceWildcardCharacter(messageSend.getDestination().getPhysicalName());
         String username = producerExchange.getConnectionContext().getConnectionState().getInfo().getUserName();
@@ -249,7 +247,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
             case 1://username 认证
 
                 if (checkPubSubAcl(getCachedClientInfo(username), toTopic)) {
-                    System.out.println("通过审核");
+                    System.out.println("通过ACL审核");
                     super.send(producerExchange, messageSend);
                 } else {
                     throw new SecurityException("ACL拒绝:[" + toTopic + "]因为该Topic不在ACL允许的范围之内!");
@@ -257,7 +255,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                 break;
             case 2://clientId认证
                 if (checkPubSubAcl(getCachedClientInfo(clientId), toTopic)) {
-                    System.out.println("通过审核");
+                    System.out.println("通过ACL审核");
                     super.send(producerExchange, messageSend);
                 } else {
                     throw new SecurityException("ACL拒绝:[" + toTopic + "]因为该Topic不在ACL允许的范围之内!");
@@ -271,38 +269,6 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
             default:
                 break;
         }
-
-
-//
-//        MqttRemoteClient mqttRemoteClient;
-//        switch (authType) {
-//            case 1://username 认证
-//                mqttRemoteClient = service.findOneByUsernameAndPassword(username, password);
-//
-//                if (checkPubSubAcl(mqttRemoteClient, toTopic)) {
-//                    System.out.println("通过审核");
-//                    super.send(producerExchange, messageSend);
-//                } else {
-//                    throw new SecurityException("ACL拒绝:[" + toTopic + "]因为该Topic不在ACL允许的范围之内!");
-//                }
-//                break;
-//            case 2://clientId认证
-//                mqttRemoteClient = service.findOneByClientId(clientId);
-//                if (checkPubSubAcl(mqttRemoteClient, toTopic)) {
-//                    System.out.println("通过审核");
-//                    super.send(producerExchange, messageSend);
-//                } else {
-//                    throw new SecurityException("ACL拒绝:[" + toTopic + "]因为该Topic不在ACL允许的范围之内!");
-//                }
-//                break;
-//            case 3://匿名模式
-//                authAnonymous();
-//                //throw new SecurityException("匿名模式:" + toTopic);
-//                break;
-//            default:
-//                break;
-//        }
-        //每次到这里多要查库  判断这个Topic的 ACL
 
 
     }
@@ -345,30 +311,6 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
      * 1:sub
      * 2:pub
      * 3:sub&pub
-     *
-     * @return
-     */
-    private boolean checkPubSubAcl(MqttRemoteClient mqttRemoteClient, String toTopic) {
-        if (mqttRemoteClient != null) {
-            ClientACLEntry clientACLEntries[] = mqttRemoteClient.getAclEntry();
-            //遍历数据库里面的ACL权限
-            if (clientACLEntries.length > 0) {
-                for (ClientACLEntry aClientACLEntry : clientACLEntries) {
-                    if (toTopic.equals(aClientACLEntry.getTopic())) {
-                        int acl = aClientACLEntry.getAcl();
-                        System.out.println("toTopic:" + toTopic + "|Acl:" + acl);
-                        if ((acl == PUB_PERMISSION) || (acl == PUB_AND_SUB_PERMISSION)) {
-                            return true;
-                        }
-                    }
-                }
-            }
-
-        }
-        return false;
-    }
-
-    /**
      * 重写的ACL鉴权方法
      * 这个是针对Redis的
      *
@@ -406,6 +348,27 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
 
     @Override
     public void removeConnection(ConnectionContext context, ConnectionInfo info, Throwable error) throws Exception {
+
+//
+//        ProducerBrokerExchange producerExchange = new ProducerBrokerExchange();
+//        producerExchange.setConnectionContext(this.getNext().getAdminConnectionContext());
+//        Message message = new ActiveMQMessage();
+//
+//        /*
+//        *  case 1:
+//                return new ActiveMQQueue(name);
+//            case 2:
+//                return new ActiveMQTopic(name);
+//            case 3:
+//         */
+//        message.setDestination(ActiveMQDestination.createDestination(
+//                ".test",
+//                new Byte("2")));
+//        ByteSequence byteSequence = new ByteSequence();
+//        byteSequence.setData("Bye Bye".getBytes());
+//        message.setContent(byteSequence);
+//        super.send(producerExchange, message);
+
         String username = info.getUserName();
         String password = info.getPassword();
         String clientId = info.getClientId();
