@@ -45,8 +45,6 @@ public class ClientController {
     @RequestMapping(value = "/add", method = RequestMethod.POST)
 
     public JSONObject add(@RequestBody JSONObject requestBody) {
-        System.out.println(requestBody);
-
 
         return new JSONObject();
     }
