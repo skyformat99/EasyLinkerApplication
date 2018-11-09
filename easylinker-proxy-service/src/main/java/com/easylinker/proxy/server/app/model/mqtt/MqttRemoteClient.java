@@ -1,7 +1,9 @@
 package com.easylinker.proxy.server.app.model.mqtt;
 
+import com.alibaba.fastjson.JSONArray;
 import com.easylinker.proxy.server.app.model.BaseEntity;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -14,17 +16,20 @@ public class MqttRemoteClient extends BaseEntity {
     //MQTT 协议本身支持的鉴权：username password
     //本设计为了实现统计在线效果，扩展了一个是否在线标记
     //同时增加了ACL属性
-    private String username= UUID.randomUUID().toString();
-    private String password= UUID.randomUUID().toString();
-    private String clientId;
+    private String username = UUID.randomUUID().toString().replace("-", "");
+    private String password = UUID.randomUUID().toString().replace("-", "");
+    private String clientId = UUID.randomUUID().toString().replace("-", "");
     private Boolean onLine = false;
     //下面是一些业务逻辑级别的扩展字段
-    private String name= UUID.randomUUID().toString().substring(0,10);
-    private String info="Nothing";
-    private String location[];
+    private String name = UUID.randomUUID().toString().substring(0, 10);
+    private String info = "Nothing";
+    private Long userId;
 
     //ACL 描述
-    private ClientACLEntry aclEntry[];
+    private List<ClientACLEntry> aclEntries;
+    //
+    private List<ClientACLGroupEntry>  clientACLGroupEntries;
+
 
     public String getName() {
         return name;
@@ -42,13 +47,6 @@ public class MqttRemoteClient extends BaseEntity {
         this.info = info;
     }
 
-    public String[] getLocation() {
-        return location;
-    }
-
-    public void setLocation(String[] location) {
-        this.location = location;
-    }
 
     public Boolean getOnLine() {
         return onLine;
@@ -58,6 +56,13 @@ public class MqttRemoteClient extends BaseEntity {
         this.onLine = onLine;
     }
 
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
 
     public String getUsername() {
         return username;
@@ -84,14 +89,20 @@ public class MqttRemoteClient extends BaseEntity {
         this.clientId = clientId;
     }
 
-    public ClientACLEntry[] getAclEntry() {
-
-        return aclEntry;
+    public List<ClientACLEntry> getAclEntries() {
+        return aclEntries;
     }
 
-    public void setAclEntry(ClientACLEntry aclEntry[]) {
+    public void setAclEntries(List<ClientACLEntry> aclEntries) {
+        this.aclEntries = aclEntries;
+    }
 
-        this.aclEntry = aclEntry;
+    public List<ClientACLGroupEntry> getClientACLGroupEntries() {
+        return clientACLGroupEntries;
+    }
+
+    public void setClientACLGroupEntries(List<ClientACLGroupEntry> clientACLGroupEntries) {
+        this.clientACLGroupEntries = clientACLGroupEntries;
     }
 
     @Override
@@ -99,7 +110,6 @@ public class MqttRemoteClient extends BaseEntity {
         return "{" + this.getId() + "," +
                 this.getClientId() + ","
                 + this.getUsername() + ","
-                + this.getPassword() + ","
-                + "}";
+                + this.getPassword() + "}";
     }
 }

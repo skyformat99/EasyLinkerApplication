@@ -3,6 +3,8 @@ package com.easylinker.proxy.server.app.config.quartz;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 
+import java.util.UUID;
+
 /**
  * 定时任务具体业务接口
  * 要实现业务可以在这里加入逻辑
@@ -14,10 +16,10 @@ import org.quartz.JobExecutionContext;
 @DisallowConcurrentExecution
 public class MyJob extends BaseJob {
     private Long id = System.currentTimeMillis();
-    private String jobName = "DEVICE_SCHEDULE_JOB";    //任务名
+    private String jobName = UUID.randomUUID().toString().replace("-", "").substring(0, 10);    //任务名
     private String jobGroup = "JOB_GROUP";    //任务组
     private String cronExpression;    //cron表达式
-    private String jobDescription = "DEVICE_JOB";    //描述
+    private String jobDescription = "JOB";    //描述
     private String jobJson;
 
     public Long getId() {
@@ -70,6 +72,6 @@ public class MyJob extends BaseJob {
 
     @Override
     public void execute(JobExecutionContext context) {
-        System.out.println("HelloWorld");
+        System.out.println("JOB开始运行:" + getClass().getName());
     }
 }

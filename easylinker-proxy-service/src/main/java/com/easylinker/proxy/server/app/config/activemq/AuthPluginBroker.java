@@ -21,6 +21,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import java.security.Principal;
 import java.security.cert.X509Certificate;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -293,9 +294,9 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
      */
     private boolean checkSubscribeAcl(MqttRemoteClient mqttRemoteClient, String subscribeTopic) {
         if (mqttRemoteClient != null) {
-            ClientACLEntry clientACLEntries[] = mqttRemoteClient.getAclEntry();
+            List<ClientACLEntry> clientACLEntries = mqttRemoteClient.getAclEntries();
             //遍历数据库里面的ACL权限
-            if (clientACLEntries.length > 0) {
+            if (clientACLEntries.size() > 0) {
                 for (ClientACLEntry aClientACLEntry : clientACLEntries) {
                     //如果请求订阅的Topic在数据库则说明可以订阅
                     return aClientACLEntry.getTopic().equals(subscribeTopic);
@@ -478,11 +479,11 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
      * @param aclArrays
      */
     private void clientACLEntryToJson(MqttRemoteClient mqttRemoteClient, JSONArray aclArrays) {
-        for (ClientACLEntry clientACLEntry : mqttRemoteClient.getAclEntry()) {
+        for (ClientACLEntry clientACLEntry : mqttRemoteClient.getAclEntries()) {
             JSONObject clientACLEntryJson = new JSONObject();
             clientACLEntryJson.put("topic", clientACLEntry.getTopic());
             clientACLEntryJson.put("acl", clientACLEntry.getAcl());
-            clientACLEntryJson.put("group", clientACLEntry.getGroup());
+            //clientACLEntryJson.put("group", clientACLEntry.getGroup());
             aclArrays.add(clientACLEntryJson);
 
         }

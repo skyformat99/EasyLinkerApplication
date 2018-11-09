@@ -1,4 +1,4 @@
-package com.easylinker.proxy.server.app.controller;
+package com.easylinker.proxy.server.app.config.mvc;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;

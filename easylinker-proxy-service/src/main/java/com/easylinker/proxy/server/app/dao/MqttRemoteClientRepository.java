@@ -2,6 +2,8 @@ package com.easylinker.proxy.server.app.dao;
 
 
 import com.easylinker.proxy.server.app.model.mqtt.MqttRemoteClient;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
@@ -11,5 +13,5 @@ public interface MqttRemoteClientRepository extends MongoRepository<MqttRemoteCl
 
     MqttRemoteClient findTopByClientId(String clientId);
 
-    List<MqttRemoteClient> findAllByOnLine(Boolean online);
+    Page<MqttRemoteClient> findAllByUserId(Long userID, Pageable pageable);
 }

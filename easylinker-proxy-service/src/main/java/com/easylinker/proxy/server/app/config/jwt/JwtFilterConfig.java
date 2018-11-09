@@ -1,6 +1,7 @@
-package com.easylinker.proxy.server.app.config.mvcweb;
+package com.easylinker.proxy.server.app.config.jwt;
 
-import com.easylinker.proxy.server.app.config.jwt.JwtFilter;
+import com.easylinker.proxy.server.app.config.redis.RedisService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,6 +10,12 @@ import javax.servlet.Filter;
 
 @Configuration
 public class JwtFilterConfig {
+    private final RedisService redisService;
+
+    @Autowired
+    public JwtFilterConfig(RedisService redisService) {
+        this.redisService = redisService;
+    }
 
     /**
      * 配置过滤器
@@ -19,7 +26,7 @@ public class JwtFilterConfig {
     public FilterRegistrationBean<Filter> someFilterRegistration() {
         FilterRegistrationBean<Filter> registration = new FilterRegistrationBean<>();
         registration.setFilter(JwtFilter());
-        registration.addUrlPatterns("/api/v1/*");
+        registration.addUrlPatterns("/api/v_1_0/*");
         return registration;
     }
 
@@ -30,7 +37,7 @@ public class JwtFilterConfig {
      */
     @Bean(name = "JwtFilter")
     public Filter JwtFilter() {
-        return new JwtFilter();
+        return new JwtFilter(redisService);
     }
 
 }

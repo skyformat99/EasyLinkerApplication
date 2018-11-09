@@ -43,15 +43,14 @@ public class ApplicationTests {
         mqttRemoteClient.setPassword("password");
         mqttRemoteClient.setName("GPS");
         mqttRemoteClient.setInfo("This is some info");
-        mqttRemoteClient.setLocation(new String[]{"0", "0"});
+        //mqttRemoteClient.setLocation(new String[]{"0", "0"});
         ClientACLEntry defaultACLEntry = new ClientACLEntry();
         defaultACLEntry.setTopic("/test");
-        mqttRemoteClient.setAclEntry(new ClientACLEntry[]{defaultACLEntry});
         MqttRemoteClientService.save(mqttRemoteClient);
 
 
     }
-    @Test
+   // @Test
     public  void addTestUser(){
         AppUser appUser=new AppUser();
         appUser.setUsername("username");
@@ -59,5 +58,7 @@ public class ApplicationTests {
         appUserService.save(appUser);
     }
 
-
+    public static void main(String[] args) {
+        System.out.println(new MqttRemoteClient());
+    }
 }

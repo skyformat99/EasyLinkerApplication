@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.session.data.redis.config.ConfigureRedisAction;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
-@EnableRedisHttpSession(maxInactiveIntervalInSeconds= 3600)
+@EnableRedisHttpSession(maxInactiveIntervalInSeconds = 2_678_400)//过期时间一个月
 @Configuration
 public class SpringSessionConfig {
     @Bean

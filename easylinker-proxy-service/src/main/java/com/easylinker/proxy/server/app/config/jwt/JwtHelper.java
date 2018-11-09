@@ -15,7 +15,7 @@ public class JwtHelper {
         map.put("userId", userId);
         return Jwts.builder()
                 .setClaims(map)
-                .setExpiration(new Date(System.currentTimeMillis() + 60000L))// 1000 hour
+                .setExpiration(new Date(System.currentTimeMillis() + 2_678_400))// 1000 hour
                 .signWith(SignatureAlgorithm.HS512, SECRET)
                 .compact();
     }

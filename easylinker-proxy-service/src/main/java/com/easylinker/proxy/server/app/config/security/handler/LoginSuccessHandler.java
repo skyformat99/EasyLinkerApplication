@@ -3,7 +3,9 @@ package com.easylinker.proxy.server.app.config.security.handler;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.easylinker.proxy.server.app.config.jwt.JwtHelper;
+import com.easylinker.proxy.server.app.config.redis.RedisService;
 import com.easylinker.proxy.server.app.config.security.user.model.AppUser;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +19,8 @@ import java.io.IOException;
 
 @Component
 public class LoginSuccessHandler implements AuthenticationSuccessHandler {
+    @Autowired
+    private RedisService redisService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication) throws IOException, ServletException {
@@ -28,13 +32,17 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         for (GrantedAuthority grantedAuthority : appUser.getAuthorities()) {
             jsonArray.add(grantedAuthority.getAuthority());
         }
-        jsonObject.put("UID", appUser.getId());
+        //jsonObject.put("UID", appUser.getId());
         jsonObject.put("authorities", jsonArray);
         jsonObject.put("phone", appUser.getPhone());
         jsonObject.put("username", appUser.getUsername());
         returnJson.put("state", 1);
 
         returnJson.put("token", JwtHelper.generateToken(appUser.getId()));
+        //把Token放进Redis
+        //Key:userId
+        //Value:token
+        redisService.set(appUser.getId().toString(), JwtHelper.generateToken(appUser.getId()));
         returnJson.put("data", jsonObject);
         returnJson.put("message", "登陆成功!");
         httpServletResponse.setContentType("application/json");

@@ -26,6 +26,18 @@ public class MqttRemoteClientService implements BaseService<MqttRemoteClient> {
     @Override
     public void delete(MqttRemoteClient mqttRemoteClient) {
 
+        mqttRemoteClientRepository.delete(mqttRemoteClient);
+    }
+
+    public void delete(Long id) {
+        mqttRemoteClientRepository.deleteById(id);
+
+    }
+
+    public void delete(Long ids[]) {
+        for (Long l : ids)
+            mqttRemoteClientRepository.deleteById(l);
+
     }
 
     @Override
@@ -40,5 +52,9 @@ public class MqttRemoteClientService implements BaseService<MqttRemoteClient> {
 
     public MqttRemoteClient findOneByClientId(String clientId) {
         return mqttRemoteClientRepository.findTopByClientId(clientId);
+    }
+
+    public Page<MqttRemoteClient> findAllByUserId(Long userId, Pageable pageable) {
+        return mqttRemoteClientRepository.findAllByUserId(userId, pageable);
     }
 }
