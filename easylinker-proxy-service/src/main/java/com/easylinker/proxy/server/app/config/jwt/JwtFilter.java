@@ -29,7 +29,9 @@ public class JwtFilter extends OncePerRequestFilter {
             try {
 
                 String cacheToken = redisService.get(JwtHelper.validateToken(token).get("userId").toString());
-                System.out.println("Token是否过期:" + token.equals(cacheToken));
+                //System.out.println("Token是否过期:" + token.equals(cacheToken));
+                if (!token.equals(cacheToken))
+                    redisService.delete(JwtHelper.validateToken(token).get("userId").toString());
                 filterChain.doFilter(request, response);
 
             } catch (Exception e) {

@@ -11,6 +11,8 @@ import java.util.List;
 public interface MqttRemoteClientRepository extends MongoRepository<MqttRemoteClient, Long> {
     MqttRemoteClient findTopByUsernameAndPassword(String username, String password);
 
+    MqttRemoteClient findTopById(Long id);
+
     MqttRemoteClient findTopByClientId(String clientId);
 
     Page<MqttRemoteClient> findAllByUserId(Long userID, Pageable pageable);
