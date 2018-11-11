@@ -113,6 +113,8 @@
                 <artifactId>bce-java-sdk</artifactId>
                <version>0.10.40</version>
             </dependency>
+
+
         </dependencies>
     </dependencyManagement>
 

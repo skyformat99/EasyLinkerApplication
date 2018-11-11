@@ -19,8 +19,12 @@ import java.io.IOException;
 
 @Component
 public class LoginSuccessHandler implements AuthenticationSuccessHandler {
+    private final RedisService redisService;
+
     @Autowired
-    private RedisService redisService;
+    public LoginSuccessHandler(RedisService redisService) {
+        this.redisService = redisService;
+    }
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication) throws IOException, ServletException {
@@ -42,6 +46,8 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         //把Token放进Redis
         //Key:userId
         //Value:token
+        //刷新TOken
+        redisService.delete(appUser.getId().toString());
         redisService.set(appUser.getId().toString(), JwtHelper.generateToken(appUser.getId()));
         returnJson.put("data", jsonObject);
         returnJson.put("message", "登陆成功!");

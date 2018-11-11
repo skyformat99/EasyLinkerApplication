@@ -255,7 +255,7 @@ public class ClientController {
      * @return
      */
     @RequestMapping(value = "/data/{id}/{page}/{size}", method = RequestMethod.GET)
-    private Object data(HttpServletRequest httpServletRequest,
+    public Object data(HttpServletRequest httpServletRequest,
                            @PathVariable Long id,
                            @PathVariable int page,
                            @PathVariable int size) {

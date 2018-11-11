@@ -39,7 +39,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 JSONObject returnJson = new JSONObject();
                 response.setContentType("application/json");
                 response.setCharacterEncoding("UTF-8");
-                returnJson.put("state", 100);
+                returnJson.put("state", 401);
                 returnJson.put("message", "令牌过期!请重新登录获取.");
                 try {
                     response.getWriter().write(returnJson.toJSONString());
@@ -54,7 +54,7 @@ public class JwtFilter extends OncePerRequestFilter {
             JSONObject returnJson = new JSONObject();
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
-            returnJson.put("state", 100);
+            returnJson.put("state", 402);
             returnJson.put("message", "Bad request because of token error!");
             try {
                 response.getWriter().write(returnJson.toJSONString());
