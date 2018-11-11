@@ -27,6 +27,7 @@ public class GlobalExceptionHandler {
         logger.error("------------------------------------------------------");
         e.printStackTrace();
         logger.error("------------------------------------------------------");
+        resultJson.put("501",e.getMessage());
 
         return resultJson;
     }
