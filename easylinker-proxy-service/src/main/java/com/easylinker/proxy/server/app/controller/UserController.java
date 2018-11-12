@@ -188,7 +188,7 @@ public class UserController {
         if (userId == null) {
             return WebReturnResult.returnTipMessage(401, "Token已过期!");
         }
-        AppUser appUser = (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        AppUser appUser = appUserService.findById(userId);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("email", appUser.getEmail());
         JSONArray jsonArray = new JSONArray();
