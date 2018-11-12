@@ -36,7 +36,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         for (GrantedAuthority grantedAuthority : appUser.getAuthorities()) {
             jsonArray.add(grantedAuthority.getAuthority());
         }
-        //jsonObject.put("UID", appUser.getId());
+        jsonObject.put("id", appUser.getId());
         jsonObject.put("authorities", jsonArray);
         jsonObject.put("phone", appUser.getPhone());
         jsonObject.put("username", appUser.getUsername());

@@ -14,7 +14,7 @@ public class AppUserService implements BaseService<AppUser> {
     AppUserRepository appUserRepository;
 
 
-    AppUser getAAppUserWithUsername(String username) {
+    public AppUser getAAppUserWithUsername(String username) {
         return appUserRepository.findTopByUsername(username);
     }
 
@@ -35,5 +35,8 @@ public class AppUserService implements BaseService<AppUser> {
     }
 
 
+    public AppUser findById(Long id) {
+        return appUserRepository.findTopById(id);
+    }
 
 }

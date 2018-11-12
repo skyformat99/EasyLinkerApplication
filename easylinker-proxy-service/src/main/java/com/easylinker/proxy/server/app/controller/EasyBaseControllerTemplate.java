@@ -28,8 +28,6 @@ public interface EasyBaseControllerTemplate {
 
     JSONObject deleteById(Long id);
 
-    JSONObject deleteByIds(Long ids[]);
-
     /*
      * 更新的各种重载
      **/
@@ -39,7 +37,6 @@ public interface EasyBaseControllerTemplate {
      * 列出所有
      * */
 
-    JSONObject list();
 
     JSONObject list(Long paramId);
 

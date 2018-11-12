@@ -85,7 +85,7 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and().logout().logoutSuccessHandler(logoutSuccessHandler).logoutUrl("/logOut")
                 .and().formLogin().successHandler(loginSuccessHandler)
                 .and().formLogin().failureHandler(loginFailureHandler)
-                .and().rememberMe().alwaysRemember(true).tokenValiditySeconds(2_678_400)
+                .and().rememberMe().alwaysRemember(true).tokenValiditySeconds(2592000)
                 // 配置UserDetailsService
                 .and().exceptionHandling().authenticationEntryPoint(anonymousHandler)
                 .and().csrf().disable().rememberMe().rememberMeServices(rememberMeServices())
