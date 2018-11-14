@@ -24,6 +24,11 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) {
 
+        //配置编码类型
+        response.setContentType("text/html;charset=UTF-8;pageEncoding=UTF-8");  //控制浏览器的编码行为
+        response.setCharacterEncoding("UTF-8");//目的是用于response.getWriter()输出的字符流的乱码问题，如果是response.getOutputStream()是不需要此种解决方案的；因为这句话的意思是为了将response对象中的数据以UTF-8解码后发向浏览器；
+        response.setHeader("content-type","text/html;charset=UTF-8");
+
         String token = request.getHeader("token");
         if (token != null) {
             try {
@@ -35,9 +40,21 @@ public class JwtFilter extends OncePerRequestFilter {
                  */
 
                 String cacheToken = redisService.get("user_" + JwtHelper.validateToken(token).get("userId").toString());
-                if (!token.equals(cacheToken))
+                if (!token.equals(cacheToken)){
                     redisService.delete("user_" + JwtHelper.validateToken(token).get("userId").toString());
-                filterChain.doFilter(request, response);
+
+                    try {
+
+                        response.getWriter().write(WebReturnResult.returnTipMessage(402, "令牌过期!请重新登录获取").toJSONString());
+                        response.getWriter().flush();
+
+                    } catch (IOException e1) {
+                        //e1.printStackTrace();
+                    }
+                }else {
+                    filterChain.doFilter(request, response);
+
+                }
 
             } catch (Exception e) {
 
