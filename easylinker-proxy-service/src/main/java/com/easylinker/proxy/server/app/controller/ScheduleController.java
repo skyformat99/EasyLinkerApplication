@@ -64,7 +64,7 @@ public class ScheduleController {
                 messageJobService.add(userId, scheduleJob);
                 return WebReturnResult.returnTipMessage(601, "任务添加成功!");
             } catch (Exception e) {
-                e.printStackTrace();
+                //e.printStackTrace();
                 if (e instanceof RuntimeException) {
                     return WebReturnResult.returnTipMessage(602, "CRON表达式格式错误!");
                 }
@@ -97,14 +97,13 @@ public class ScheduleController {
     }
 
     /**
-     * 更新一个计划任务
+     * 暂停计划任务
      *
      * @param httpServletRequest
      * @param id
      * @return
      */
-    @Transactional
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+    @RequestMapping(value = "/{id}", method = RequestMethod.OPTIONS)
     public JSONObject pause(HttpServletRequest httpServletRequest, @PathVariable Long id) {
         //从缓存中拿出用户ID
         Long userId = cacheHelper.getCurrentUserIdFromRedisCache(httpServletRequest);
@@ -120,15 +119,15 @@ public class ScheduleController {
     }
 
     /**
-     * 恢复一个计划任务
+     * 恢复计划任务
      *
      * @param httpServletRequest
      * @param id
-     * @return
+     * @returnid
      */
     @Transactional
-    @RequestMapping(value = "/", method = RequestMethod.GET)
-    public JSONObject resume(HttpServletRequest httpServletRequest, Long id) {
+    @RequestMapping(value = "/{id}", method = RequestMethod.PATCH)
+    public JSONObject resume(HttpServletRequest httpServletRequest,@PathVariable Long id) {
         //从缓存中拿出用户ID
         Long userId = cacheHelper.getCurrentUserIdFromRedisCache(httpServletRequest);
         if (userId == null) {

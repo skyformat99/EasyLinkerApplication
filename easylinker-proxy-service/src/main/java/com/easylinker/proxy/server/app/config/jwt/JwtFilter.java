@@ -23,12 +23,10 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) {
-
         //配置编码类型
-        response.setContentType("text/html;charset=UTF-8;pageEncoding=UTF-8");  //控制浏览器的编码行为
-        response.setCharacterEncoding("UTF-8");//目的是用于response.getWriter()输出的字符流的乱码问题，如果是response.getOutputStream()是不需要此种解决方案的；因为这句话的意思是为了将response对象中的数据以UTF-8解码后发向浏览器；
+        response.setContentType("text/html;charset=UTF-8;pageEncoding=UTF-8");
+        response.setCharacterEncoding("UTF-8");
         response.setHeader("content-type","text/html;charset=UTF-8");
-
         String token = request.getHeader("token");
         if (token != null) {
             try {
