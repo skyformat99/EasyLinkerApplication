@@ -4,6 +4,8 @@ import com.easylinker.proxy.server.app.config.quartz.MessageJob;
 import com.easylinker.proxy.server.app.config.quartz.dao.MessageJobRepository;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,28 +24,28 @@ public class MessageJobService {
     /**
      * 添加
      *
+     *
+     * @param userId
      * @param scheduleJob
      * @return
      * @throws Exception
      */
     @Transactional
-    public Job add(MessageJob scheduleJob) throws SchedulerException {
+    public Job add(Long userId, MessageJob scheduleJob) throws SchedulerException {
 
 
         if (scheduler.isShutdown()) scheduler.start();
-//        JobDetail jobDetail = JobBuilder.newJob(MessageJob.class)
-//                .withIdentity(scheduleJob.getId().toString(), scheduleJob.getJobGroup()).build();
-//
-//        CronTrigger trigger = TriggerBuilder.newTrigger()
-//                .withIdentity(scheduleJob.getId().toString(), scheduleJob.getJobGroup())
-//                .withSchedule(CronScheduleBuilder.cronSchedule(scheduleJob.getCronExpression())).build();
+        JobDetail jobDetail = JobBuilder.newJob(MessageJob.class)
+                .withIdentity(scheduleJob.getId().toString(), scheduleJob.getJobGroup()).build();
+        jobDetail.getJobDataMap().put("jobJson", scheduleJob.getJobJson());
+
+        CronTrigger trigger = TriggerBuilder.newTrigger()
+                .withIdentity(scheduleJob.getId().toString(), scheduleJob.getJobGroup())
+                .withSchedule(CronScheduleBuilder.cronSchedule(scheduleJob.getCronExpression())).build();
         //持久化道业务逻辑数据库里面
+        scheduleJob.setUserId(userId);
         messageJobRepository.save(scheduleJob);
-        scheduler.scheduleJob(JobBuilder.newJob(MessageJob.class)
-                        .withIdentity(scheduleJob.getId().toString(), scheduleJob.getJobGroup()).build(),
-                TriggerBuilder.newTrigger()
-                        .withIdentity(scheduleJob.getId().toString(), scheduleJob.getJobGroup())
-                        .withSchedule(CronScheduleBuilder.cronSchedule(scheduleJob.getCronExpression())).build());
+        scheduler.scheduleJob(jobDetail, trigger);
         return scheduleJob;
 
     }
@@ -88,5 +90,17 @@ public class MessageJobService {
         }
 
 
+    }
+
+    /**
+     * 获取JOB列表
+     *
+     * @param userId
+     * @param pageable
+     * @return
+     */
+
+    public Page<MessageJob> list(Long userId, Pageable pageable) {
+        return messageJobRepository.findAllByUserId(userId, pageable);
     }
 }

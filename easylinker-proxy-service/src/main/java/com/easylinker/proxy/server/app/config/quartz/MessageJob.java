@@ -22,6 +22,15 @@ public class MessageJob extends BaseJob {
     private String jobDescription = "JOB";    //描述
     private String jobJson;
     private Boolean started=false;
+    private Long userId;
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
 
     public Boolean getStarted() {
         return started;
@@ -81,6 +90,7 @@ public class MessageJob extends BaseJob {
 
     @Override
     public void execute(JobExecutionContext context) {
-        System.out.println("JOB开始运行:" + getClass().getName());
+
+        System.out.println("JOB开始运行:" + getClass().getName()+"_"+context.getJobDetail().getJobDataMap().toString());
     }
 }
