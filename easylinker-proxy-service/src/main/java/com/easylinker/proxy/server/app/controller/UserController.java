@@ -207,8 +207,6 @@ public class UserController {
     /**
      * 重置密码
      *
-     * @param
-     * @return
      */
 
     @RequestMapping(value = "/resetPassword", method = RequestMethod.POST)

@@ -1,6 +1,10 @@
 package com.easylinker.proxy.server.app.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import javax.servlet.http.HttpServletRequest;
 
 //一个模板
 
@@ -14,11 +18,11 @@ public interface EasyBaseControllerTemplate {
     /**
      * 添加一个
      *
-     * @param t
+     * @param
      * @return
      */
 
-    JSONObject add(JSONObject t);
+    JSONObject add(HttpServletRequest httpServletRequest, @RequestBody JSONObject requestBody);
 
     /**
      * 不同的删除和¥重载
@@ -26,21 +30,17 @@ public interface EasyBaseControllerTemplate {
      * @param
      */
 
-    JSONObject deleteById(Long id);
+    JSONObject deleteById(HttpServletRequest httpServletRequest, @PathVariable Long id);
 
     /*
      * 更新的各种重载
      **/
 
-    JSONObject update(JSONObject t);
+    JSONObject update(HttpServletRequest httpServletRequest, @RequestBody JSONObject requestBody);
+
     /*
      * 列出所有
      * */
-
-
-    JSONObject list(Long paramId);
-
-    JSONObject list(JSONObject t);
-
+    JSONObject list(HttpServletRequest httpServletRequest, JSONObject requestBody);
 
 }
