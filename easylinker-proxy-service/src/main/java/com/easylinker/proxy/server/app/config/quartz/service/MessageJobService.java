@@ -44,6 +44,7 @@ public class MessageJobService {
                 .withSchedule(CronScheduleBuilder.cronSchedule(scheduleJob.getCronExpression())).build();
         //持久化道业务逻辑数据库里面
         scheduleJob.setUserId(userId);
+        scheduleJob.setStarted(true);
         messageJobRepository.save(scheduleJob);
         scheduler.scheduleJob(jobDetail, trigger);
         return scheduleJob;
@@ -85,7 +86,8 @@ public class MessageJobService {
     public void resume(Long jobKey) throws SchedulerException {
         MessageJob messageJob = messageJobRepository.findTopById(jobKey);
         if (messageJob != null && (!messageJob.getStarted())) {
-
+            messageJob.setStarted(true);
+            messageJobRepository.save(messageJob);
             scheduler.resumeJob(JobKey.jobKey(jobKey.toString(), "JOB_GROUP"));
         }
 
