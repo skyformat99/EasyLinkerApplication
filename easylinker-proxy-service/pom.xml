@@ -165,7 +165,7 @@
         <artifactId>easylinker-schedule-service</artifactId>
         <version>3.0.0-A</version>
         </dependency>
-
+        <!-- 新版本阿里云云通信短信通知接口 -->
 
         <!--<dependency>-->
             <!--<groupId>org.springframework.cloud</groupId>-->
