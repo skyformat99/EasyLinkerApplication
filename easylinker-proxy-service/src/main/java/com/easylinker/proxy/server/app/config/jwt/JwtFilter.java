@@ -1,7 +1,7 @@
 package com.easylinker.proxy.server.app.config.jwt;
 
 
-import com.alibaba.fastjson.JSONObject;
+import com.easylinker.proxy.server.app.config.mvc.WebReturnResult;
 import com.easylinker.proxy.server.app.config.redis.RedisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -27,22 +27,22 @@ public class JwtFilter extends OncePerRequestFilter {
         String token = request.getHeader("token");
         if (token != null) {
             try {
+                /**
+                 * 设计思路：
+                 * 先从缓存里面拿出user_id的key 对应的Value
+                 * 然后和Http过来的token对比，token是否和Value相等
+                 * 相等就通过，不相等就拒绝并且认为token过期，直接清除缓存
+                 */
 
-                String cacheToken = redisService.get(JwtHelper.validateToken(token).get("userId").toString());
-                //System.out.println("Token是否过期:" + token.equals(cacheToken));
+                String cacheToken = redisService.get("user_" + JwtHelper.validateToken(token).get("userId").toString());
                 if (!token.equals(cacheToken))
-                    redisService.delete(JwtHelper.validateToken(token).get("userId").toString());
+                    redisService.delete("user_" + JwtHelper.validateToken(token).get("userId").toString());
                 filterChain.doFilter(request, response);
 
             } catch (Exception e) {
-                //e.printStackTrace();
-                JSONObject returnJson = new JSONObject();
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                returnJson.put("state", 401);
-                returnJson.put("message", "令牌过期!请重新登录获取.");
+
                 try {
-                    response.getWriter().write(returnJson.toJSONString());
+                    response.getWriter().write(WebReturnResult.returnTipMessage(402, "令牌过期!请重新登录获取").toJSONString());
                     response.getWriter().flush();
 
                 } catch (IOException e1) {
@@ -51,13 +51,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
             }
         } else {
-            JSONObject returnJson = new JSONObject();
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            returnJson.put("state", 402);
-            returnJson.put("message", "Bad request because of token error!");
+
             try {
-                response.getWriter().write(returnJson.toJSONString());
+                response.getWriter().write(WebReturnResult.returnTipMessage(402, "令牌过期!请重新登录获取").toJSONString());
                 response.getWriter().flush();
 
             } catch (IOException e1) {

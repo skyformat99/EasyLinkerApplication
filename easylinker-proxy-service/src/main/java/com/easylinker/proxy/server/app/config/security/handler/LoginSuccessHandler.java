@@ -47,8 +47,8 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         //Key:userId
         //Value:token
         //刷新TOken
-        redisService.delete(appUser.getId().toString());
-        redisService.set(appUser.getId().toString(), JwtHelper.generateToken(appUser.getId()));
+        redisService.delete("user_" + appUser.getId().toString());
+        redisService.set("user_" + appUser.getId().toString(), JwtHelper.generateToken(appUser.getId()));
         returnJson.put("data", jsonObject);
         returnJson.put("message", "登陆成功!");
         httpServletResponse.setContentType("application/json");

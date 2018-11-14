@@ -14,13 +14,22 @@ import java.util.UUID;
  * 下面可以直发送了
  */
 @DisallowConcurrentExecution
-public class MyJob extends BaseJob {
+public class MessageJob extends BaseJob {
     private Long id = System.currentTimeMillis();
     private String jobName = UUID.randomUUID().toString().replace("-", "").substring(0, 10);    //任务名
     private String jobGroup = "JOB_GROUP";    //任务组
     private String cronExpression;    //cron表达式
     private String jobDescription = "JOB";    //描述
     private String jobJson;
+    private Boolean started=false;
+
+    public Boolean getStarted() {
+        return started;
+    }
+
+    public void setStarted(Boolean started) {
+        this.started = started;
+    }
 
     public Long getId() {
         return id;
