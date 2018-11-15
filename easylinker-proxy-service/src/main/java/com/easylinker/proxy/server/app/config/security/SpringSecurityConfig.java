@@ -80,7 +80,7 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/userLogin",//登陆
                         "/user/register",//注册
                         "/forgetPassword",//发送忘记密码的邮件
-                        "/user/activeUser/*",//激活
+                        "/user/active/**",//激活
                         "/api/v1/*"//这个是Jwt的路径
                 )
                 .permitAll();

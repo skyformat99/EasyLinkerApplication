@@ -160,21 +160,6 @@
             <artifactId>aliyun-java-sdk-dysmsapi</artifactId>
         </dependency>
 
-        <dependency>
-        <groupId>com.easylinker.application</groupId>
-        <artifactId>easylinker-schedule-service</artifactId>
-        <version>3.0.0-A</version>
-        </dependency>
-        <!-- 新版本阿里云云通信短信通知接口 -->
-
-        <!--<dependency>-->
-            <!--<groupId>org.springframework.cloud</groupId>-->
-            <!--<artifactId>spring-cloud-starter-eureka</artifactId>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>org.springframework.cloud</groupId>-->
-            <!--<artifactId>spring-cloud-starter-feign</artifactId>-->
-        <!--</dependency>-->
     </dependencies>
 
     <build>

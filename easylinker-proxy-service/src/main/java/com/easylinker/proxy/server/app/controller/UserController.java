@@ -2,16 +2,17 @@ package com.easylinker.proxy.server.app.controller;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.aliyuncs.exceptions.ClientException;
 import com.easylinker.proxy.server.app.config.jwt.JwtHelper;
 import com.easylinker.proxy.server.app.config.mvc.WebReturnResult;
 import com.easylinker.proxy.server.app.config.redis.RedisService;
 import com.easylinker.proxy.server.app.config.security.user.model.AppUser;
 import com.easylinker.proxy.server.app.config.security.user.service.AppUserService;
+import com.easylinker.proxy.server.app.config.thirdparty.ALiSMSSender;
 import com.easylinker.proxy.server.app.utils.CacheHelper;
 import com.easylinker.proxy.server.app.utils.Md5Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,6 +29,8 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping(value = "/user")
 public class UserController {
 
+    @Autowired
+    ALiSMSSender aLiSMSSender;
     private final CacheHelper cacheHelper;
     private final AppUserService appUserService;
     private final RedisService redisService;
@@ -97,7 +100,22 @@ public class UserController {
             //邮件也一样，key换成邮箱就OJBK了
             // try-> sendEmail(XXXX)->e
             // try-> sendSMS(XXX)   ->e
-            appUserService.save(appUser);
+
+            try {
+                String phone = requestBody.getString("phone");
+                String code = "1234";
+                if (aLiSMSSender.sendSms(phone, code)) {
+                    redisService.set("sms_" + phone, code);
+                    appUserService.save(appUser);
+                } else {
+                    return WebReturnResult.returnTipMessage(108, "验证码发送失败!");
+                }
+
+            } catch (ClientException e) {
+                //e.printStackTrace();
+                return WebReturnResult.returnTipMessage(108, "验证码发送失败!");
+            }
+
             return WebReturnResult.returnTipMessage(100, "注册成功!");
 
         } else {
@@ -206,7 +224,6 @@ public class UserController {
 
     /**
      * 重置密码
-     *
      */
 
     @RequestMapping(value = "/resetPassword", method = RequestMethod.POST)
@@ -245,5 +262,39 @@ public class UserController {
 
     }
 
+    /**
+     * 激活用户
+     *
+     * @param requestBody
+     * @return
+     */
+
+    @RequestMapping(value = "/active", method = RequestMethod.POST)
+    public JSONObject active(@RequestBody JSONObject requestBody) throws Exception {
+
+        if (StringUtils.hasText(requestBody.getString("phone"))
+                && StringUtils.hasText(requestBody.getString("code"))) {
+            if (redisService.get(requestBody.getString("phone"))
+                    .equals(requestBody.getString("code"))) {
+                AppUser appUser = appUserService.getAAppUserWithPhone(requestBody.getString("phone"));
+                if (appUser == null) {
+                    return WebReturnResult.returnTipMessage(106, "用户不存在!");
+
+                } else {
+                    appUser.setEnabled(true);
+                    appUserService.save(appUser);
+                    return WebReturnResult.returnTipMessage(100, "用户激活成功!");
+
+                }
+
+            } else {
+                return WebReturnResult.returnTipMessage(108, "验证码错误!");
+            }
+
+
+        }else {
+            return WebReturnResult.returnTipMessage(105, "参数缺少!");
+        }
+    }
 
 }

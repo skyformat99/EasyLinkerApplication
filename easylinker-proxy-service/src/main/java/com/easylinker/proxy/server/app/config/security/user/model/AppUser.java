@@ -18,7 +18,7 @@ public class AppUser extends BaseEntity implements UserDetails {
     private boolean isAccountNonExpired = true;
     private boolean isAccountNonLocked = true;
     private boolean isCredentialsNonExpired = true;
-    private boolean isEnabled = true;
+    private boolean isEnabled = false;
     private String[] roles = new String[]{"ROLE_USER"};
 
     public String[] getRoles() {

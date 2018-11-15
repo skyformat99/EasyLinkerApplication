@@ -21,6 +21,9 @@ public class AppUserService implements BaseService<AppUser> {
     public AppUser getAAppUserWithUsername(String username) {
         return appUserRepository.findTopByUsername(username);
     }
+    public AppUser getAAppUserWithPhone(String phone) {
+        return appUserRepository.findTopByPhone(phone);
+    }
 
     @Override
     public void save(AppUser appUser) {

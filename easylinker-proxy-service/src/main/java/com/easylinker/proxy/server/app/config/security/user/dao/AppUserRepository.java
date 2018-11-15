@@ -7,4 +7,6 @@ public interface AppUserRepository extends MongoRepository<AppUser,Long> {
     AppUser findTopByUsername(String username);
 
     AppUser findTopById(Long id);
+
+    AppUser findTopByPhone(String phone);
 }
