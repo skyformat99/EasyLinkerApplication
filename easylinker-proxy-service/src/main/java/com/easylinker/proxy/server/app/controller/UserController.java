@@ -103,7 +103,7 @@ public class UserController {
 
             try {
                 String phone = requestBody.getString("phone");
-                String code = "1234";
+                String code = String.valueOf(((int) (Math.random() * 1000000)));
                 if (aLiSMSSender.sendSms(phone, code)) {
                     redisService.set("sms_" + phone, code);
                     appUserService.save(appUser);
