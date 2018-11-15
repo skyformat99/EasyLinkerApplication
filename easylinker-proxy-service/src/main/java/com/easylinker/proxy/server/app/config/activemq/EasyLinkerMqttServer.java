@@ -67,9 +67,13 @@ public class EasyLinkerMqttServer extends BrokerService {
         setAdvisorySupport(true);
 
         setPersistent(true);
-        TransportConnector connector = new TransportConnector();
-        connector.setUri(new URI("mqtt://" + host + ":" + port));
-        addConnector(connector);
+        TransportConnector mqttConnector = new TransportConnector();
+        mqttConnector.setUri(new URI("mqtt://" + host + ":" + port));
+
+        TransportConnector tcpConnector = new TransportConnector();
+        tcpConnector.setUri(new URI("tcp://" + host + ":" + 61616));
+        addConnector(mqttConnector);
+        addConnector(tcpConnector);
         setBrokerName("EasyLinkerMqttServer");
         setDataDirectory("./activemq-data");
         List<PolicyEntry> policyEntryList = new ArrayList<>();

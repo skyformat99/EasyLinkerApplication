@@ -1,6 +1,5 @@
 package com.easylinker.proxy.server.app.model.mqtt;
 
-import com.alibaba.fastjson.JSONArray;
 import com.easylinker.proxy.server.app.model.BaseEntity;
 
 /**

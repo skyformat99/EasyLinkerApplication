@@ -26,25 +26,18 @@ import org.springframework.session.security.web.authentication.SpringSessionReme
 @Configuration
 public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private final
+    @Autowired
     LoginSuccessHandler loginSuccessHandler;
-    private final
+    @Autowired
     LoginFailureHandler loginFailureHandler;
-    private final
-    AnonymousHandler anonymousHandler;
-    private final
-    LogoutSuccessHandler logoutSuccessHandler;
-    private final
-    AppUserDetailService appUserDetailService;
 
     @Autowired
-    public SpringSecurityConfig(LoginSuccessHandler loginSuccessHandler, LoginFailureHandler loginFailureHandler, AnonymousHandler anonymousHandler, LogoutSuccessHandler logoutSuccessHandler, AppUserDetailService appUserDetailService) {
-        this.loginSuccessHandler = loginSuccessHandler;
-        this.loginFailureHandler = loginFailureHandler;
-        this.anonymousHandler = anonymousHandler;
-        this.logoutSuccessHandler = logoutSuccessHandler;
-        this.appUserDetailService = appUserDetailService;
-    }
+    AnonymousHandler anonymousHandler;
+    @Autowired
+    LogoutSuccessHandler logoutSuccessHandler;
+
+    @Autowired
+    AppUserDetailService appUserDetailService;
 
     /**
      * WEB资源路径配置器
@@ -80,8 +73,10 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/userLogin",//登陆
                         "/user/register",//注册
                         "/forgetPassword",//发送忘记密码的邮件
-                        "/user/active/**",//激活
-                        "/api/v1/*"//这个是Jwt的路径
+                        "/user/activeUser/*",//激活
+                        "/api/v1/*",//这个是Jwt的路径
+                        "/web-socket/**"
+
                 )
                 .permitAll();
 
