@@ -26,18 +26,25 @@ import org.springframework.session.security.web.authentication.SpringSessionReme
 @Configuration
 public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Autowired
+    private final
     LoginSuccessHandler loginSuccessHandler;
-    @Autowired
+    private final
     LoginFailureHandler loginFailureHandler;
-
-    @Autowired
+    private final
     AnonymousHandler anonymousHandler;
-    @Autowired
+    private final
     LogoutSuccessHandler logoutSuccessHandler;
+    private final
+    AppUserDetailService appUserDetailService;
 
     @Autowired
-    AppUserDetailService appUserDetailService;
+    public SpringSecurityConfig(LoginSuccessHandler loginSuccessHandler, LoginFailureHandler loginFailureHandler, AnonymousHandler anonymousHandler, LogoutSuccessHandler logoutSuccessHandler, AppUserDetailService appUserDetailService) {
+        this.loginSuccessHandler = loginSuccessHandler;
+        this.loginFailureHandler = loginFailureHandler;
+        this.anonymousHandler = anonymousHandler;
+        this.logoutSuccessHandler = logoutSuccessHandler;
+        this.appUserDetailService = appUserDetailService;
+    }
 
     /**
      * WEB资源路径配置器

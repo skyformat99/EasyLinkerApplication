@@ -10,8 +10,12 @@ import org.springframework.stereotype.Service;
 
 @Service(value = "AppUserService")
 public class AppUserService implements BaseService<AppUser> {
+    private final AppUserRepository appUserRepository;
+
     @Autowired
-    AppUserRepository appUserRepository;
+    public AppUserService(AppUserRepository appUserRepository) {
+        this.appUserRepository = appUserRepository;
+    }
 
 
     public AppUser getAAppUserWithUsername(String username) {

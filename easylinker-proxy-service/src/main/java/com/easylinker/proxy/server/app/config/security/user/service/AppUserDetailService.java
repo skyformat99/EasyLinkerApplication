@@ -29,8 +29,13 @@ public class AppUserDetailService implements UserDetailsService {
         AppUser appUser;
         try {
             appUser = appUserService.getAAppUserWithUsername(parameter);
-            return appUser;
-        } catch (Exception e) {
+            if (appUser != null) {
+                return appUser;
+            } else {
+                throw new UsernameNotFoundException("User not exist!");
+            }
+
+        } catch (UsernameNotFoundException e) {
             throw e;
         }
 
