@@ -275,7 +275,7 @@ public class UserController {
 
         if (StringUtils.hasText(requestBody.getString("phone"))
                 && StringUtils.hasText(requestBody.getString("code"))) {
-            if (redisService.get(requestBody.getString("phone"))
+            if (redisService.get("sms_" + requestBody.getString("phone"))
                     .equals(requestBody.getString("code"))) {
                 AppUser appUser = appUserService.getAAppUserWithPhone(requestBody.getString("phone"));
                 if (appUser == null) {
@@ -284,6 +284,7 @@ public class UserController {
                 } else {
                     appUser.setEnabled(true);
                     appUserService.save(appUser);
+                    redisService.delete("sms_" + requestBody.getString("phone"));
                     return WebReturnResult.returnTipMessage(100, "用户激活成功!");
 
                 }
@@ -293,7 +294,7 @@ public class UserController {
             }
 
 
-        }else {
+        } else {
             return WebReturnResult.returnTipMessage(105, "参数缺少!");
         }
     }
