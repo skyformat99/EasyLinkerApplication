@@ -65,11 +65,12 @@ public class EasyLinkerMqttServer extends BrokerService {
          * http://activemq.apache.org/advisory-message.html
          */
         setAdvisorySupport(true);
-
         setPersistent(true);
+        //开启MQTT支持
         TransportConnector mqttConnector = new TransportConnector();
         mqttConnector.setUri(new URI("mqtt://" + host + ":" + port));
 
+        //开启TCP支持
         TransportConnector tcpConnector = new TransportConnector();
         tcpConnector.setUri(new URI("tcp://" + host + ":" + 61616));
         addConnector(mqttConnector);

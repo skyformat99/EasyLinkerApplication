@@ -7,11 +7,11 @@ import com.easylinker.proxy.server.app.model.mqtt.MqttRemoteClient;
 import com.easylinker.proxy.server.app.service.MqttRemoteClientService;
 import org.apache.activemq.broker.Broker;
 import org.apache.activemq.broker.ConnectionContext;
+import org.apache.activemq.broker.ConsumerBrokerExchange;
 import org.apache.activemq.broker.ProducerBrokerExchange;
+import org.apache.activemq.broker.region.Destination;
 import org.apache.activemq.broker.region.Subscription;
-import org.apache.activemq.command.ConnectionInfo;
-import org.apache.activemq.command.ConsumerInfo;
-import org.apache.activemq.command.Message;
+import org.apache.activemq.command.*;
 import org.apache.activemq.security.AbstractAuthenticationBroker;
 import org.apache.activemq.security.SecurityContext;
 import org.slf4j.Logger;
@@ -525,4 +525,32 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
         }
     }
 
+    /**
+     * 在AMQ添加目的地的时候调用，通常用来拦截
+     * 不过已经在send里面拦截了，这里仅仅做个打印
+     *
+     * @param context
+     * @param destination
+     * @param createIfTemporary
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public Destination addDestination(ConnectionContext context, ActiveMQDestination destination, boolean createIfTemporary) throws Exception {
+        System.out.println("添加一个目标:" + destination.getPhysicalName());
+        return super.addDestination(context, destination, createIfTemporary);
+    }
+
+    /**
+     * 监控接受消息的客户端
+     *
+     * @param consumerExchange
+     * @param ack
+     * @throws Exception
+     */
+    @Override
+    public void acknowledge(ConsumerBrokerExchange consumerExchange, MessageAck ack) throws Exception {
+        System.out.println("客户端已经收到消息:" + ack.isDeliveredAck());
+        super.acknowledge(consumerExchange, ack);
+    }
 }

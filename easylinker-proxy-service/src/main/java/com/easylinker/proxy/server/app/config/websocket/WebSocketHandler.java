@@ -3,8 +3,12 @@ package com.easylinker.proxy.server.app.config.websocket;
 
 import com.alibaba.fastjson.JSONObject;
 import com.easylinker.proxy.server.app.config.mvc.WebReturnResult;
+import org.apache.activemq.command.ActiveMQTextMessage;
+import org.apache.activemq.command.ActiveMQTopic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.web.socket.*;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
@@ -12,9 +16,12 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     private Logger logger = LoggerFactory.getLogger(WebSocketHandler.class);
 
+    private final JmsTemplate jmsTemplate;
 
-    public WebSocketHandler() {
+    @Autowired
+    public WebSocketHandler(JmsTemplate jmsTemplate) {
         super();
+        this.jmsTemplate = jmsTemplate;
     }
 
     @Override
@@ -33,13 +40,25 @@ public class WebSocketHandler extends TextWebSocketHandler {
         super.handleMessage(session, message);
     }
 
+    /**
+     * {
+     * "topic" : "/1542265776092/8f4695c4e27e411abe2c04fcc92a3deb/test",
+     * }
+     *
+     * @param session
+     * @param message
+     * @throws Exception
+     */
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        super.handleMessage(session, message);
         try {
             JSONObject messageJson = JSONObject.parseObject(message.getPayload());
             //在这里处理消息
             //后面在处理，留个记号
+            ActiveMQTextMessage activeMQMessage = new ActiveMQTextMessage();
+            activeMQMessage.setText("helloworld");
+
+            jmsTemplate.convertAndSend(new ActiveMQTopic("/test"), activeMQMessage);
 
 
         } catch (Exception e) {
