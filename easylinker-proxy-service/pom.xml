@@ -65,33 +65,21 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
         <!-- Spring Boot End-->
 
         <!--spring session 与redis应用基本环境配置,需要开启redis后才可以使用，不然启动Spring boot会报错 -->
         <dependency>
             <groupId>org.springframework.session</groupId>
-            <artifactId>spring-session</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.session</groupId>
             <artifactId>spring-session-data-redis</artifactId>
-
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-redis -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-            <version>2.1.0.RELEASE</version>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
         </dependency>
-
-
-        <!-- https://mvnrepository.com/artifact/redis.clients/jedis -->
-        <!--<dependency>-->
-            <!--<groupId>redis.clients</groupId>-->
-            <!--<artifactId>jedis</artifactId>-->
-            <!--<version>2.9.0</version>-->
-        <!--</dependency>-->
-
 
 
         <dependency>
@@ -117,11 +105,6 @@
         <dependency>
             <groupId>com.upyun</groupId>
             <artifactId>java-sdk</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
         </dependency>
 
         <!-- Quartz Begin-->
@@ -174,17 +157,7 @@
         <dependency>
         <groupId>com.easylinker.application</groupId>
         <artifactId>easylinker-schedule-service</artifactId>
-        <version>3.0.0-A</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-websocket</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-redis</artifactId>
-            <version>RELEASE</version>
+        <version>${project.version}</version>
         </dependency>
 
         <!-- 新版本阿里云云通信短信通知接口 -->
@@ -204,6 +177,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.easylinker.proxy.server.app.Main</mainClass>
+                </configuration>
             </plugin>
         </plugins>
     </build>
