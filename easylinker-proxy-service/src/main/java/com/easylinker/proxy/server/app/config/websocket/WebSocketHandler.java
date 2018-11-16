@@ -32,7 +32,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         logger.info("WebSocket连接成功!");
-        super.afterConnectionEstablished(session);
+        session.sendMessage(new TextMessage(WebReturnResult.returnTipMessage(1, "连接成功!").toJSONString()));
+
     }
 
     @Override
@@ -43,6 +44,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     /**
      * {
      * "topic" : "/1542265776092/8f4695c4e27e411abe2c04fcc92a3deb/test",
+     * "message":"HelloWorld"
      * }
      *
      * @param session
@@ -55,15 +57,20 @@ public class WebSocketHandler extends TextWebSocketHandler {
             JSONObject messageJson = JSONObject.parseObject(message.getPayload());
             //在这里处理消息
             //后面在处理，留个记号
-            ActiveMQTextMessage activeMQMessage = new ActiveMQTextMessage();
-            activeMQMessage.setText("helloworld");
+            String topic = messageJson.getString("topic");
+            String sendMessage = messageJson.getString("message");
+            if (topic != null && topic.length() > 0 && sendMessage != null && sendMessage.length() > 0) {
+                ActiveMQTextMessage activeMQMessage = new ActiveMQTextMessage();
+                activeMQMessage.setText(sendMessage);
+                jmsTemplate.convertAndSend(new ActiveMQTopic(topic), activeMQMessage);
+            } else {
+                session.sendMessage(new TextMessage(WebReturnResult.returnTipMessage(0, "消息必须是JSON格式!").toJSONString()));
 
-            jmsTemplate.convertAndSend(new ActiveMQTopic("/test"), activeMQMessage);
-
+            }
 
         } catch (Exception e) {
-            System.out.println("JSON 解析失败");
-            session.sendMessage(new TextMessage(WebReturnResult.returnTipMessage(0, "必须是JSON格式!").toJSONString()));
+            //System.out.println("JSON 解析失败");
+            session.sendMessage(new TextMessage(WebReturnResult.returnTipMessage(0, "消息必须是JSON格式!").toJSONString()));
 
         }
     }
