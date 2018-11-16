@@ -5,11 +5,14 @@ import com.easylinker.proxy.server.app.config.security.user.service.AppUserServi
 import com.easylinker.proxy.server.app.model.mqtt.ClientACLEntry;
 import com.easylinker.proxy.server.app.model.mqtt.MqttRemoteClient;
 import com.easylinker.proxy.server.app.service.MqttRemoteClientService;
+import org.apache.activemq.command.ActiveMQTopic;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
 
@@ -49,15 +52,22 @@ public class ApplicationTests {
 
 
     }
-   // @Test
-    public  void addTestUser(){
-        AppUser appUser=new AppUser();
+
+    //@Test
+    public void addTestUser() {
+        AppUser appUser = new AppUser();
         appUser.setUsername("username");
         appUser.setPassword("14c4b06b824ec593239362517f538b29");
         appUserService.save(appUser);
     }
 
-    public static void main(String[] args) {
-        System.out.println(new MqttRemoteClient());
+
+    @Autowired
+    JmsTemplate jmsTemplate;
+    @Test
+    public void testMqtt() {
+        jmsTemplate.convertAndSend(new ActiveMQTopic("/test"), "/test");
     }
+
+
 }

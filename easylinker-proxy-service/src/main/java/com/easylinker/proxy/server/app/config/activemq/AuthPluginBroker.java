@@ -38,6 +38,9 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
     private static final int PUB_PERMISSION = 2;
     private static final int PUB_AND_SUB_PERMISSION = 3;
     private StringRedisTemplate stringRedisTemplate;
+    private final String MESSAGE_PUSHER_USERNAME = "MESSAGE_PUSHER";
+    private final String MESSAGE_PUSHER_PASSWORD = "MESSAGE_PUSHER";
+
 
     AuthPluginBroker(Broker next, MqttRemoteClientService service, int authType, StringRedisTemplate stringRedisTemplate) {
         super(next);
@@ -49,35 +52,42 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
     @Override
     public void addConnection(ConnectionContext context, ConnectionInfo info) throws Exception {
         System.out.println("客户端请求连接: " + info.toString());
-
-        SecurityContext securityContext;
-
-        switch (authType) {
-            case 1:
-                securityContext = authenticateByUsernameAndPassword(info.getUserName(), info.getPassword());
-                break;
-            case 2:
-                securityContext = authenticateByClientId(info.getClientId());
-                break;
-            case 3:
-                securityContext = authAnonymous();
-
-                break;
-            default:
-                securityContext = null;
-                break;
-        }
-
-        try {
-            context.setSecurityContext(securityContext);
-            securityContexts.add(securityContext);
+        //放行推送的客户端
+        if (info.getUserName().equals(MESSAGE_PUSHER_USERNAME) || info.getPassword().equals(MESSAGE_PUSHER_PASSWORD)) {
+            logger.info("内部推送客户端连接");
             super.addConnection(context, info);
 
-        } catch (Exception e) {
-            securityContexts.remove(securityContext);
-            context.setSecurityContext(null);
-            throw e;
+        } else {
+
+            SecurityContext securityContext;
+            switch (authType) {
+                case 1:
+                    securityContext = authenticateByUsernameAndPassword(info.getUserName(), info.getPassword());
+                    break;
+                case 2:
+                    securityContext = authenticateByClientId(info.getClientId());
+                    break;
+                case 3:
+                    securityContext = authAnonymous();
+
+                    break;
+                default:
+                    securityContext = null;
+                    break;
+            }
+
+            try {
+                context.setSecurityContext(securityContext);
+                securityContexts.add(securityContext);
+                super.addConnection(context, info);
+
+            } catch (Exception e) {
+                securityContexts.remove(securityContext);
+                context.setSecurityContext(null);
+                throw e;
+            }
         }
+
     }
 
     /**
@@ -197,30 +207,37 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
         String username = context.getConnectionState().getInfo().getUserName();
         String password = context.getConnectionState().getInfo().getPassword();
         String clientId = context.getConnectionState().getInfo().getClientId();
-        MqttRemoteClient mqttRemoteClient;
-        switch (authType) {
-            case 1://username 认证
-                mqttRemoteClient = service.findOneByUsernameAndPassword(username, password);
 
-                if (checkSubscribeAcl(mqttRemoteClient, subscribeTopic)) {
-                    super.addConsumer(context, info);
-                } else {
-                    throw new SecurityException("禁止订阅Topic:" + subscribeTopic);
-                }
-                break;
-            case 2://clientId认证
-                mqttRemoteClient = service.findOneByClientId(clientId);
-                if (checkSubscribeAcl(mqttRemoteClient, subscribeTopic)) {
-                    super.addConsumer(context, info);
-                } else {
-                    throw new SecurityException("禁止订阅Topic:" + subscribeTopic);
-                }
-                break;
-            case 3://匿名模式
-                authAnonymous();
-                break;
-            default:
-                break;
+        if (username.equals(MESSAGE_PUSHER_USERNAME) || password.equals(MESSAGE_PUSHER_PASSWORD)) {
+            logger.info("内部推送客户端消费");
+            super.addConsumer(context, info);
+
+        } else {
+            MqttRemoteClient mqttRemoteClient;
+            switch (authType) {
+                case 1://username 认证
+                    mqttRemoteClient = service.findOneByUsernameAndPassword(username, password);
+
+                    if (checkSubscribeAcl(mqttRemoteClient, subscribeTopic)) {
+                        super.addConsumer(context, info);
+                    } else {
+                        throw new SecurityException("禁止订阅Topic:" + subscribeTopic);
+                    }
+                    break;
+                case 2://clientId认证
+                    mqttRemoteClient = service.findOneByClientId(clientId);
+                    if (checkSubscribeAcl(mqttRemoteClient, subscribeTopic)) {
+                        super.addConsumer(context, info);
+                    } else {
+                        throw new SecurityException("禁止订阅Topic:" + subscribeTopic);
+                    }
+                    break;
+                case 3://匿名模式
+                    authAnonymous();
+                    break;
+                default:
+                    break;
+            }
         }
 
 
@@ -239,39 +256,46 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
     //思路:根据发送的消息的topic的ACL值来判断是否有发送权限，如果是1 sub 则不允许发送
     public void send(ProducerBrokerExchange producerExchange,
                      Message messageSend) throws Exception {
-        System.out.println("拦截的消息内容:" + new String(messageSend.getContent().getData()).trim());
-
+        System.out.println("拦截的Topic:" + messageSend.getDestination().getQualifiedName() + " 拦截的消息内容:" + new String(messageSend.getContent().getData()).trim());
         String toTopic = replaceWildcardCharacter(messageSend.getDestination().getPhysicalName());
         String username = producerExchange.getConnectionContext().getConnectionState().getInfo().getUserName();
         String clientId = producerExchange.getConnectionContext().getConnectionState().getInfo().getClientId();
-        switch (authType) {
-            case 1://username 认证
+        String password = producerExchange.getConnectionContext().getConnectionState().getInfo().getPassword();
+        if (username.equals(MESSAGE_PUSHER_USERNAME) || password.equals(MESSAGE_PUSHER_PASSWORD)) {
 
-                if (checkPubSubAcl(getCachedClientInfo(username), toTopic)) {
-                    System.out.println("通过ACL审核");
-                    super.send(producerExchange, messageSend);
-                } else {
-                    throw new SecurityException("ACL拒绝:[" + toTopic + "]因为该Topic不在ACL允许的范围之内!");
-                }
-                break;
-            case 2://clientId认证
-                if (checkPubSubAcl(getCachedClientInfo(clientId), toTopic)) {
-                    System.out.println("通过ACL审核");
-                    super.send(producerExchange, messageSend);
-                } else {
-                    throw new SecurityException("ACL拒绝:[" + toTopic + "]因为该Topic不在ACL允许的范围之内!");
-                }
+            super.send(producerExchange, messageSend);
+            logger.info("内部客户端推送:" + new String(messageSend.getContent().getData()).trim());
 
-                break;
-            case 3://匿名模式
-                authAnonymous();
-                super.send(producerExchange, messageSend);
-                break;
-            default:
-                break;
+        } else {
+
+            switch (authType) {
+                case 1://username 认证
+
+                    if (checkPubSubAcl(getCachedClientInfo(username), toTopic)) {
+                        System.out.println("通过ACL审核");
+                        super.send(producerExchange, messageSend);
+                    } else {
+                        throw new SecurityException("ACL拒绝:[" + toTopic + "]因为该Topic不在ACL允许的范围之内!");
+                    }
+                    break;
+                case 2://clientId认证
+                    if (checkPubSubAcl(getCachedClientInfo(clientId), toTopic)) {
+                        System.out.println("通过ACL审核");
+                        super.send(producerExchange, messageSend);
+                    } else {
+                        throw new SecurityException("ACL拒绝:[" + toTopic + "]因为该Topic不在ACL允许的范围之内!");
+                    }
+
+                    break;
+                case 3://匿名模式
+                    authAnonymous();
+                    super.send(producerExchange, messageSend);
+                    break;
+                default:
+                    break;
+            }
+
         }
-
-
     }
 
     /**
@@ -280,6 +304,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
      * @param topic
      * @return
      */
+
     private String replaceWildcardCharacter(String topic) {
         return topic.replace(".", "/")
                 .replace(">", "#")
@@ -314,6 +339,18 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
      * 3:sub&pub
      * 重写的ACL鉴权方法
      * 这个是针对Redis的
+     * {
+     * "acls": [
+     * {
+     * "topic": "/test",
+     * "acl": 1,
+     * "group": [
+     * "DEFAULT_GROUP"
+     * ]
+     * }
+     * ],
+     * "clientKey": "username"
+     * }
      *
      * @param jsonObject
      * @param toTopic
@@ -321,18 +358,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
      */
 
     private boolean checkPubSubAcl(JSONObject jsonObject, String toTopic) {
-//    {
-//        "acls": [
-//        {
-//            "topic": "/test",
-//                "acl": 1,
-//                "group": [
-//            "DEFAULT_GROUP"
-//            ]
-//        }
-//    ],
-//        "clientKey": "username"
-//    }
+
 
         JSONArray aclsArray = jsonObject.getJSONArray("acls");
         for (Object o : aclsArray) {
@@ -372,39 +398,49 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
         String username = info.getUserName();
         String password = info.getPassword();
         String clientId = info.getClientId();
-        MqttRemoteClient mqttRemoteClient;
-        switch (authType) {
-            case 1://username 认证
-                mqttRemoteClient = service.findOneByUsernameAndPassword(username, password);
-                if (mqttRemoteClient != null) {
-                    mqttRemoteClient.setOnLine(false);
-                    service.save(mqttRemoteClient);
-                }
-                System.out.println("客户端断开连接:" + info.toString());
-                super.removeConnection(context, info, error);
-                deleteCacheClientInfo(mqttRemoteClient.getUsername());
 
-                break;
-            case 2://clientId认证
-                mqttRemoteClient = service.findOneByClientId(clientId);
-                if (mqttRemoteClient != null) {
-                    mqttRemoteClient.setOnLine(false);
-                    service.save(mqttRemoteClient);
-                }
-                System.out.println("客户端断开连接:" + info.toString());
-                super.removeConnection(context, info, error);
+        if (username.equals(MESSAGE_PUSHER_USERNAME) || password.equals(MESSAGE_PUSHER_PASSWORD)) {
+            logger.info("内部推送客户断开端连接");
+            super.removeConnection(context, info, error);
 
-                deleteCacheClientInfo(mqttRemoteClient.getClientId());
+        } else {
 
-                break;
-            case 3://匿名模式
-                authAnonymous();
-                super.removeConnection(context, info, error);
-                break;
-            default:
-                System.out.println("客户端断开连接:" + info.toString());
-                super.removeConnection(context, info, error);
-                break;
+
+            MqttRemoteClient mqttRemoteClient;
+
+            switch (authType) {
+                case 1://username 认证
+                    mqttRemoteClient = service.findOneByUsernameAndPassword(username, password);
+                    if (mqttRemoteClient != null) {
+                        mqttRemoteClient.setOnLine(false);
+                        service.save(mqttRemoteClient);
+                    }
+                    System.out.println("客户端断开连接:" + info.toString());
+                    super.removeConnection(context, info, error);
+                    deleteCacheClientInfo(mqttRemoteClient.getUsername());
+
+                    break;
+                case 2://clientId认证
+                    mqttRemoteClient = service.findOneByClientId(clientId);
+                    if (mqttRemoteClient != null) {
+                        mqttRemoteClient.setOnLine(false);
+                        service.save(mqttRemoteClient);
+                    }
+                    System.out.println("客户端断开连接:" + info.toString());
+                    super.removeConnection(context, info, error);
+
+                    deleteCacheClientInfo(mqttRemoteClient.getClientId());
+
+                    break;
+                case 3://匿名模式
+                    authAnonymous();
+                    super.removeConnection(context, info, error);
+                    break;
+                default:
+                    System.out.println("客户端断开连接:" + info.toString());
+                    super.removeConnection(context, info, error);
+                    break;
+            }
         }
 
     }

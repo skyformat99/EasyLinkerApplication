@@ -28,6 +28,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     @Override
     public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
         super.handleMessage(session, message);
+        System.out.println(message.getPayload());
     }
 
     @Override
