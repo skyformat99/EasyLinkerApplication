@@ -51,3 +51,9 @@ public interface EasyBaseControllerTemplate {
 
 }
 ```
+# 常见的端口
+```
+mqtt :1884
+tcp:61613
+websocket:2500/web-socket/
+```
