@@ -43,6 +43,10 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
     private StringRedisTemplate stringRedisTemplate;
     private final String MESSAGE_PUSHER_USERNAME = "MESSAGE_PUSHER";
     private final String MESSAGE_PUSHER_PASSWORD = "MESSAGE_PUSHER";
+    private final String WEB_PUSHER_USERNAME = "WEB_MESSAGE_PUSHER";
+    private final String WEB_PUSHER_PASSWORD = "WEB_MESSAGE_PUSHER";
+
+
 
     private ClientDataEntryService clientDataEntryService;
 
