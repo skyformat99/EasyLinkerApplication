@@ -62,7 +62,10 @@ public class WebSocketHandler extends TextWebSocketHandler {
             if (topic != null && topic.length() > 0 && sendMessage != null && sendMessage.length() > 0) {
                 ActiveMQTextMessage activeMQMessage = new ActiveMQTextMessage();
                 activeMQMessage.setText(sendMessage);
-                jmsTemplate.convertAndSend(new ActiveMQTopic(topic), activeMQMessage);
+                ActiveMQTopic activeMQTopic = new ActiveMQTopic();
+                //Fuck Activemq!! Split char is  . but / , shit!!!
+                activeMQTopic.setPhysicalName(topic.replace("/", "."));
+                jmsTemplate.convertAndSend(activeMQTopic, sendMessage);
             } else {
                 session.sendMessage(new TextMessage(WebReturnResult.returnTipMessage(0, "消息必须是JSON格式!").toJSONString()));
 

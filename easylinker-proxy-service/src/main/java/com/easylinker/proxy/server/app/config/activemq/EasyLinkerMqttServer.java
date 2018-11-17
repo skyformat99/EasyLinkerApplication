@@ -1,5 +1,6 @@
 package com.easylinker.proxy.server.app.config.activemq;
 
+import com.easylinker.proxy.server.app.service.ClientDataEntryService;
 import com.easylinker.proxy.server.app.service.MqttRemoteClientService;
 import org.apache.activemq.broker.BrokerPlugin;
 import org.apache.activemq.broker.BrokerService;
@@ -57,15 +58,16 @@ public class EasyLinkerMqttServer extends BrokerService {
                                         int authType,
                                 MqttRemoteClientService service,
                                 StringRedisTemplate stringRedisTemplate,
-                                RedisTemplate redisTemplate
+                                RedisTemplate redisTemplate,
+                                ClientDataEntryService clientDataEntryService
     ) throws Exception {
-        setPlugins(new BrokerPlugin[]{new AuthPluginInstaller(service, authType, stringRedisTemplate, redisTemplate)});
+        setPlugins(new BrokerPlugin[]{new AuthPluginInstaller(service, authType, stringRedisTemplate, redisTemplate, clientDataEntryService)});
         /**
          * Activemq 的通知消息相关的资料在这里
          * http://activemq.apache.org/advisory-message.html
          */
-        setAdvisorySupport(true);
-        setPersistent(true);
+        setAdvisorySupport(false);
+        setPersistent(false);
         //开启MQTT支持
         TransportConnector mqttConnector = new TransportConnector();
         mqttConnector.setUri(new URI("mqtt://" + host + ":" + port));

@@ -3,7 +3,9 @@ package com.easylinker.proxy.server.app.config.activemq;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.easylinker.proxy.server.app.model.mqtt.ClientACLEntry;
+import com.easylinker.proxy.server.app.model.mqtt.ClientDataEntry;
 import com.easylinker.proxy.server.app.model.mqtt.MqttRemoteClient;
+import com.easylinker.proxy.server.app.service.ClientDataEntryService;
 import com.easylinker.proxy.server.app.service.MqttRemoteClientService;
 import org.apache.activemq.broker.Broker;
 import org.apache.activemq.broker.ConnectionContext;
@@ -30,6 +32,7 @@ import java.util.Set;
  * https://www.cnblogs.com/huangzhex/p/6339761.html
  * 官网文档:http://activemq.apache.org/developing-plugins.html
  */
+
 class AuthPluginBroker extends AbstractAuthenticationBroker {
     private static Logger logger = LoggerFactory.getLogger(AuthPluginBroker.class);
     private MqttRemoteClientService service;
@@ -41,12 +44,14 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
     private final String MESSAGE_PUSHER_USERNAME = "MESSAGE_PUSHER";
     private final String MESSAGE_PUSHER_PASSWORD = "MESSAGE_PUSHER";
 
+    private ClientDataEntryService clientDataEntryService;
 
-    AuthPluginBroker(Broker next, MqttRemoteClientService service, int authType, StringRedisTemplate stringRedisTemplate) {
+    AuthPluginBroker(Broker next, MqttRemoteClientService service, int authType, StringRedisTemplate stringRedisTemplate, ClientDataEntryService clientDataEntryService) {
         super(next);
         this.service = service;
         this.authType = authType;
         this.stringRedisTemplate = stringRedisTemplate;
+        this.clientDataEntryService = clientDataEntryService;
     }
 
     @Override
@@ -249,14 +254,16 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
      *
      * @param producerExchange
      * @param messageSend
-     * @throws Exception
+     * @throws Exception {
+     *                   <p>
+     *                   }
      */
 
     @Override
     //思路:根据发送的消息的topic的ACL值来判断是否有发送权限，如果是1 sub 则不允许发送
     public void send(ProducerBrokerExchange producerExchange,
                      Message messageSend) throws Exception {
-        System.out.println("拦截的Topic:" + messageSend.getDestination().getQualifiedName() + " 拦截的消息内容:" + new String(messageSend.getContent().getData()).trim());
+        //System.out.println("拦截的Topic:" + messageSend.getDestination().getQualifiedName() + " 拦截的消息内容:" + new String(messageSend.getContent().getData()).trim());
         String toTopic = replaceWildcardCharacter(messageSend.getDestination().getPhysicalName());
         String username = producerExchange.getConnectionContext().getConnectionState().getInfo().getUserName();
         String clientId = producerExchange.getConnectionContext().getConnectionState().getInfo().getClientId();
@@ -264,37 +271,64 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
         if (username.equals(MESSAGE_PUSHER_USERNAME) || password.equals(MESSAGE_PUSHER_PASSWORD)) {
 
             super.send(producerExchange, messageSend);
-            logger.info("内部客户端推送:" + new String(messageSend.getContent().getData()).trim());
+            //logger.info("内部客户端推送:" + new String(messageSend.getContent().getData()).trim());
 
         } else {
+            //接受数据
+            try {
+                JSONObject dataJson = JSONObject.parseObject(new String(messageSend.getContent().getData()).trim());
+                switch (authType) {
+                    case 1://username 认证
 
-            switch (authType) {
-                case 1://username 认证
+                        handlerSend(producerExchange, messageSend, toTopic, username, clientId, dataJson);
+                        break;
+                    case 2://clientId认证
+                        handlerSend(producerExchange, messageSend, toTopic, clientId, clientId, dataJson);
 
-                    if (checkPubSubAcl(getCachedClientInfo(username), toTopic)) {
-                        System.out.println("通过ACL审核");
+                        break;
+                    case 3://匿名模式
+                        authAnonymous();
                         super.send(producerExchange, messageSend);
-                    } else {
-                        throw new SecurityException("ACL拒绝:[" + toTopic + "]因为该Topic不在ACL允许的范围之内!");
-                    }
-                    break;
-                case 2://clientId认证
-                    if (checkPubSubAcl(getCachedClientInfo(clientId), toTopic)) {
-                        System.out.println("通过ACL审核");
-                        super.send(producerExchange, messageSend);
-                    } else {
-                        throw new SecurityException("ACL拒绝:[" + toTopic + "]因为该Topic不在ACL允许的范围之内!");
-                    }
-
-                    break;
-                case 3://匿名模式
-                    authAnonymous();
-                    super.send(producerExchange, messageSend);
-                    break;
-                default:
-                    break;
+                        break;
+                    default:
+                        break;
+                }
+            } catch (Exception e) {
+                throw new SecurityException("非JSON数据不予处理!");
             }
 
+
+        }
+    }
+
+    /**
+     * 用来处理消息的发送和是否持久化
+     * {"persistent":"true","data":{"V1":"1","V2":"2"},"info":"V"}
+     *
+     * @param producerExchange
+     * @param messageSend
+     * @param toTopic
+     * @param username
+     * @param clientId
+     * @param dataJson
+     * @throws Exception
+     */
+
+    private synchronized void handlerSend(ProducerBrokerExchange producerExchange, Message messageSend, String toTopic, String username, String clientId, JSONObject dataJson) throws Exception {
+        if (checkPubSubAcl(getCachedClientInfo(username), toTopic)) {
+            super.send(producerExchange, messageSend);
+            //是否是持久化数据
+            if (dataJson.getBooleanValue("persistent")) {
+                ClientDataEntry clientDataEntry = new ClientDataEntry();
+                clientDataEntry.setClientId(clientId);
+                clientDataEntry.setData(dataJson.getJSONObject("data"));
+                clientDataEntry.setInfo(dataJson.getString("info"));
+                clientDataEntryService.save(clientDataEntry);
+                System.out.println("持久化成功!");
+            }
+
+        } else {
+            throw new SecurityException("ACL拒绝:[" + toTopic + "]因为该Topic不在ACL允许的范围之内!");
         }
     }
 
@@ -374,26 +408,6 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
 
     @Override
     public void removeConnection(ConnectionContext context, ConnectionInfo info, Throwable error) throws Exception {
-
-//
-//        ProducerBrokerExchange producerExchange = new ProducerBrokerExchange();
-//        producerExchange.setConnectionContext(this.getNext().getAdminConnectionContext());
-//        Message message = new ActiveMQMessage();
-//
-//        /*
-//        *  case 1:
-//                return new ActiveMQQueue(name);
-//            case 2:
-//                return new ActiveMQTopic(name);
-//            case 3:
-//         */
-//        message.setDestination(ActiveMQDestination.createDestination(
-//                ".test",
-//                new Byte("2")));
-//        ByteSequence byteSequence = new ByteSequence();
-//        byteSequence.setData("Bye Bye".getBytes());
-//        message.setContent(byteSequence);
-//        super.send(producerExchange, message);
 
         String username = info.getUserName();
         String password = info.getPassword();
@@ -537,7 +551,6 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
      */
     @Override
     public Destination addDestination(ConnectionContext context, ActiveMQDestination destination, boolean createIfTemporary) throws Exception {
-        System.out.println("添加一个目标:" + destination.getPhysicalName());
         return super.addDestination(context, destination, createIfTemporary);
     }
 
@@ -550,7 +563,6 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
      */
     @Override
     public void acknowledge(ConsumerBrokerExchange consumerExchange, MessageAck ack) throws Exception {
-        System.out.println("客户端已经收到消息:" + ack.isDeliveredAck());
         super.acknowledge(consumerExchange, ack);
     }
 }

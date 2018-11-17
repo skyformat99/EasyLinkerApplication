@@ -1,7 +1,7 @@
 package com.easylinker.proxy.server.app.model.mqtt;
 
+import com.alibaba.fastjson.JSONObject;
 import com.easylinker.proxy.server.app.model.BaseEntity;
-import com.google.gson.JsonObject;
 
 /**
  * 客户端产生的数据模型
@@ -14,12 +14,12 @@ public class ClientDataEntry extends BaseEntity {
     /**
      * 真正的数据结构是个JSON，客户端怎么存进来，后台就怎么保存
      */
-    private JsonObject data;
+    private JSONObject data;
 
     /**
      * 关联的客户端的ID
      */
-    private Long clientId;
+    private String clientId;
 
     public String getInfo() {
         return info;
@@ -29,19 +29,19 @@ public class ClientDataEntry extends BaseEntity {
         this.info = info;
     }
 
-    public JsonObject getData() {
+    public JSONObject getData() {
         return data;
     }
 
-    public void setData(JsonObject data) {
+    public void setData(JSONObject data) {
         this.data = data;
     }
 
-    public Long getClientId() {
+    public String getClientId() {
         return clientId;
     }
 
-    public void setClientId(Long clientId) {
+    public void setClientId(String clientId) {
         this.clientId = clientId;
     }
 }
