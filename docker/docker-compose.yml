@@ -2,7 +2,7 @@ version: '3.1'
 services:
   easylinker:
     restart: always
-    image: easylinker
+    image: easylinker:v1.0.0
     container_name: easylinker
     ports:
     - 2500:2500
