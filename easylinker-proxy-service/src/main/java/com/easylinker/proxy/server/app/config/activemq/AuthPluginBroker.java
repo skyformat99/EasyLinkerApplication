@@ -41,11 +41,12 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
     private static final int PUB_PERMISSION = 2;
     private static final int PUB_AND_SUB_PERMISSION = 3;
     private StringRedisTemplate stringRedisTemplate;
+    // 内部消息推送组件，防止被拦截器拦截
     private final String MESSAGE_PUSHER_USERNAME = "MESSAGE_PUSHER";
     private final String MESSAGE_PUSHER_PASSWORD = "MESSAGE_PUSHER";
+    // 为了支持WebSocket mqtt组件，转么 再开一个推送器
     private final String WEB_PUSHER_USERNAME = "WEB_MESSAGE_PUSHER";
     private final String WEB_PUSHER_PASSWORD = "WEB_MESSAGE_PUSHER";
-
 
 
     private ClientDataEntryService clientDataEntryService;
@@ -569,4 +570,29 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
     public void acknowledge(ConsumerBrokerExchange consumerExchange, MessageAck ack) throws Exception {
         super.acknowledge(consumerExchange, ack);
     }
+
+
+
+
+//
+//    public static void main(String[] args) {
+//        JSONObject dataJson = new JSONObject();
+//        dataJson.put("type", "message");
+//        dataJson.put("data", JSONObject.parse("{\"persistent\":\"true\",\"data\":{\"V1\":\"1\",\"V2\":\"2\"},\"info\":\"V\"}"));
+//
+//        JSONObject cmdJson = new JSONObject();
+//        cmdJson.put("type", "cmd");
+//        cmdJson.put("data", JSONObject.parse("{\"data\":{\"cmd\":\"ls\"}}"));
+//
+//        JSONObject echoJson = new JSONObject();
+//        echoJson.put("type", "echo");
+//        echoJson.put("data", JSONObject.parse("{\"data\":{\"echo\":\"echo\"}}"));
+//
+//
+//        System.out.println(dataJson.toJSONString());
+//        System.out.println(cmdJson.toJSONString());
+//        System.out.println(echoJson.toJSONString());
+//
+//
+//    }
 }

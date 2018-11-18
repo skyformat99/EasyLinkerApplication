@@ -1,18 +1,16 @@
 package com.easylinker.proxy.server.app;
 
+import com.alibaba.fastjson.JSONObject;
 import com.easylinker.proxy.server.app.config.security.user.model.AppUser;
 import com.easylinker.proxy.server.app.config.security.user.service.AppUserService;
 import com.easylinker.proxy.server.app.model.mqtt.ClientACLEntry;
 import com.easylinker.proxy.server.app.model.mqtt.MqttRemoteClient;
 import com.easylinker.proxy.server.app.service.MqttRemoteClientService;
-import org.apache.activemq.command.ActiveMQTopic;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.jms.core.JmsTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
 
@@ -61,13 +59,15 @@ public class ApplicationTests {
         appUserService.save(appUser);
     }
 
+    //
+//    @Autowired
+//    JmsTemplate jmsTemplate;
+//    @Test
+//    public void testMqtt() {
+//        jmsTemplate.convertAndSend(new ActiveMQTopic("/test"), "/test");
+//    }
+//
 
-    @Autowired
-    JmsTemplate jmsTemplate;
-    @Test
-    public void testMqtt() {
-        jmsTemplate.convertAndSend(new ActiveMQTopic("/test"), "/test");
-    }
 
 
 }

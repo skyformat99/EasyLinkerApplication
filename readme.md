@@ -6,6 +6,7 @@ EasyLinkerApplication V3
 安全:2XX
 API:3XX
 Token:4XX
+Mqtt:6XX
 业务不相干服务器错误:5xx
 
 ```
@@ -56,4 +57,41 @@ public interface EasyBaseControllerTemplate {
 mqtt :1884
 tcp:61613
 websocket:2500/web-socket/
+```
+# 内部的三种消息格式
+## 数据消息
+```
+{
+    "data":{
+        "data":{
+            "V1":"1",
+            "V2":"2"
+        },
+        "persistent":"true",
+        "info":"V"
+    },
+    "type":"message"
+}
+```
+## 回显消息
+```
+{
+    "data":{
+        "data":{
+            "cmd":"ls"
+        }
+    },
+    "type":"cmd"
+}
+```
+## 特殊命令消息
+```
+{
+    "data":{
+        "data":{
+            "echo":"echo"
+        }
+    },
+    "type":"echo"
+}
 ```
