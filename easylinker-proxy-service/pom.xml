@@ -155,9 +155,14 @@
         </dependency>
 
         <dependency>
-        <groupId>com.easylinker.application</groupId>
-        <artifactId>easylinker-schedule-service</artifactId>
-        <version>${project.version}</version>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.easylinker.application</groupId>
+            <artifactId>easylinker-schedule-service</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- 新版本阿里云云通信短信通知接口 -->
