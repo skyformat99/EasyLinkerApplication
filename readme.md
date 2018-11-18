@@ -70,10 +70,11 @@ websocket:2500/web-socket/
         "persistent":"true",
         "info":"V"
     },
-    "type":"message"
+    "type":"data"
 }
 ```
 ## 回显消息
+### Topic:/system/echo
 ```
 {
     "data":{
@@ -85,6 +86,7 @@ websocket:2500/web-socket/
 }
 ```
 ## 特殊命令消息
+### Topic:/system/cmd
 ```
 {
     "data":{
