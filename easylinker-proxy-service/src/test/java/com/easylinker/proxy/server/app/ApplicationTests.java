@@ -6,6 +6,7 @@ import com.easylinker.proxy.server.app.config.security.user.service.AppUserServi
 import com.easylinker.proxy.server.app.model.mqtt.ClientACLEntry;
 import com.easylinker.proxy.server.app.model.mqtt.MqttRemoteClient;
 import com.easylinker.proxy.server.app.service.MqttRemoteClientService;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -60,13 +61,11 @@ public class ApplicationTests {
     }
 
     //
-//    @Autowired
-//    JmsTemplate jmsTemplate;
-//    @Test
-//    public void testMqtt() {
-//        jmsTemplate.convertAndSend(new ActiveMQTopic("/test"), "/test");
-//    }
-//
+    @Test
+    public void testMqtt() {
+        System.out.println("Test success");
+    }
+
 
 
 
