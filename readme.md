@@ -1,6 +1,6 @@
 # EasyLinkerApplication
 EasyLinkerApplication V3
-##异常代码 (后续会有表统计整理出来)
+## 异常代码 (后续会有表统计整理出来)
 ```
 用户:1XX
 安全:2XX
