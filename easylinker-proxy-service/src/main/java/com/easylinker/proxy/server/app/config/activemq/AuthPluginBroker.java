@@ -23,6 +23,7 @@ import org.springframework.util.StringUtils;
 
 import java.security.Principal;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -43,11 +44,11 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
     private static final int PUB_AND_SUB_PERMISSION = 3;
     private StringRedisTemplate stringRedisTemplate;
     // 内部消息推送组件，防止被拦截器拦截
-    private final String MESSAGE_PUSHER_USERNAME = "MESSAGE_PUSHER";
-    private final String MESSAGE_PUSHER_PASSWORD = "MESSAGE_PUSHER";
-    // 为了支持WebSocket mqtt组件，转么 再开一个推送器
-    private final String WEB_PUSHER_USERNAME = "WEB_MESSAGE_PUSHER";
-    private final String WEB_PUSHER_PASSWORD = "WEB_MESSAGE_PUSHER";
+    private final String INTERNAL_MESSAGE_PUSHER_USERNAME = "MESSAGE_PUSHER";
+    private final String INTERNAL_MESSAGE_PUSHER_PASSWORD = "MESSAGE_PUSHER";
+    // 为了支持WebSocket mqtt组件,再开一个推送器
+    private final String WEB_CONSOLE_PUSHER_USERNAME = "WEB_CONSOLE_MESSAGE_PUSHER";
+    private final String WEB_CONSOLE_PUSHER_PASSWORD = "WEB_CONSOLE_MESSAGE_PUSHER";
 
 
     private ClientDataEntryService clientDataEntryService;
@@ -64,7 +65,8 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
     public void addConnection(ConnectionContext context, ConnectionInfo info) throws Exception {
         System.out.println("客户端请求连接: " + info.toString());
         //放行推送的客户端
-        if (info.getUserName().equals(MESSAGE_PUSHER_USERNAME) || info.getPassword().equals(MESSAGE_PUSHER_PASSWORD)) {
+        if (info.getUserName().equals(INTERNAL_MESSAGE_PUSHER_USERNAME) ||
+                info.getPassword().equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)) {
             logger.info("内部推送客户端连接");
             super.addConnection(context, info);
 
@@ -218,8 +220,10 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
         String username = context.getConnectionState().getInfo().getUserName();
         String password = context.getConnectionState().getInfo().getPassword();
         String clientId = context.getConnectionState().getInfo().getClientId();
+        System.out.println("客户端:" + username + " 订阅了 " + subscribeTopic);
 
-        if (username.equals(MESSAGE_PUSHER_USERNAME) || password.equals(MESSAGE_PUSHER_PASSWORD)) {
+        if (username.equals(INTERNAL_MESSAGE_PUSHER_USERNAME) ||
+                password.equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)) {
             logger.info("内部推送客户端消费");
             super.addConsumer(context, info);
 
@@ -228,20 +232,12 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
             switch (authType) {
                 case 1://username 认证
                     mqttRemoteClient = service.findOneByUsernameAndPassword(username, password);
-
-                    if (checkSubscribeAcl(mqttRemoteClient, subscribeTopic)) {
-                        super.addConsumer(context, info);
-                    } else {
-                        throw new SecurityException("禁止订阅Topic:" + subscribeTopic);
-                    }
+                    checkSubscribeAcl(context, info, mqttRemoteClient, subscribeTopic);
                     break;
                 case 2://clientId认证
                     mqttRemoteClient = service.findOneByClientId(clientId);
-                    if (checkSubscribeAcl(mqttRemoteClient, subscribeTopic)) {
-                        super.addConsumer(context, info);
-                    } else {
-                        throw new SecurityException("禁止订阅Topic:" + subscribeTopic);
-                    }
+                    checkSubscribeAcl(context, info, mqttRemoteClient, subscribeTopic);
+
                     break;
                 case 3://匿名模式
                     authAnonymous();
@@ -256,13 +252,40 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
     }
 
     /**
+     * 检查订阅事件
+     * 发现这里有个BUG
+     * 每次只检查一个ACL
+     *
+     * @param mqttRemoteClient
+     * @return
+     */
+    private void checkSubscribeAcl(ConnectionContext context, ConsumerInfo info, MqttRemoteClient mqttRemoteClient, String subscribeTopic) throws Exception {
+        if (mqttRemoteClient != null) {
+            List<ClientACLEntry> clientACLEntries = mqttRemoteClient.getAclEntries();
+            //遍历数据库里面的ACL权限
+            if (clientACLEntries.size() > 0) {
+                List<String> topics = new ArrayList<>();
+                System.out.println("ACL size:" + clientACLEntries.size());
+                for (ClientACLEntry aClientACLEntry : clientACLEntries) {
+                    topics.add(aClientACLEntry.getTopic());
+                }
+                //这里应该是包含而不是全等
+                if (topics.contains(subscribeTopic)) {
+                    super.addConsumer(context, info);
+                } else {
+                    throw new SecurityException("禁止订阅Topic:" + subscribeTopic);
+                }
+            }
+
+        }
+    }
+
+    /**
      * 消息拦截器
      *
      * @param producerExchange
      * @param messageSend
-     * @throws Exception {
-     *                   <p>
-     *                   }
+     * @throws Exception
      */
 
     @Override
@@ -275,7 +298,8 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
         String username = producerExchange.getConnectionContext().getConnectionState().getInfo().getUserName();
         String clientId = producerExchange.getConnectionContext().getConnectionState().getInfo().getClientId();
         String password = producerExchange.getConnectionContext().getConnectionState().getInfo().getPassword();
-        if (username.equals(MESSAGE_PUSHER_USERNAME) || password.equals(MESSAGE_PUSHER_PASSWORD)) {
+        if (username.equals(INTERNAL_MESSAGE_PUSHER_USERNAME) ||
+                password.equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)) {
             System.out.println("MESSAGE_PUSHER");
             super.send(producerExchange, messageSend);
         } else {
@@ -377,11 +401,11 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                         super.send(producerExchange, messageSend);
                         break;
                     default:
-
+                        //super.send(producerExchange, messageSend);
                         break;
                 }
             } else {
-                System.out.println("没有定义类型的消息直接忽略!");
+                System.out.println("handlerSend：没有定义类型的消息直接忽略!");
             }
 
 
@@ -403,26 +427,6 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                 .replace("*", "+");
     }
 
-    /**
-     * 检查订阅事件
-     *
-     * @param mqttRemoteClient
-     * @return
-     */
-    private boolean checkSubscribeAcl(MqttRemoteClient mqttRemoteClient, String subscribeTopic) {
-        if (mqttRemoteClient != null) {
-            List<ClientACLEntry> clientACLEntries = mqttRemoteClient.getAclEntries();
-            //遍历数据库里面的ACL权限
-            if (clientACLEntries.size() > 0) {
-                for (ClientACLEntry aClientACLEntry : clientACLEntries) {
-                    //如果请求订阅的Topic在数据库则说明可以订阅
-                    return aClientACLEntry.getTopic().equals(subscribeTopic);
-                }
-            }
-
-        }
-        return false;
-    }
 
     /**
      * 检查消息发布属性
@@ -471,7 +475,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
         String password = info.getPassword();
         String clientId = info.getClientId();
 
-        if (username.equals(MESSAGE_PUSHER_USERNAME) || password.equals(MESSAGE_PUSHER_PASSWORD)) {
+        if (username.equals(INTERNAL_MESSAGE_PUSHER_USERNAME) || password.equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)) {
             logger.info("内部推送客户断开端连接");
             super.removeConnection(context, info, error);
 
