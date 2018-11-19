@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * 在V3里面，所有的连接进来的东西都是客户端
@@ -84,7 +85,7 @@ public class ClientController {
             mqttRemoteClient.setUserId(userId);
             //配置默认的ACL
             ClientACLEntry defaultACLEntry = new ClientACLEntry();
-            defaultACLEntry.setTopic("/" + userId + "/" + mqttRemoteClient.getClientId() + "/" + requestBody.getString("topic"));
+            defaultACLEntry.setTopic("/" + userId + "/" + mqttRemoteClient.getClientId() + "/" + UUID.randomUUID().toString().replace("-", "").substring(0, 10));
             //ACL加入组
             List<ClientACLEntry> aclEntryList = new ArrayList<>();
             aclEntryList.add(defaultACLEntry);
@@ -256,9 +257,9 @@ public class ClientController {
      */
     @RequestMapping(value = "/data/{id}/{page}/{size}", method = RequestMethod.GET)
     public Object data(HttpServletRequest httpServletRequest,
-                           @PathVariable Long id,
-                           @PathVariable int page,
-                           @PathVariable int size) {
+                       @PathVariable Long id,
+                       @PathVariable int page,
+                       @PathVariable int size) {
         Long userId = cacheHelper.getCurrentUserIdFromRedisCache(httpServletRequest);
 
         if (userId == null) {
