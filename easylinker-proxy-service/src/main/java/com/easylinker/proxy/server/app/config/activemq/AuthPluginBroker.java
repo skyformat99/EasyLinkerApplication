@@ -65,8 +65,11 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
     public void addConnection(ConnectionContext context, ConnectionInfo info) throws Exception {
         System.out.println("客户端请求连接: " + info.toString());
         //放行推送的客户端
-        if (info.getUserName().equals(INTERNAL_MESSAGE_PUSHER_USERNAME) ||
-                info.getPassword().equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)) {
+        if ((info.getUserName().equals(INTERNAL_MESSAGE_PUSHER_USERNAME) &&
+                info.getPassword().equals(INTERNAL_MESSAGE_PUSHER_PASSWORD))
+                || (info.getUserName().equals(WEB_CONSOLE_PUSHER_USERNAME) &&
+                info.getPassword().equals(WEB_CONSOLE_PUSHER_PASSWORD))
+                ) {
             logger.info("内部推送客户端连接");
             super.addConnection(context, info);
 
@@ -222,8 +225,11 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
         String clientId = context.getConnectionState().getInfo().getClientId();
         System.out.println("客户端:" + username + " 订阅了 " + subscribeTopic);
 
-        if (username.equals(INTERNAL_MESSAGE_PUSHER_USERNAME) ||
-                password.equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)) {
+        if (username.equals(INTERNAL_MESSAGE_PUSHER_USERNAME) &&
+                password.equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)
+                || username.equals(WEB_CONSOLE_PUSHER_USERNAME) &&
+                username.equals(WEB_CONSOLE_PUSHER_PASSWORD)
+                ) {
             logger.info("内部推送客户端消费");
             super.addConsumer(context, info);
 
@@ -298,8 +304,11 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
         String username = producerExchange.getConnectionContext().getConnectionState().getInfo().getUserName();
         String clientId = producerExchange.getConnectionContext().getConnectionState().getInfo().getClientId();
         String password = producerExchange.getConnectionContext().getConnectionState().getInfo().getPassword();
-        if (username.equals(INTERNAL_MESSAGE_PUSHER_USERNAME) ||
-                password.equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)) {
+        if (username.equals(INTERNAL_MESSAGE_PUSHER_USERNAME) &&
+                password.equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)
+                || username.equals(WEB_CONSOLE_PUSHER_USERNAME) &&
+                username.equals(WEB_CONSOLE_PUSHER_PASSWORD)
+                ) {
             System.out.println("MESSAGE_PUSHER");
             super.send(producerExchange, messageSend);
         } else {
@@ -475,7 +484,11 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
         String password = info.getPassword();
         String clientId = info.getClientId();
 
-        if (username.equals(INTERNAL_MESSAGE_PUSHER_USERNAME) || password.equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)) {
+        if (username.equals(INTERNAL_MESSAGE_PUSHER_USERNAME) &&
+                password.equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)
+                || username.equals(WEB_CONSOLE_PUSHER_USERNAME) &&
+                username.equals(WEB_CONSOLE_PUSHER_PASSWORD)
+                ) {
             logger.info("内部推送客户断开端连接");
             super.removeConnection(context, info, error);
 
