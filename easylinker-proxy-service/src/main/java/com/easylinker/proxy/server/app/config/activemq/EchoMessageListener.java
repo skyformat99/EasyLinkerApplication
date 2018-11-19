@@ -10,7 +10,7 @@ public class EchoMessageListener {
      */
     //监听注解
     @JmsListener(destination = ".system.echo")
-    public void getQueue(String info) {
+    public void getEcho(String info) {
         System.out.println("Echo message:" + info);
     }
 
