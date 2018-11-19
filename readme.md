@@ -74,7 +74,7 @@ websocket:2500/web-socket/
 }
 ```
 ## 回显消息
-### Topic:/system/echo
+### Topic:/system/echo;WEB_CONSOLE_MESSAGE_PUSHER
 ```
 {
     "data":{
