@@ -438,6 +438,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                                         break;
                                     default:
                                         break;
+
                                 }
 
                             }).start();
