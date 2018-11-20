@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.StringUtils;
 
+import javax.jms.MessageNotWriteableException;
 import java.security.Principal;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -69,7 +70,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                 info.getPassword().equals(INTERNAL_MESSAGE_PUSHER_PASSWORD))
                 || (info.getUserName().equals(WEB_CONSOLE_PUSHER_USERNAME) &&
                 info.getPassword().equals(WEB_CONSOLE_PUSHER_PASSWORD))
-                ) {
+        ) {
             logger.info("内部推送客户端连接");
             super.addConnection(context, info);
 
@@ -229,7 +230,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                 password.equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)
                 || username.equals(WEB_CONSOLE_PUSHER_USERNAME) &&
                 username.equals(WEB_CONSOLE_PUSHER_PASSWORD)
-                ) {
+        ) {
             logger.info("内部推送客户端消费");
             super.addConsumer(context, info);
 
@@ -308,7 +309,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                 password.equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)
                 || username.equals(WEB_CONSOLE_PUSHER_USERNAME) &&
                 username.equals(WEB_CONSOLE_PUSHER_PASSWORD)
-                ) {
+        ) {
             System.out.println("MESSAGE_PUSHER");
             super.send(producerExchange, messageSend);
         } else {
@@ -363,54 +364,88 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                         super.send(producerExchange, messageSend);
                         //考虑到数据库持久化会浪费时间，所以开启多线程去保存数据，同时多线程又面临着上下文的问题，所以需要同步
                         synchronized (this) {
-                            new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (dataJson.getBooleanValue("persistent")) {
-                                        ClientDataEntry clientDataEntry = new ClientDataEntry();
-                                        clientDataEntry.setClientId(clientId);
-                                        clientDataEntry.setData(dataJson.getJSONObject("data"));
-                                        clientDataEntry.setInfo(dataJson.getString("info"));
-                                        clientDataEntryService.save(clientDataEntry);
-                                        System.out.println("持久化成功!");
-                                    }
+                            new Thread(() -> {
+                                if (dataJson.getBooleanValue("persistent")) {
+                                    ClientDataEntry clientDataEntry = new ClientDataEntry();
+                                    clientDataEntry.setClientId(clientId);
+                                    clientDataEntry.setData(dataJson.getJSONObject("data"));
+                                    clientDataEntry.setInfo(dataJson.getString("info"));
+                                    clientDataEntryService.save(clientDataEntry);
+                                    System.out.println("持久化成功!");
                                 }
-                            };
+                            }).start();
+
 
                         }
 
                         break;
                     case "echo":// Echo 专门发给一个通道 /system/echo/
-                        //
-                        JSONObject echoMessageJson = new JSONObject();
-                        echoMessageJson.put("message", new String(messageSend.getContent().getData()));
-                        echoMessageJson.put("clientId", clientId);
-                        ActiveMQTextMessage echoMessage = new ActiveMQTextMessage();
-                        echoMessage.setText(echoMessageJson.toJSONString());
-                        ActiveMQTopic echoTopic = new ActiveMQTopic();
-                        echoTopic.setPhysicalName(".system.echo");
-                        //半路拦截 然后修改目标地址
-                        messageSend.setDestination(echoTopic);
-                        messageSend.setContent(echoMessage.getContent());
+                        synchronized (this) {
+                            new Thread(() -> {
+                                //
+                                JSONObject echoMessageJson = new JSONObject();
+                                echoMessageJson.put("message", new String(messageSend.getContent().getData()));
+                                echoMessageJson.put("clientId", clientId);
+                                ActiveMQTextMessage echoMessage = new ActiveMQTextMessage();
+                                try {
+                                    echoMessage.setText(echoMessageJson.toJSONString());
+                                } catch (MessageNotWriteableException e) {
+                                    //e.printStackTrace();
+                                }
+                                ActiveMQTopic echoTopic = new ActiveMQTopic();
+                                echoTopic.setPhysicalName(".system.echo");
+                                //半路拦截 然后修改目标地址
+                                messageSend.setDestination(echoTopic);
+                                messageSend.setContent(echoMessage.getContent());
+                            }).start();
+                        }
+
                         super.send(producerExchange, messageSend);
 
                         break;
                     case "cmd"://Echo 专门发给一个通道 /system/cmd/
                         //
-                        JSONObject cmdMessageJson = new JSONObject();
-                        cmdMessageJson.put("message", new String(messageSend.getContent().getData()));
-                        cmdMessageJson.put("clientId", clientId);
-                        ActiveMQTextMessage cmdMessage = new ActiveMQTextMessage();
-                        cmdMessage.setText(cmdMessageJson.toJSONString());
-                        ActiveMQTopic cmdTopic = new ActiveMQTopic();
-                        cmdTopic.setPhysicalName(".system.cmd");
-                        //半路拦截 然后修改目标地址
-                        messageSend.setDestination(cmdTopic);
-                        messageSend.setContent(cmdMessage.getContent());
+                        synchronized (this) {
+                            new Thread(() -> {
+                                JSONObject cmdMessageJson = new JSONObject();
+
+                                ActiveMQTextMessage cmdMessage = new ActiveMQTextMessage();
+                                ActiveMQTopic cmdTopic = new ActiveMQTopic();
+                                cmdTopic.setPhysicalName(toTopic.replace("/", "."));
+                                System.out.println("CMD:" + cmdTopic);
+
+                                try {
+                                    cmdMessage.setText(cmdMessageJson.toJSONString());
+                                } catch (MessageNotWriteableException e) {
+                                    // e.printStackTrace();
+
+                                }
+                                JSONObject cmdJson = dataJson.getJSONObject("data").getJSONObject("data");
+                                System.out.println(cmdJson.toJSONString());
+                                // 这里默认仅仅支持两个命令：time，返回时间戳，version：返回版本
+                                switch (cmdJson.getString("cmd")) {
+                                    case "time":
+                                        cmdMessageJson.put("message", System.currentTimeMillis());
+                                        cmdMessageJson.put("clientId", clientId);
+                                        messageSend.setContent(cmdMessage.getContent());
+
+                                        break;
+                                    case "version":
+                                        cmdMessageJson.put("message", "V3.0.0.0");
+                                        cmdMessageJson.put("clientId", clientId);
+                                        messageSend.setContent(cmdMessage.getContent());
+
+                                        break;
+                                    default:
+                                        break;
+                                }
+
+                            }).start();
+                        }
+
                         super.send(producerExchange, messageSend);
                         break;
                     default:
-                        //super.send(producerExchange, messageSend);
                         break;
                 }
             } else {
@@ -488,7 +523,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                 password.equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)
                 || username.equals(WEB_CONSOLE_PUSHER_USERNAME) &&
                 username.equals(WEB_CONSOLE_PUSHER_PASSWORD)
-                ) {
+        ) {
             logger.info("内部推送客户断开端连接");
             super.removeConnection(context, info, error);
 
@@ -625,10 +660,15 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
      * @throws Exception
      */
     @Override
-    public Destination addDestination(ConnectionContext context, ActiveMQDestination destination, boolean createIfTemporary) throws Exception {
+    public Destination addDestination(ConnectionContext context, ActiveMQDestination destination,
+                                      boolean createIfTemporary) throws Exception {
         return super.addDestination(context, destination, createIfTemporary);
     }
 
+    @Override
+    public void acknowledge(ConsumerBrokerExchange consumerExchange, MessageAck ack) throws Exception {
+        super.acknowledge(consumerExchange, ack);
+    }
     /**
      * 监控接受消息的客户端
      *
@@ -636,10 +676,10 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
      * @param ack
      * @throws Exception
      */
-    @Override
-    public void acknowledge(ConsumerBrokerExchange consumerExchange, MessageAck ack) throws Exception {
-        super.acknowledge(consumerExchange, ack);
-    }
+//    @Override
+//    public void acknowledge(ConsumerBrokerExchange consumerExchange, MessageAck ack) throws Exception {
+//        super.acknowledge(consumerExchange, ack);
+//    }
 
 
 //

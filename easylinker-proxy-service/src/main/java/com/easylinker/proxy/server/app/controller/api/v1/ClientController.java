@@ -26,7 +26,7 @@ import java.util.UUID;
  * 在V3里面，所有的连接进来的东西都是客户端
  * 不管你是C  Cpp 还是Java Python
  */
-@JwtAuthRole(roles = {"ROLE_USER", "ROLE_ADMIN"})
+@JwtAuthRole
 @RestController
 //关于这里为何打破规则用了下划线：因为Spring的路径中出现数字以后会出问题
 @RequestMapping(value = "/api/v_1_0/client")
