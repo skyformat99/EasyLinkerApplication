@@ -21,8 +21,12 @@ public class JwtFilter extends OncePerRequestFilter {
         this.redisService = redisService;
     }
 
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) {
+
+
+
         //配置编码类型
         response.setContentType("text/html;charset=UTF-8;pageEncoding=UTF-8");
         response.setCharacterEncoding("UTF-8");
