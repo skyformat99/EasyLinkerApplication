@@ -9,6 +9,7 @@ import org.apache.activemq.broker.region.policy.PolicyEntry;
 import org.apache.activemq.broker.region.policy.PolicyMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -43,10 +44,9 @@ import java.util.List;
  * zkPath="/activemq/leveldb-stores"
  * />
  * </persistenceAdapter>
- *
  */
 @Component
-public class EasyLinkerMqttServer extends BrokerService {
+public class EasyLinkerMqttServer extends BrokerService implements InitializingBean {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -92,4 +92,14 @@ public class EasyLinkerMqttServer extends BrokerService {
 
     }
 
+    @Override
+    public void start() throws Exception {
+        super.start();
+        logger.info("MQTT server started !");
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        start();
+    }
 }

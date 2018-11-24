@@ -186,14 +186,125 @@ public class ClientDataEntryService implements BaseService<ClientDataEntry> {
  mqtt :1884
  tcp:61613
  websocket:2500/web-socket/
+ COAP:5683/api_coap_1_0
  ```
  
-## 9.异常代码
+## 9.异常代码(X00表示成功)
 ```
 用户:1XX
 安全:2XX
 API:3XX
 Token:4XX
 Mqtt:6XX
+COAP:7XX
 业务不相干服务器错误:5xx
 ```
+#<h1 style="color:red;">10.COAP支持 </h1>
+>[COAP 可参考这个文章](https://blog.csdn.net/QQ576494799/article/details/77865415?utm_source=blogxgwz2)
+
+>新版本增加了COAP支持,入口地址:`coap://host:5683/api_coap_1_0 `下面是一个Java客户端POST demo：
+```java
+class TestClient {
+    public static void main(String[] args) throws URISyntaxException {
+        URI uri = new URI("localhost:5683/api_coap_1_0");
+        CoapClient client = new CoapClient(uri);
+        CoapResponse response1 = client.post("{\"data\":{\"data\":{\"V1\":\"1\",\"V2\":\"2\"},\"persistent\":\"true\",\"info\":\"V\"},\"clientId\":\"clientID\",\"type\":\"data\"}", MediaTypeRegistry.APPLICATION_JSON);
+        System.out.println(Utils.prettyPrint(response)); 
+    }
+}
+```
+>注意：COAP目前支持POST且数据格式必须是JSON格式：
+>其中：clientID就是客户端的ClientID字段,data是自定义数据键值对，persistent是否开启持久化，info为额外信息
+```json
+{
+    "data":{
+        "data":{
+            "V1":"1",
+            "V2":"2"
+        },
+        "persistent":"true",
+        "info":"V"
+    },
+    "clientId":"clientID",
+    "type":"data"
+}
+```
+ >GET 通过URL传递参数:```coap://localhost:5683/api_coap_1_0?clientId=XXX&data={JSON格式}.....``` Demo:
+ ```JAVA
+class TestClient {
+
+    public static void main(String[] args) throws URISyntaxException {
+        //GET 通过URL传递参数
+        URI uri = new URI("coap://localhost:5683/api_coap_1_0?clientId=XXX");
+        CoapClient client = new CoapClient(uri);
+        CoapResponse response2 = client.get();
+        System.out.println(Utils.prettyPrint(response2));
+        
+    }
+
+}
+
+```
+>注意：推荐POST形式提交数据，因为GET的时候，无法提交特殊符号会引起异常
+# 11.SDK开发指南
+>考虑到实际项目中需要开发SDK，在这里给出几个简单的DEMO.SDK开发核心思路就是不同的语言对MQTT客户端的封装。
+>只要连接进服务器，就可以随意实现消息响应部分的代码。
+## 1.Arduino demo 
+>[库在这里](https://github.com/knolleary/pubsubclient)
+```cpp
+#include <SPI.h>
+#include <Ethernet.h>
+#include <PubSubClient.h>
+//配置网络网卡信息，请上官网去看相关资料
+byte mac[]    = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0xED };
+byte server[] = { 192, 168, 168, 78 }; // MQTT服务地址
+byte ip[]     = { 192, 168, 168, 250 }; // 设备IP，通常是动态获取
+//核心响应函数，所有收到消息的处理都在这里完成
+void callback(char* topic, byte* payload, unsigned int length) {
+  // 在这里处理消息回调
+}
+
+EthernetClient ethClient;
+PubSubClient client(server, 1883, callback, ethClient);
+
+void setup()
+{
+  Ethernet.begin(mac, ip);
+  if (client.connect("客户端的clientID")) {
+    //或者client.connect (clientID, username, password)
+    client.publish("客户端的Topic","JSON格式的数据串");
+    client.subscribe("客户端的Topic");
+  }
+}
+
+void loop()
+{
+  client.loop();
+}
+```
+## 2.Python demo
+>[库在这里](https://pypi.org/project/paho-mqtt/1.1/)
+>或者直接运行:`pip3 install paho-mqtt`
+```python
+import paho.mqtt.client as mqtt
+import time
+import json
+def on_connect(client, userdata, flags, rc):
+    print("Connected with result code "+str(rc))
+    client.subscribe("/1542359901679/fe6f6b2081994054978586c5eb42b71f/test")
+    for i in range(3):
+        print("Insert:",i)
+        client.publish("/1542359901679/fe6f6b2081994054978586c5eb42b71f/test","{\"data\":{\"data\":{\"cmd\":\"time\"}},\"type\":\"cmd\"}")
+#消息处理
+def on_message(client, userdata, msg):
+    print(msg.topic+" "+str(msg.payload))
+#
+client = mqtt.Client("fe6f6b2081994054978586c5eb42b71f")
+client.username_pw_set("6532460fe1734a5e9b7b86eb6deb5a91", "d6a449b35f214d15b3980a7e157edcb5")
+client.on_connect = on_connect
+client.on_message = on_message
+client.connect("localhost", 1884, 60)
+client.loop_forever()
+
+```
+>总结：SDK开发的核心思想就是实现MQTT客户端连接和消息响应函数。

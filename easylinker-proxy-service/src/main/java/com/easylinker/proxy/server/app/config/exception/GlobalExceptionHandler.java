@@ -1,6 +1,7 @@
 package com.easylinker.proxy.server.app.config.exception;
 
 import com.alibaba.fastjson.JSONObject;
+import com.mongodb.util.JSONParseException;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,12 +24,20 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = Exception.class)
     @ResponseBody
     public JSONObject defaultErrorHandler(Exception e) {
+        logger.error("出现了异常:" + e.getClass() + "=====" + e.getMessage());
         JSONObject resultJson = new JSONObject();
         if (e instanceof ExpiredJwtException) {
 
-            logger.error("出现了异常:" + e.getClass());
             resultJson.put("state", 402);
             resultJson.put("message", "Token已经过期!");
+        }
+        if (e instanceof JSONParseException) {
+
+            resultJson.put("state", 0);
+            resultJson.put("message", "JSON格式错误!");
+        } else {
+            resultJson.put("state", 500);
+            resultJson.put("message", "未知错误!");
         }
         return resultJson;
 
