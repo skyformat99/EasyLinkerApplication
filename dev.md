@@ -265,7 +265,6 @@ void setup()
     client.publish("客户端的Topic","JSON格式的数据串");
   }
 }
-
 void loop()
 {
   client.loop();
