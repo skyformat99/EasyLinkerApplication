@@ -316,7 +316,9 @@ client.loop_forever()
 >下面大致讲一下开发准则和基本的约束，常见API等等。
 
 ## 1.缓存系统
+
 >缓存其实就是对Redis做了业务层封装
+
 ```
     /**
      * 使用redis缓存连接信息
@@ -355,6 +357,7 @@ client.loop_forever()
 
     public void setExpires(String key, String value, Long time, TimeUnit timeUnit);
 ```
+
 ## 2.安全认证
 >安全认证是基于Security和JWT做的 
 
