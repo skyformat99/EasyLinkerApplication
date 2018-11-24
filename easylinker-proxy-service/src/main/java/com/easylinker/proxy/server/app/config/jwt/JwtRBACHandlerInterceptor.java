@@ -1,7 +1,7 @@
 package com.easylinker.proxy.server.app.config.jwt;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.easylinker.proxy.server.app.config.mvc.WebReturnResult;
 import com.easylinker.proxy.server.app.config.redis.RedisService;
 import com.easylinker.proxy.server.app.utils.CacheHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,15 +44,10 @@ public class JwtRBACHandlerInterceptor implements HandlerInterceptor {
                 //获取控制器上的注解里面的Roles
                 String[] annotationRoleList = jwtAnnotation.roles();
                 //遍历用户的Roles
-                JSONArray userRoles = JSONArray.parseArray(redisService.get("user_roles_" + userId));
+                //JSONArray userRoles = JSONArray.parseArray(redisService.get("user_roles_" + userId));
+                JSONObject userInfo = JSONObject.parseObject(redisService.get("user_info_" + userId));
                 for (String role : annotationRoleList) {
-                    if (userRoles.contains(role)) {
-                        //System.out.println("拥有权限:" + role);
-                        access = true;
-                    } else {
-                        //System.out.println("没有权限:" + role);
-                        access = false;
-                    }
+                    access = userInfo.getJSONArray("authorities").contains(role);
                 }
             } else {
                 //如果没有注解默认就是可访问的
@@ -68,12 +63,9 @@ public class JwtRBACHandlerInterceptor implements HandlerInterceptor {
 
         } else {
 
-            JSONObject returnJson = new JSONObject();
-            returnJson.put("state", 405);
-            returnJson.put("message", "角色权限不足!");
             httpServletResponse.setContentType("application/json");
             httpServletResponse.setCharacterEncoding("UTF-8");
-            httpServletResponse.getWriter().write(returnJson.toJSONString());
+            httpServletResponse.getWriter().write(WebReturnResult.returnTipMessage(405, "角色权限不足!").toJSONString());
             httpServletResponse.getWriter().flush();
 
         }

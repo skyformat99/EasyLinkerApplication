@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 用户相关
@@ -105,7 +106,8 @@ public class UserController {
                 String phone = requestBody.getString("phone");
                 String code = String.valueOf(((int) (Math.random() * 1000000)));
                 if (aLiSMSSender.sendSms(phone, code)) {
-                    redisService.set("sms_" + phone, code);
+                    //验证码10分钟过期
+                    redisService.setExpires("sms_" + phone, code, 10L, TimeUnit.MINUTES);
                     appUserService.save(appUser);
                 } else {
                     return WebReturnResult.returnTipMessage(108, "验证码发送失败!");
@@ -180,8 +182,6 @@ public class UserController {
             //设计思路：如果发送短信，则在redis里面插入一条数据，key是电话号码，value是验证码，用户验证的时候，在redis里面检查
             //通过就提示注册成功，并且删除验证码。
             //邮件也一样，key换成邮箱就OJBK了
-            // try-> sendEmail(XXXX)->e
-            // try-> sendSMS(XXX)   ->e
             appUserService.save(appUser);
             return WebReturnResult.returnTipMessage(100, "更新成功!");
 

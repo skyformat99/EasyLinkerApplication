@@ -37,20 +37,23 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
             jsonArray.add(grantedAuthority.getAuthority());
         }
         jsonObject.put("id", appUser.getId());
-        jsonObject.put("authorities", jsonArray);
+        jsonObject.put("roles", jsonArray);
         jsonObject.put("phone", appUser.getPhone());
         jsonObject.put("username", appUser.getUsername());
         returnJson.put("state", 1);
-
         returnJson.put("token", JwtHelper.generateToken(appUser.getId()));
         //把Token放进Redis
         //Key:userId
         //Value:token
-        //刷新TOken
+        //刷新Token
         redisService.delete("user_" + appUser.getId().toString());
-        redisService.delete("user_roles_" + appUser.getId().toString());
-        redisService.set("user_roles_" + appUser.getId().toString(), jsonArray.toJSONString());
+        redisService.delete("user_info_" + appUser.getId());
+        //redisService.delete("user_roles_" + appUser.getId().toString());
+        ///
+        //redisService.set("user_roles_" + appUser.getId().toString(), jsonArray.toJSONString());
         redisService.set("user_" + appUser.getId().toString(), JwtHelper.generateToken(appUser.getId()));
+        redisService.set("user_info_" + appUser.getId(), JSONObject.toJSONString(appUser));
+        ///
         returnJson.put("data", jsonObject);
         returnJson.put("message", "登陆成功!");
         httpServletResponse.setContentType("application/json");

@@ -295,4 +295,98 @@ client.connect("localhost", 1884, 60)
 client.loop_forever()
 
 ```
+## 3.mqtt.js Demo
+>库在这里`<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
+`
+
+>文档在这里:[Mqtt.js](https://www.eclipse.org/paho/clients/js/#)
+```javascript 1.8
+// Create a client instance
+client = new Paho.MQTT.Client(hostname, Number(port), "clientId");
+client.onConnectionLost = onConnectionLost;
+client.onMessageArrived = onMessageArrived;
+client.connect({onSuccess:onConnect});
+function onConnect() {
+  console.log("onConnect");
+}
+function onConnectionLost(responseObject) {
+  if (responseObject.errorCode !== 0) {
+    console.log("onConnectionLost:"+responseObject.errorMessage);
+  }
+}
+function onMessageArrived(message) {
+  console.log("onMessageArrived:"+message.payloadString);
+}
+```
 >总结：SDK开发的核心思想就是实现MQTT客户端连接和消息响应函数。
+# 12.EasyWebFrameWork简介
+>EasyWebFrameWork是我在开发EasyLinker的时候，积累的一些经验，包括SpringSecurity，JWT，SpringBoot等技术的业务层的封装.
+>下面大致讲一下开发准则和基本的约束，常见API等等。
+
+## 1.缓存系统
+>缓存其实就是对Redis做了业务层封装
+```
+    /**
+     * 使用redis缓存连接信息
+     *
+     * @param key
+     * @throws Exception
+     */
+
+    public void set(String key, String value) ;
+
+    /**
+     * 删除redis缓存
+     *
+     * @param key
+     */
+    public void delete(String key) {
+        stringRedisTemplate.delete(key);
+    }
+
+    /**
+     * 获取Redis缓存的Info
+     *
+     * @param key
+     * @return
+     * @throws Exception
+     */
+    public String get(String key) ;
+
+    /**
+     * 设置过期时间的K V
+     *
+     * @param key
+     * @param value
+     * @param time  过期时间，后面的参数是单位
+     */
+
+    public void setExpires(String key, String value, Long time, TimeUnit timeUnit);
+```
+## 2.安全认证
+>安全认证是基于Security和JWT做的 
+
+>`@JwtAuthRole`:该注解作用于类上，检查当前请求是否是注解标记的权限：@JwtAuthRole(roles = {"ROLE_ADMIN","ROLE_XXXXXX"})
+```
+@JwtAuthRole(roles = {"ROLE_ADMIN"})
+@RestController
+@RequestMapping(value = "/api/v_1_0/client")
+public class ClientController {
+.....
+}
+
+```
+>`@JwtAuthRole`跟用户的授权方法是相关的：
+```
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        /**
+         * 在這裏進行授权
+         * 默认给了一个普通用户
+         */
+        List<SimpleGrantedAuthority> simpleGrantedAuthorities = new ArrayList<>();
+        for (String role : getRoles())
+            simpleGrantedAuthorities.add(new SimpleGrantedAuthority(role));
+        return simpleGrantedAuthorities;
+
+    }
+```
