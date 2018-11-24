@@ -58,7 +58,7 @@ V3是一个全新的尝试，希望给各位物联网开发者，创客，和爱
 >业务逻辑层使用了Java WEB框架生态体系：SpringFrameWork 包含了SpringBoot，SpringMVC，SpringSession，SpringSecurity，SpringDataJPA。其中缓存用的Redis，数据库使用了MongoDB。
 
 #### 2.MQ消息处理层
->消息处理器抛弃了V2的EMQ，使用了Activemq，Activemq的好处是社区庞大，资料众多而且开源免费，很容易和JavaWEB体系的系统结合起来使用。
+>消息处理器抛弃了V2的EMQ，使用了Activemq，Activemq的好处是社区庞大，资料众多而且开源免费，很容易和JavaWEB体系的系统结合起来使用。  
 
 ## 4.EasyLinker业务层二次开发指导
 >核心业务全部在Proxy这个项目里面，如果需要集成新的配置或者组件进去
