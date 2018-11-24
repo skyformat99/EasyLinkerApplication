@@ -2,6 +2,7 @@ package com.easylinker.proxy.server.app.config.coap;
 
 import com.alibaba.fastjson.JSONObject;
 import com.easylinker.proxy.server.app.config.mvc.WebReturnResult;
+import com.easylinker.proxy.server.app.config.thread.EasyThreadFactory;
 import com.easylinker.proxy.server.app.model.mqtt.ClientDataEntry;
 import com.easylinker.proxy.server.app.service.ClientDataEntryService;
 import com.easylinker.proxy.server.app.service.MqttRemoteClientService;
@@ -9,7 +10,6 @@ import org.eclipse.californium.core.CoapResource;
 import org.eclipse.californium.core.CoapServer;
 import org.eclipse.californium.core.network.CoapEndpoint;
 import org.eclipse.californium.core.network.Endpoint;
-import org.eclipse.californium.core.network.Exchange;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 import org.eclipse.californium.core.server.resources.Resource;
 import org.slf4j.Logger;
@@ -22,21 +22,24 @@ import org.springframework.util.StringUtils;
 
 import java.net.InetSocketAddress;
 
+/**
+ * @author wwhai
+ */
 @Component
 public class EasyLinkerCOAPServer extends CoapServer implements InitializingBean {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final ClientDataEntryService clientDataEntryService;
     private final MqttRemoteClientService mqttRemoteClientService;
+    private final EasyThreadFactory easyThreadFactory;
 
     @Autowired
-    public EasyLinkerCOAPServer(ClientDataEntryService clientDataEntryService, MqttRemoteClientService mqttRemoteClientService) {
+    public EasyLinkerCOAPServer(ClientDataEntryService clientDataEntryService, MqttRemoteClientService mqttRemoteClientService, EasyThreadFactory easyThreadFactory) {
         this.clientDataEntryService = clientDataEntryService;
         this.mqttRemoteClientService = mqttRemoteClientService;
+        this.easyThreadFactory = easyThreadFactory;
     }
 
-    // easylinker.coap.server.host=0.0.0.0
-    // easylinker.coap.server.path=api_coap_1_0
     @Value("${easylinker.coap.server.host}")
     private String host;
     @Value("${easylinker.coap.server.port}")
@@ -85,7 +88,7 @@ public class EasyLinkerCOAPServer extends CoapServer implements InitializingBean
                 logger.debug("From  client:[" + exchange.getSourceAddress() + "]RequestBody:" + exchange.getRequestText());
                 System.out.println("请求文本：" + exchange.getRequestText());
                 try {
-                    JSONObject requestBody = JSONObject.parseObject(exchange.getRequestText());
+                    JSONObject requestBody = JSONObject.parseObject(exchange.getRequestText()).getJSONObject("data");
 
                     if (StringUtils.hasLength(requestBody.getString("persistent"))
                             && StringUtils.hasLength(requestBody.getString("clientId"))
@@ -94,7 +97,7 @@ public class EasyLinkerCOAPServer extends CoapServer implements InitializingBean
                         if (mqttRemoteClientService.findOneByClientId(requestBody.getString("clientId")) == null) {
                             exchange.respond(WebReturnResult.returnTipMessage(702, "Client  not exists!").toJSONString());
                         } else {
-                            new Thread(() -> {
+                            easyThreadFactory.newThread(() -> {
                                 if (requestBody.getBooleanValue("persistent")) {
                                     ClientDataEntry clientDataEntry = new ClientDataEntry();
                                     clientDataEntry.setClientId(requestBody.getString("clientId"));
@@ -128,7 +131,7 @@ public class EasyLinkerCOAPServer extends CoapServer implements InitializingBean
                     if (mqttRemoteClientService.findOneByClientId(exchange.getQueryParameter("clientId")) == null) {
                         exchange.respond(WebReturnResult.returnTipMessage(702, "Client  not exists!").toJSONString());
                     } else {
-                        new Thread(() -> {
+                        easyThreadFactory.newThread(() -> {
                             if (Boolean.valueOf(exchange.getQueryParameter("persistent"))) {
                                 ClientDataEntry clientDataEntry = new ClientDataEntry();
                                 clientDataEntry.setClientId(exchange.getQueryParameter("clientId"));

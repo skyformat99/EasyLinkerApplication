@@ -44,6 +44,7 @@ import java.util.List;
  * zkPath="/activemq/leveldb-stores"
  * />
  * </persistenceAdapter>
+ * @author mac
  */
 @Component
 public class EasyLinkerMqttServer extends BrokerService implements InitializingBean {
@@ -59,10 +60,10 @@ public class EasyLinkerMqttServer extends BrokerService implements InitializingB
                                         int authType,
                                 MqttRemoteClientService service,
                                 StringRedisTemplate stringRedisTemplate,
-                                RedisTemplate redisTemplate,
+
                                 ClientDataEntryService clientDataEntryService
     ) throws Exception {
-        setPlugins(new BrokerPlugin[]{new AuthPluginInstaller(service, authType, stringRedisTemplate, redisTemplate, clientDataEntryService)});
+        setPlugins(new BrokerPlugin[]{new AuthPluginInstaller(service, authType, stringRedisTemplate, clientDataEntryService)});
         /**
          * Activemq 的通知消息相关的资料在这里
          * http://activemq.apache.org/advisory-message.html

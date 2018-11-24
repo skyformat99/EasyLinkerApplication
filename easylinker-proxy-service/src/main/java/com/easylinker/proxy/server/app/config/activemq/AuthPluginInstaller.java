@@ -7,6 +7,9 @@ import org.apache.activemq.broker.BrokerPlugin;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
+/**
+ * @author mac
+ */
 public class AuthPluginInstaller implements BrokerPlugin {
 
     private int authType;
@@ -14,22 +17,18 @@ public class AuthPluginInstaller implements BrokerPlugin {
 
     private StringRedisTemplate stringRedisTemplate;
 
-    private RedisTemplate redisTemplate;
-
     private ClientDataEntryService clientDataEntryService;
 
 
-    public AuthPluginInstaller(MqttRemoteClientService service, int authType, StringRedisTemplate stringRedisTemplate, RedisTemplate redisTemplate, ClientDataEntryService clientDataEntryService) {
+    public AuthPluginInstaller(MqttRemoteClientService service, int authType, StringRedisTemplate stringRedisTemplate,ClientDataEntryService clientDataEntryService) {
         this.service = service;
         this.stringRedisTemplate = stringRedisTemplate;
-        this.redisTemplate = redisTemplate;
         this.authType = authType;
-
         this.clientDataEntryService = clientDataEntryService;
     }
 
     @Override
     public Broker installPlugin(Broker broker) {
-        return new AuthPluginBroker(broker, service, authType, stringRedisTemplate, clientDataEntryService);
+        return new AuthPluginBroker(broker, service, authType, stringRedisTemplate,clientDataEntryService);
     }
 }

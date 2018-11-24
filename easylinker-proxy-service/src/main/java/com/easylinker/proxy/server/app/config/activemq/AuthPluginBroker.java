@@ -2,6 +2,7 @@ package com.easylinker.proxy.server.app.config.activemq;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.easylinker.proxy.server.app.config.thread.EasyThreadFactory;
 import com.easylinker.proxy.server.app.model.mqtt.ClientACLEntry;
 import com.easylinker.proxy.server.app.model.mqtt.ClientDataEntry;
 import com.easylinker.proxy.server.app.model.mqtt.MqttRemoteClient;
@@ -28,6 +29,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 认证插件
@@ -51,8 +56,17 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
     private final String WEB_CONSOLE_PUSHER_USERNAME = "WEB_CONSOLE_MESSAGE_PUSHER";
     private final String WEB_CONSOLE_PUSHER_PASSWORD = "WEB_CONSOLE_MESSAGE_PUSHER";
 
+    //线程池
+    private final ExecutorService executorService = new ThreadPoolExecutor(
+            10,
+            100,
+            1L,
+            TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<>(1024),
+            new EasyThreadFactory(),
+            new ThreadPoolExecutor.AbortPolicy());
 
-    private ClientDataEntryService clientDataEntryService;
+    private final ClientDataEntryService clientDataEntryService;
 
     AuthPluginBroker(Broker next, MqttRemoteClientService service, int authType, StringRedisTemplate stringRedisTemplate, ClientDataEntryService clientDataEntryService) {
         super(next);
@@ -66,11 +80,13 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
     public void addConnection(ConnectionContext context, ConnectionInfo info) throws Exception {
         System.out.println("客户端请求连接: " + info.toString());
         //放行推送的客户端
-        if ((info.getUserName().equals(INTERNAL_MESSAGE_PUSHER_USERNAME) &&
-                info.getPassword().equals(INTERNAL_MESSAGE_PUSHER_PASSWORD))
-                || (info.getUserName().equals(WEB_CONSOLE_PUSHER_USERNAME) &&
-                info.getPassword().equals(WEB_CONSOLE_PUSHER_PASSWORD))
-        ) {
+        if (info.getUserName().equals(INTERNAL_MESSAGE_PUSHER_USERNAME) &&
+                info.getPassword().equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)) {
+            logger.info("内部推送客户端连接");
+            super.addConnection(context, info);
+
+        } else if (info.getUserName().equals(WEB_CONSOLE_PUSHER_USERNAME) &&
+                info.getPassword().equals(WEB_CONSOLE_PUSHER_PASSWORD)) {
             logger.info("内部推送客户端连接");
             super.addConnection(context, info);
 
@@ -166,10 +182,12 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
 
             try {
                 switch (authType) {
-                    case 1://username 认证
+                    case 1:
+                        //username 认证
                         cacheClientInfo(mqttRemoteClient.getUsername(), clientInfoToCacheJson(mqttRemoteClient));
                         break;
-                    case 2://clientId认证
+                    case 2:
+                        //clientId认证
                         cacheClientInfo(mqttRemoteClient.getClientId(), clientInfoToCacheJson(mqttRemoteClient));
                         break;
                     default:
@@ -237,16 +255,19 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
         } else {
             MqttRemoteClient mqttRemoteClient;
             switch (authType) {
-                case 1://username 认证
+                case 1:
+                    //username 认证
                     mqttRemoteClient = service.findOneByUsernameAndPassword(username, password);
                     checkSubscribeAcl(context, info, mqttRemoteClient, subscribeTopic);
                     break;
-                case 2://clientId认证
+                case 2:
+                    //clientId认证
                     mqttRemoteClient = service.findOneByClientId(clientId);
                     checkSubscribeAcl(context, info, mqttRemoteClient, subscribeTopic);
 
                     break;
-                case 3://匿名模式
+                case 3:
+                    //匿名模式
                     authAnonymous();
                     break;
                 default:
@@ -289,6 +310,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
 
     /**
      * 消息拦截器
+     * 思路:根据发送的消息的topic的ACL值来判断是否有发送权限，如果是1 sub 则不允许发送
      *
      * @param producerExchange
      * @param messageSend
@@ -296,7 +318,6 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
      */
 
     @Override
-    //思路:根据发送的消息的topic的ACL值来判断是否有发送权限，如果是1 sub 则不允许发送
     public void send(ProducerBrokerExchange producerExchange,
                      Message messageSend) throws Exception {
         System.out.println("send:来自消息Topic:" + messageSend.getDestination().getQualifiedName() +
@@ -317,15 +338,18 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
             try {
                 JSONObject dataJson = JSONObject.parseObject(new String(messageSend.getContent().getData()).trim());
                 switch (authType) {
-                    case 1://username 认证
+                    case 1:
+                        //username 认证
 
                         handlerSend(producerExchange, messageSend, toTopic, username, clientId, dataJson);
                         break;
-                    case 2://clientId认证
+                    case 2:
+                        //clientId认证
                         handlerSend(producerExchange, messageSend, toTopic, clientId, clientId, dataJson);
 
                         break;
-                    case 3://匿名模式
+                    case 3:
+                        //匿名模式
                         authAnonymous();
                         super.send(producerExchange, messageSend);
                         break;
@@ -364,7 +388,8 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                         super.send(producerExchange, messageSend);
                         //考虑到数据库持久化会浪费时间，所以开启多线程去保存数据，同时多线程又面临着上下文的问题，所以需要同步
                         synchronized (this) {
-                            new Thread(() -> {
+
+                            executorService.execute(() -> {
                                 if (dataJson.getBooleanValue("persistent")) {
                                     ClientDataEntry clientDataEntry = new ClientDataEntry();
                                     clientDataEntry.setClientId(clientId);
@@ -373,15 +398,16 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                                     clientDataEntryService.save(clientDataEntry);
                                     System.out.println("持久化成功!");
                                 }
-                            }).start();
+                            });
 
 
                         }
 
                         break;
-                    case "echo":// Echo 专门发给一个通道 /system/echo/
+                    case "echo":
+                        // Echo 专门发给一个通道 /system/echo/
                         synchronized (this) {
-                            new Thread(() -> {
+                            executorService.execute(() -> {
                                 //
                                 JSONObject echoMessageJson = new JSONObject();
                                 echoMessageJson.put("message", new String(messageSend.getContent().getData()));
@@ -397,16 +423,16 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                                 //半路拦截 然后修改目标地址
                                 messageSend.setDestination(echoTopic);
                                 messageSend.setContent(echoMessage.getContent());
-                            }).start();
+                            });
                         }
 
                         super.send(producerExchange, messageSend);
 
                         break;
-                    case "cmd"://Echo 专门发给一个通道 /system/cmd/
-                        //
+                    case "cmd":
+                        //Echo 专门发给一个通道 /system/cmd/
                         synchronized (this) {
-                            new Thread(() -> {
+                            executorService.execute(() -> {
                                 JSONObject cmdMessageJson = new JSONObject();
 
                                 ActiveMQTextMessage cmdMessage = new ActiveMQTextMessage();
@@ -441,7 +467,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
 
                                 }
 
-                            }).start();
+                            });
                         }
 
                         super.send(producerExchange, messageSend);
@@ -506,8 +532,12 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
             if (toTopic.equals(((JSONObject) o).getString("topic"))) {
                 int acl = ((JSONObject) o).getInteger("acl");
                 System.out.println("checkPubSubAcl:toTopic:" + toTopic + "|Acl:" + acl);
-                if ((acl == PUB_PERMISSION) || (acl == PUB_AND_SUB_PERMISSION)) return true;
-                if (acl == SUB_PERMISSION) return false;
+                if ((acl == PUB_PERMISSION) || (acl == PUB_AND_SUB_PERMISSION)) {
+                    return true;
+                }
+                if (acl == SUB_PERMISSION) {
+                    return false;
+                }
             }
         }
         return false;
