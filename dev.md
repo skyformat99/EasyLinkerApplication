@@ -53,7 +53,8 @@ V3是一个全新的尝试，希望给各位物联网开发者，创客，和爱
 +-----------------------------------------------------------------------------------------------+
 ```
 ## 3.EasyLinker技术体系
-### EasyLinker技术架构可以分为两部分：业务逻辑层和MQ消息处理层
+> EasyLinker技术架构可以分为两部分：业务逻辑层和MQ消息处理层
+
 #### 1.业务逻辑层
 >业务逻辑层使用了Java WEB框架生态体系：SpringFrameWork 包含了SpringBoot，SpringMVC，SpringSession，SpringSecurity，SpringDataJPA。其中缓存用的Redis，数据库使用了MongoDB。
 
