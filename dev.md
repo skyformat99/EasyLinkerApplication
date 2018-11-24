@@ -62,7 +62,8 @@ V3是一个全新的尝试，希望给各位物联网开发者，创客，和爱
 >业务层我们遵守MVP模式，和MVC模式不一样，P指的是数据呈现层而不是数据展示层，P层只关注数据结果而不关心数据怎么去展示出来，展示直接给前段就可以了。
 所有的逻辑控制层全部在controller包里面，需要的时候直接新增加就可以了。下面给出一个controller的模板：
 >controller
-```java
+
+```
 public interface EasyBaseControllerTemplate {
     /**
      * 添加一个
@@ -97,6 +98,7 @@ public interface EasyBaseControllerTemplate {
  }
 ```
 >Service层 
+
 ```java
 //BaseService 接口不是必须实现的，这个是本人开发过程中自己写的一个公共模板
 @Service("ClientDataEntryService")
@@ -319,12 +321,14 @@ function onMessageArrived(message) {
 }
 ```
 >总结：SDK开发的核心思想就是实现MQTT客户端连接和消息响应函数。
+
 # 12.EasyWebFrameWork简介
 >EasyWebFrameWork是我在开发EasyLinker的时候，积累的一些经验，包括SpringSecurity，JWT，SpringBoot等技术的业务层的封装.
 >下面大致讲一下开发准则和基本的约束，常见API等等。
 
 ## 1.缓存系统
 >缓存其实就是对Redis做了业务层封装
+
 ```
     /**
      * 使用redis缓存连接信息
