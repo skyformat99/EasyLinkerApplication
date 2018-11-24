@@ -196,16 +196,7 @@ Mqtt:6XX
 COAP:7XX
 业务不相干服务器错误:5xx
 ```
-
-
-
-# 10.COAP支持
-
-
-
-
-
-
+# 10.COAP协议支持
 
 >[COAP 可参考这个文章](https://blog.csdn.net/QQ576494799/article/details/77865415?utm_source=blogxgwz2)
 
