@@ -196,7 +196,17 @@ Mqtt:6XX
 COAP:7XX
 业务不相干服务器错误:5xx
 ```
+
+
+
 #10.COAP支持
+
+
+
+
+
+
+
 >[COAP 可参考这个文章](https://blog.csdn.net/QQ576494799/article/details/77865415?utm_source=blogxgwz2)
 
 >新版本增加了COAP支持,入口地址:`coap://host:5683/api_coap_1_0 `下面是一个Java客户端POST demo：
