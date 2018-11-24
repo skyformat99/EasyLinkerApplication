@@ -324,6 +324,7 @@ function onMessageArrived(message) {
   console.log("onMessageArrived:"+message.payloadString);
 }
 ```
+
 >总结：SDK开发的核心思想就是实现MQTT客户端连接和消息响应函数。
 
 
