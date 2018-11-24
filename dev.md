@@ -61,6 +61,7 @@ V3是一个全新的尝试，希望给各位物联网开发者，创客，和爱
 ## 5.Activemq二次开发指导
 >业务层我们遵守MVP模式，和MVC模式不一样，P指的是数据呈现层而不是数据展示层，P层只关注数据结果而不关心数据怎么去展示出来，展示直接给前段就可以了。
 所有的逻辑控制层全部在controller包里面，需要的时候直接新增加就可以了。下面给出一个controller的模板：
+
 >controller
 
 ```
@@ -135,6 +136,7 @@ public class ClientDataEntryService implements BaseService<ClientDataEntry> {
 ## 7.客户端消息格式
 
 >数据消息:persistent控制是否持久化的字段
+
 ```
 {
     "data":{
@@ -160,6 +162,7 @@ public class ClientDataEntryService implements BaseService<ClientDataEntry> {
 }
 ```
 >特殊命令消息,Topic:/system/cmd
+
 ```
 {
     "data":{
@@ -192,6 +195,7 @@ COAP:7XX
 >[COAP 可参考这个文章](https://blog.csdn.net/QQ576494799/article/details/77865415?utm_source=blogxgwz2)
 
 >新版本增加了COAP支持,入口地址:`coap://host:5683/api_coap_1_0 `下面是一个Java客户端POST demo：
+
 ```java
 class TestClient {
     public static void main(String[] args) throws URISyntaxException {
@@ -204,6 +208,7 @@ class TestClient {
 ```
 >注意：COAP目前支持POST且数据格式必须是JSON格式：
 >其中：clientID就是客户端的ClientID字段,data是自定义数据键值对，persistent是否开启持久化，info为额外信息
+
 ```json
 {
     "data":{
@@ -219,6 +224,7 @@ class TestClient {
 }
 ```
  >GET 通过URL传递参数:```coap://localhost:5683/api_coap_1_0?clientId=XXX&data={JSON格式}.....``` Demo:
+ 
  ```JAVA
 class TestClient {
 
@@ -237,11 +243,13 @@ class TestClient {
 >注意：推荐POST形式提交数据，因为GET的时候，无法提交特殊符号会引起异常
 
 >上述是Java的一个Demo，如果有硬件需求请自行百度资料，这里有个ESP8266的库以供参考:[ESP8266 COAP 库](https://github.com/automote/ESP-CoAP)
+
 # 11.SDK开发指南
 >考虑到实际项目中需要开发SDK，在这里给出几个简单的DEMO.SDK开发核心思路就是不同的语言对MQTT客户端的封装。
 >只要连接进服务器，就可以随意实现消息响应部分的代码。
 ## 1.Arduino demo 
 >[库在这里](https://github.com/knolleary/pubsubclient)
+
 ```cpp
 #include <SPI.h>
 #include <Ethernet.h>
@@ -275,6 +283,8 @@ void loop()
 ## 2.Python demo
 >[库在这里](https://pypi.org/project/paho-mqtt/1.1/)
 >或者直接运行:`pip3 install paho-mqtt`.
+
+
 ```python
 import paho.mqtt.client as mqtt
 import time
@@ -302,6 +312,7 @@ client.loop_forever()
 `
 
 >文档在这里:[Mqtt.js](https://www.eclipse.org/paho/clients/js/#)
+
 ```javascript 1.8
 // Create a client instance
 client = new Paho.MQTT.Client(hostname, Number(port), "clientId");
@@ -321,6 +332,7 @@ function onMessageArrived(message) {
 }
 ```
 >总结：SDK开发的核心思想就是实现MQTT客户端连接和消息响应函数。
+
 
 # 12.EasyWebFrameWork简介
 >EasyWebFrameWork是我在开发EasyLinker的时候，积累的一些经验，包括SpringSecurity，JWT，SpringBoot等技术的业务层的封装.
@@ -371,6 +383,8 @@ function onMessageArrived(message) {
 >安全认证是基于Security和JWT做的 
 
 >`@JwtAuthRole`:该注解作用于类上，检查当前请求是否是注解标记的权限：@JwtAuthRole(roles = {"ROLE_ADMIN","ROLE_XXXXXX"})
+
+
 ```
 @JwtAuthRole(roles = {"ROLE_ADMIN"})
 @RestController
@@ -380,7 +394,10 @@ public class ClientController {
 }
 
 ```
+
 >`@JwtAuthRole`跟用户的授权方法是相关的：
+
+
 ```
     public Collection<? extends GrantedAuthority> getAuthorities() {
         /**
