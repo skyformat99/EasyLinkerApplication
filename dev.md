@@ -302,11 +302,8 @@ client.connect("localhost", 1884, 60)
 client.loop_forever()
 ```
 ## 3.mqtt.js Demo
->库在这里`<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
-`
-
+>库在这里<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
 >文档在这里:[Mqtt.js](https://www.eclipse.org/paho/clients/js/#)
-
 ```javascript 1.8
 client = new Paho.MQTT.Client(hostname, Number(port), "clientId");
 client.onConnectionLost = onConnectionLost;
