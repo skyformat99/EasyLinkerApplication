@@ -324,17 +324,13 @@ function onMessageArrived(message) {
   console.log("onMessageArrived:"+message.payloadString);
 }
 ```
-
 >总结：SDK开发的核心思想就是实现MQTT客户端连接和消息响应函数。
-
-
 # 12.EasyWebFrameWork简介
 >EasyWebFrameWork是我在开发EasyLinker的时候，积累的一些经验，包括SpringSecurity，JWT，SpringBoot等技术的业务层的封装.
 >下面大致讲一下开发准则和基本的约束，常见API等等。
 
 ## 1.缓存系统
 >缓存其实就是对Redis做了业务层封装
-
 ```
     /**
      * 使用redis缓存连接信息
