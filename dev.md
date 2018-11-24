@@ -302,26 +302,10 @@ client.connect("localhost", 1884, 60)
 client.loop_forever()
 ```
 ## 3.mqtt.js Demo
->库在这里<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
->文档在这里:[Mqtt.js](https://www.eclipse.org/paho/clients/js/#)
-```javascript 1.8
-client = new Paho.MQTT.Client(hostname, Number(port), "clientId");
-client.onConnectionLost = onConnectionLost;
-client.onMessageArrived = onMessageArrived;
-client.connect({onSuccess:onConnect});
-function onConnect() {
-  console.log("onConnect");
-}
-function onConnectionLost(responseObject) {
-  if (responseObject.errorCode !== 0) {
-    console.log("onConnectionLost:"+responseObject.errorMessage);
-  }
-}
-function onMessageArrived(message) {
-  console.log("onMessageArrived:"+message.payloadString);
-}
-```
+>库在这里<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>  
+>文档在这里:[Mqtt.js](https://www.eclipse.org/paho/clients/js/#)  
 >总结：SDK开发的核心思想就是实现MQTT客户端连接和消息响应函数。
+
 # 12.EasyWebFrameWork简介
 >EasyWebFrameWork是我在开发EasyLinker的时候，积累的一些经验，包括SpringSecurity，JWT，SpringBoot等技术的业务层的封装.
 >下面大致讲一下开发准则和基本的约束，常见API等等。
