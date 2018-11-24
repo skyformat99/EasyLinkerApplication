@@ -64,7 +64,7 @@ V3是一个全新的尝试，希望给各位物联网开发者，创客，和爱
 
 >controller
 
-```
+```java
 public interface EasyBaseControllerTemplate {
     /**
      * 添加一个
@@ -137,7 +137,7 @@ public class ClientDataEntryService implements BaseService<ClientDataEntry> {
 
 >数据消息:persistent控制是否持久化的字段
 
-```
+```json
 {
     "data":{
         "data":{
@@ -151,7 +151,8 @@ public class ClientDataEntryService implements BaseService<ClientDataEntry> {
 }
 ```
 >回显消息,Topic:/system/echo
-```
+
+```json
 {
     "data":{
         "data":{
@@ -163,7 +164,7 @@ public class ClientDataEntryService implements BaseService<ClientDataEntry> {
 ```
 >特殊命令消息,Topic:/system/cmd
 
-```
+```json
 {
     "data":{
         "data":{
@@ -227,7 +228,6 @@ class TestClient {
  
  ```JAVA
 class TestClient {
-
     public static void main(String[] args) throws URISyntaxException {
         //GET 通过URL传递参数
         URI uri = new URI("coap://localhost:5683/api_coap_1_0?clientId=XXX");
@@ -236,9 +236,7 @@ class TestClient {
         System.out.println(Utils.prettyPrint(response2));
         
     }
-
 }
-
 ```
 >注意：推荐POST形式提交数据，因为GET的时候，无法提交特殊符号会引起异常
 
@@ -247,10 +245,11 @@ class TestClient {
 # 11.SDK开发指南
 >考虑到实际项目中需要开发SDK，在这里给出几个简单的DEMO.SDK开发核心思路就是不同的语言对MQTT客户端的封装。
 >只要连接进服务器，就可以随意实现消息响应部分的代码。
+
 ## 1.Arduino demo 
 >[库在这里](https://github.com/knolleary/pubsubclient)
 
-```cpp
+```cfml
 #include <SPI.h>
 #include <Ethernet.h>
 #include <PubSubClient.h>
@@ -262,10 +261,8 @@ byte ip[]     = { 192, 168, 168, 250 }; // 设备IP，通常是动态获取
 void callback(char* topic, byte* payload, unsigned int length) {
   // 在这里处理消息回调
 }
-
 EthernetClient ethClient;
 PubSubClient client(server, 1883, callback, ethClient);
-
 void setup()
 {
   Ethernet.begin(mac, ip);
@@ -281,11 +278,9 @@ void loop()
 }
 ```
 ## 2.Python demo
->[库在这里](https://pypi.org/project/paho-mqtt/1.1/)
->或者直接运行:`pip3 install paho-mqtt`.
+>[库在这里](https://pypi.org/project/paho-mqtt/1.1/)，或者直接运行:`pip3 install paho-mqtt`.
 
-
-```python
+```play
 import paho.mqtt.client as mqtt
 import time
 import json
@@ -305,7 +300,6 @@ client.on_connect = on_connect
 client.on_message = on_message
 client.connect("localhost", 1884, 60)
 client.loop_forever()
-
 ```
 ## 3.mqtt.js Demo
 >库在这里`<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
@@ -314,7 +308,6 @@ client.loop_forever()
 >文档在这里:[Mqtt.js](https://www.eclipse.org/paho/clients/js/#)
 
 ```javascript 1.8
-// Create a client instance
 client = new Paho.MQTT.Client(hostname, Number(port), "clientId");
 client.onConnectionLost = onConnectionLost;
 client.onMessageArrived = onMessageArrived;
