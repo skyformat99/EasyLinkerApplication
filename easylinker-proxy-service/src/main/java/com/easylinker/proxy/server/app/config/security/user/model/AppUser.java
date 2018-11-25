@@ -1,6 +1,7 @@
 package com.easylinker.proxy.server.app.config.security.user.model;
 
 import com.easylinker.proxy.server.app.model.BaseEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,6 +16,7 @@ import java.util.List;
 public class AppUser extends BaseEntity implements UserDetails {
 
     private String username;
+    @JsonIgnore
     private String password;
     private String email;
     private String phone;
