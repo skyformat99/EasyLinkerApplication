@@ -168,17 +168,14 @@
         <dependency>
             <groupId>org.eclipse.californium</groupId>
             <artifactId>californium-core</artifactId>
-            <version>2.0.0-M3</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.californium</groupId>
             <artifactId>element-connector</artifactId>
-            <version>2.0.0-M3</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.californium</groupId>
             <artifactId>scandium</artifactId>
-            <version>2.0.0-M3</version>
         </dependency>
 
         <dependency>
@@ -190,13 +187,11 @@
         <dependency>
             <groupId>com.alipay.sdk</groupId>
             <artifactId>alipay-sdk-java</artifactId>
-            <version>3.4.49.ALL</version>
         </dependency>
 
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.2</version>
         </dependency>
 
     </dependencies>

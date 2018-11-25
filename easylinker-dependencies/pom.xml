@@ -42,6 +42,11 @@
         <baidubce-bce-java-sdk.version>0.10.40</baidubce-bce-java-sdk.version>
         <jsonwebtoken-jjwt.version>0.6.0</jsonwebtoken-jjwt.version>
         <apache-commons-pool2.version>2.4.3</apache-commons-pool2.version>
+        <alipay-sdk.version>3.4.49.ALL</alipay-sdk.version>
+        <projectlombok-lombok.version>1.18.2</projectlombok-lombok.version>
+        <californium-scandium.version>2.0.0-M3</californium-scandium.version>
+        <californium-californium-core.version>2.0.0-M3</californium-californium-core.version>
+        <californium-element-connector.version>2.0.0-M3</californium-element-connector.version>
     </properties>
 
     <dependencyManagement>
@@ -149,6 +154,34 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-pool2</artifactId>
                 <version>${apache-commons-pool2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alipay.sdk</groupId>
+                <artifactId>alipay-sdk-java</artifactId>
+                <version>${alipay-sdk.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${projectlombok-lombok.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.californium</groupId>
+                <artifactId>californium-core</artifactId>
+                <version>${californium-californium-core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.californium</groupId>
+                <artifactId>element-connector</artifactId>
+                <version>${californium-element-connector.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.californium</groupId>
+                <artifactId>scandium</artifactId>
+                <version>${californium-scandium.version}</version>
             </dependency>
 
         </dependencies>
