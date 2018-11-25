@@ -65,7 +65,6 @@ public class AliPayController {
         // 设置商品描述
         model.setBody("充值客户端");
         alipayTradePagePayRequest.setBizModel(model);
-
         String form = client.pageExecute(alipayTradePagePayRequest).getBody();
         // 生成表单
         response.setContentType("text/html;charset=" + charset);
