@@ -38,7 +38,6 @@ public class ALiSMSSender {
         request.setTemplateParam("{\"code\":\" " + code + " \", \"product\": \"EasyLinker\"}");
         SendSmsResponse response = acsClient.getAcsResponse(request);
         if (response.getCode() != null && response.getCode().equals("OK")) {
-            System.out.println("发送成功！" + "key:" + to + " Value:" + code);
             logger.info("验证码发送成功：手机号：{},验证码：{}", to, code);
             return true;
         } else {
