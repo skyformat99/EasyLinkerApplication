@@ -2,12 +2,16 @@ package com.easylinker.proxy.server.app.config.alipay;
 
 import org.springframework.stereotype.Component;
 
-@Component
 /**
- * 支付宝配置信息
- * @author linhongcun
  *
+ * @Author:   zhaolei
+ * @Version   1.0.0
+ *
+ * @Description: Alipay 配置信息
+ * @Date:     2018/11/26 1:28
+ * Copyright (C), 2016-2018, EasyLinker V3
  */
+@Component
 public class AliPayConfig {
 
     // 支付宝应用ID
