@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * @author wwhai
+ */
 public class AppUser extends BaseEntity implements UserDetails {
 
     private String username;
@@ -20,6 +23,18 @@ public class AppUser extends BaseEntity implements UserDetails {
     private boolean isCredentialsNonExpired = true;
     private boolean isEnabled = false;
     private String[] roles = new String[]{"ROLE_USER"};
+    /**
+     * Number of client
+     */
+    private Long clientCount = 10L;
+
+    public Long getClientCount() {
+        return clientCount;
+    }
+
+    public void setClientCount(Long clientCount) {
+        this.clientCount = clientCount;
+    }
 
     public String[] getRoles() {
         return roles;
@@ -45,8 +60,9 @@ public class AppUser extends BaseEntity implements UserDetails {
          * 默认给了一个普通用户
          */
         List<SimpleGrantedAuthority> simpleGrantedAuthorities = new ArrayList<>();
-        for (String role : getRoles())
+        for (String role : getRoles()) {
             simpleGrantedAuthorities.add(new SimpleGrantedAuthority(role));
+        }
         return simpleGrantedAuthorities;
 
     }

@@ -13,6 +13,7 @@ import com.easylinker.proxy.server.app.utils.CacheHelper;
 import com.easylinker.proxy.server.app.utils.Md5Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,17 +31,17 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping(value = "/user")
 public class UserController {
 
-    @Autowired
-    ALiSMSSender aLiSMSSender;
+    private final ALiSMSSender aLiSMSSender;
     private final CacheHelper cacheHelper;
     private final AppUserService appUserService;
     private final RedisService redisService;
 
     @Autowired
-    public UserController(CacheHelper cacheHelper, AppUserService appUserService, RedisService redisService) {
+    public UserController(CacheHelper cacheHelper, AppUserService appUserService, RedisService redisService, ALiSMSSender aLiSMSSender) {
         this.cacheHelper = cacheHelper;
         this.appUserService = appUserService;
         this.redisService = redisService;
+        this.aLiSMSSender = aLiSMSSender;
     }
 
 
@@ -51,7 +52,8 @@ public class UserController {
      * @param requestBody
      * @return
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRED)
+
     @RequestMapping(value = "/register", method = RequestMethod.POST)
     public JSONObject register(@RequestBody JSONObject requestBody) {
 

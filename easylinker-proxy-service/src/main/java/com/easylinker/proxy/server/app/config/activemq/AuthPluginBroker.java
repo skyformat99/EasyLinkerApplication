@@ -49,15 +49,23 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
     private static final int PUB_PERMISSION = 2;
     private static final int PUB_AND_SUB_PERMISSION = 3;
     private StringRedisTemplate stringRedisTemplate;
-    // 内部消息推送组件，防止被拦截器拦截
+    /**
+     * 内部消息推送组件，防止被拦截器拦截
+     */
     private final String INTERNAL_MESSAGE_PUSHER_USERNAME = "MESSAGE_PUSHER";
     private final String INTERNAL_MESSAGE_PUSHER_PASSWORD = "MESSAGE_PUSHER";
-    // 为了支持WebSocket mqtt组件,再开一个推送器
+
+    /**
+     * 为了支持WebSocket mqtt组件,再开一个推送器
+     */
     private final String WEB_CONSOLE_PUSHER_USERNAME = "WEB_CONSOLE_MESSAGE_PUSHER";
     private final String WEB_CONSOLE_PUSHER_PASSWORD = "WEB_CONSOLE_MESSAGE_PUSHER";
+    private final ClientDataEntryService clientDataEntryService;
 
-    //线程池
-    private final ExecutorService executorService = new ThreadPoolExecutor(
+    /**
+     * 线程池
+     */
+    private static final ExecutorService executorService = new ThreadPoolExecutor(
             10,
             100,
             1L,
@@ -66,7 +74,6 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
             new EasyThreadFactory(),
             new ThreadPoolExecutor.AbortPolicy());
 
-    private final ClientDataEntryService clientDataEntryService;
 
     AuthPluginBroker(Broker next, MqttRemoteClientService service, int authType, StringRedisTemplate stringRedisTemplate, ClientDataEntryService clientDataEntryService) {
         super(next);
@@ -168,6 +175,21 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
 
     /**
      * 通过客户端的授权情况来获取安全上下文
+     * 连接成功以后缓存到redis
+     * KEY:username-VALUE:
+     * {
+     *     "acls": [
+     *         {
+     *             "topic": "/system/echo",
+     *             "acl": 3
+     *         },
+     *         {
+     *             "topic": "/1542359901679/fe6f6b2081994054978586c5eb42b71f/test",
+     *             "acl": 3
+     *         }
+     *     ],
+     *     "clientKey": "6532460fe1734a5e9b7b86eb6deb5a91"
+     * }
      *
      * @param param
      * @param mqttRemoteClient
@@ -197,8 +219,6 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
 
             } catch (Exception e) {
                 System.out.println("Redis 缓存出错");
-                e.printStackTrace();
-                //e.printStackTrace();
             }
             //至此数据库显示上线成功
             return new SecurityContext(param) {
@@ -293,7 +313,6 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
             //遍历数据库里面的ACL权限
             if (clientACLEntries.size() > 0) {
                 List<String> topics = new ArrayList<>();
-                System.out.println("ACL size:" + clientACLEntries.size());
                 for (ClientACLEntry aClientACLEntry : clientACLEntries) {
                     topics.add(aClientACLEntry.getTopic());
                 }
@@ -341,11 +360,11 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                     case 1:
                         //username 认证
 
-                        handlerSend(producerExchange, messageSend, toTopic, username, clientId, dataJson);
+                        handleSend(producerExchange, messageSend, toTopic, username, clientId, dataJson);
                         break;
                     case 2:
                         //clientId认证
-                        handlerSend(producerExchange, messageSend, toTopic, clientId, clientId, dataJson);
+                        handleSend(producerExchange, messageSend, toTopic, clientId, clientId, dataJson);
 
                         break;
                     case 3:
@@ -376,7 +395,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
      * @param dataJson
      * @throws Exception
      */
-    private synchronized void handlerSend(ProducerBrokerExchange producerExchange, Message messageSend, String toTopic, String username, String clientId, JSONObject dataJson) throws Exception {
+    private synchronized void handleSend(ProducerBrokerExchange producerExchange, Message messageSend, String toTopic, String username, String clientId, JSONObject dataJson) throws Exception {
         if (checkPubSubAcl(getCachedClientInfo(username), toTopic)) {
             if (StringUtils.hasText(dataJson.getString("type"))) {
                 System.out.println("消息类型:" + dataJson.getString("type"));
@@ -564,30 +583,34 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
             MqttRemoteClient mqttRemoteClient;
 
             switch (authType) {
-                case 1://username 认证
+                case 1:
+                    //username 认证
                     mqttRemoteClient = service.findOneByUsernameAndPassword(username, password);
                     if (mqttRemoteClient != null) {
                         mqttRemoteClient.setOnLine(false);
                         service.save(mqttRemoteClient);
+                        System.out.println("客户端断开连接:" + info.toString());
+                        super.removeConnection(context, info, error);
+                        deleteCacheClientInfo(mqttRemoteClient.getUsername());
                     }
-                    System.out.println("客户端断开连接:" + info.toString());
-                    super.removeConnection(context, info, error);
-                    deleteCacheClientInfo(mqttRemoteClient.getUsername());
+
 
                     break;
-                case 2://clientId认证
+                case 2:
+                    //clientId认证
                     mqttRemoteClient = service.findOneByClientId(clientId);
                     if (mqttRemoteClient != null) {
                         mqttRemoteClient.setOnLine(false);
                         service.save(mqttRemoteClient);
+                        System.out.println("客户端断开连接:" + info.toString());
+                        super.removeConnection(context, info, error);
+                        deleteCacheClientInfo(mqttRemoteClient.getClientId());
                     }
-                    System.out.println("客户端断开连接:" + info.toString());
-                    super.removeConnection(context, info, error);
 
-                    deleteCacheClientInfo(mqttRemoteClient.getClientId());
 
                     break;
-                case 3://匿名模式
+                case 3:
+                    //匿名模式
                     authAnonymous();
                     super.removeConnection(context, info, error);
                     break;
@@ -602,7 +625,19 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
 
     /**
      * 使用redis缓存连接信息
-     *
+     *{
+     *     "acls": [
+     *         {
+     *             "topic": "/system/echo",
+     *             "acl": 3
+     *         },
+     *         {
+     *             "topic": "/1542359901679/fe6f6b2081994054978586c5eb42b71f/test",
+     *             "acl": 3
+     *         }
+     *     ],
+     *     "clientKey": "6532460fe1734a5e9b7b86eb6deb5a91"
+     * }
      * @param param
      * @throws Exception 缓存进去的数据格式
      *                   clientID: topic,acl,group
@@ -645,13 +680,15 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
         JSONObject returnJson = new JSONObject();
         JSONArray aclArrays = new JSONArray();
         switch (authType) {
-            case 1://username
+            case 1:
+                //username
                 returnJson.put("clientKey", mqttRemoteClient.getUsername());
                 clientACLEntryToJson(mqttRemoteClient, aclArrays);
                 returnJson.put("acls", aclArrays);
                 return returnJson;
 
-            case 2://ClientID
+            case 2:
+                //ClientID
                 returnJson.put("clientKey", mqttRemoteClient.getClientId());
                 clientACLEntryToJson(mqttRemoteClient, aclArrays);
                 returnJson.put("acls", aclArrays);
@@ -674,7 +711,6 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
             JSONObject clientACLEntryJson = new JSONObject();
             clientACLEntryJson.put("topic", clientACLEntry.getTopic());
             clientACLEntryJson.put("acl", clientACLEntry.getAcl());
-            //clientACLEntryJson.put("group", clientACLEntry.getGroup());
             aclArrays.add(clientACLEntryJson);
 
         }
@@ -700,38 +736,4 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
     public void acknowledge(ConsumerBrokerExchange consumerExchange, MessageAck ack) throws Exception {
         super.acknowledge(consumerExchange, ack);
     }
-    /**
-     * 监控接受消息的客户端
-     *
-     * @param consumerExchange
-     * @param ack
-     * @throws Exception
-     */
-//    @Override
-//    public void acknowledge(ConsumerBrokerExchange consumerExchange, MessageAck ack) throws Exception {
-//        super.acknowledge(consumerExchange, ack);
-//    }
-
-
-//
-//    public static void main(String[] args) {
-//        JSONObject dataJson = new JSONObject();
-//        dataJson.put("type", "message");
-//        dataJson.put("data", JSONObject.parse("{\"persistent\":\"true\",\"data\":{\"V1\":\"1\",\"V2\":\"2\"},\"info\":\"V\"}"));
-//
-//        JSONObject cmdJson = new JSONObject();
-//        cmdJson.put("type", "cmd");
-//        cmdJson.put("data", JSONObject.parse("{\"data\":{\"cmd\":\"ls\"}}"));
-//
-//        JSONObject echoJson = new JSONObject();
-//        echoJson.put("type", "echo");
-//        echoJson.put("data", JSONObject.parse("{\"data\":{\"echo\":\"echo\"}}"));
-//
-//
-//        System.out.println(dataJson.toJSONString());
-//        System.out.println(cmdJson.toJSONString());
-//        System.out.println(echoJson.toJSONString());
-//
-//
-//    }
 }

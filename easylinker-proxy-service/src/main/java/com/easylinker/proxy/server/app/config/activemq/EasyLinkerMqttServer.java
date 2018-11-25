@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -21,29 +20,11 @@ import java.util.List;
 
 /**
  * 自己实现的AMQ的Mqtt服务器
- * # Mqtt port
- * easylinker.mqtt.server.port=1883
  * # Auth type
  * # 1:username
  * # 2:clientID
  * # 3:anonymous
- * easylinker.mqtt.server.auth=1
- * # Host
- * easylinker.mqtt.server.host=0.0.0.0
- */
-
-/**
- * <persistenceAdapter>
- * <replicatedLevelDB
- * directory="${activemq.data}/leveldb"
- * replicas="3"
- * bind="tcp://0.0.0.0:0"
- * zkAddress="ip1:2181,ip2:2181,ip3:2181"
- * hostname="192.168.199.23"
- * sync="local_disk"
- * zkPath="/activemq/leveldb-stores"
- * />
- * </persistenceAdapter>
+ *
  * @author mac
  */
 @Component
@@ -70,13 +51,18 @@ public class EasyLinkerMqttServer extends BrokerService implements InitializingB
          */
         setAdvisorySupport(false);
         setPersistent(false);
-        //开启MQTT支持
+        /**
+         * 开启MQTT支持
+         */
         TransportConnector mqttConnector = new TransportConnector();
         mqttConnector.setUri(new URI("mqtt://" + host + ":" + port));
 
-        //开启TCP支持
+        /**
+         * 开启TCP支持,主要用在内部消息通信
+         */
         TransportConnector tcpConnector = new TransportConnector();
         tcpConnector.setUri(new URI("tcp://" + host + ":" + 61616));
+
         addConnector(mqttConnector);
         addConnector(tcpConnector);
         setBrokerName("EasyLinkerMqttServer");

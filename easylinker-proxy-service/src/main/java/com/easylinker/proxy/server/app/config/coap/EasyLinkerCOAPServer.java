@@ -21,6 +21,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author wwhai
@@ -31,13 +35,22 @@ public class EasyLinkerCOAPServer extends CoapServer implements InitializingBean
 
     private final ClientDataEntryService clientDataEntryService;
     private final MqttRemoteClientService mqttRemoteClientService;
-    private final EasyThreadFactory easyThreadFactory;
+    /**
+     * 线程池
+     */
+    private static final ExecutorService executorService = new ThreadPoolExecutor(
+            10,
+            100,
+            1L,
+            TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<>(1024),
+            new EasyThreadFactory(),
+            new ThreadPoolExecutor.AbortPolicy());
 
     @Autowired
-    public EasyLinkerCOAPServer(ClientDataEntryService clientDataEntryService, MqttRemoteClientService mqttRemoteClientService, EasyThreadFactory easyThreadFactory) {
+    public EasyLinkerCOAPServer(ClientDataEntryService clientDataEntryService, MqttRemoteClientService mqttRemoteClientService) {
         this.clientDataEntryService = clientDataEntryService;
         this.mqttRemoteClientService = mqttRemoteClientService;
-        this.easyThreadFactory = easyThreadFactory;
     }
 
     @Value("${easylinker.coap.server.host}")
@@ -54,9 +67,6 @@ public class EasyLinkerCOAPServer extends CoapServer implements InitializingBean
     }
 
     /**
-     * Executors.newSingleThreadExecutor().execute(() -> {
-     * start();
-     * });
      *
      * @param resources
      * @return
@@ -97,7 +107,7 @@ public class EasyLinkerCOAPServer extends CoapServer implements InitializingBean
                         if (mqttRemoteClientService.findOneByClientId(requestBody.getString("clientId")) == null) {
                             exchange.respond(WebReturnResult.returnTipMessage(702, "Client  not exists!").toJSONString());
                         } else {
-                            easyThreadFactory.newThread(() -> {
+                            executorService.execute(() -> {
                                 if (requestBody.getBooleanValue("persistent")) {
                                     ClientDataEntry clientDataEntry = new ClientDataEntry();
                                     clientDataEntry.setClientId(requestBody.getString("clientId"));
@@ -105,7 +115,7 @@ public class EasyLinkerCOAPServer extends CoapServer implements InitializingBean
                                     clientDataEntry.setInfo(requestBody.getString("info"));
                                     clientDataEntryService.save(clientDataEntry);
                                 }
-                            }).start();
+                            });
                             exchange.respond(WebReturnResult.returnTipMessage(700, "Post successful!").toJSONString());
                         }
 
@@ -131,7 +141,7 @@ public class EasyLinkerCOAPServer extends CoapServer implements InitializingBean
                     if (mqttRemoteClientService.findOneByClientId(exchange.getQueryParameter("clientId")) == null) {
                         exchange.respond(WebReturnResult.returnTipMessage(702, "Client  not exists!").toJSONString());
                     } else {
-                        easyThreadFactory.newThread(() -> {
+                        executorService.execute(() -> {
                             if (Boolean.valueOf(exchange.getQueryParameter("persistent"))) {
                                 ClientDataEntry clientDataEntry = new ClientDataEntry();
                                 clientDataEntry.setClientId(exchange.getQueryParameter("clientId"));
@@ -145,7 +155,7 @@ public class EasyLinkerCOAPServer extends CoapServer implements InitializingBean
                                 clientDataEntry.setInfo(exchange.getQueryParameter("info"));
                                 clientDataEntryService.save(clientDataEntry);
                             }
-                        }).start();
+                        });
                         exchange.respond(WebReturnResult.returnTipMessage(700, "Post successful!").toJSONString());
                     }
                 } else {

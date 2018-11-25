@@ -8,11 +8,18 @@ import com.aliyuncs.exceptions.ClientException;
 import com.aliyuncs.http.MethodType;
 import com.aliyuncs.profile.DefaultProfile;
 import com.aliyuncs.profile.IClientProfile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
+
 @Component
 public class ALiSMSSender {
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    private static final String OK = "OK";
     @Value("${ali.sms.accessKeyId}")
     String accessKeyId;
     @Value("${ali.sms.accessKeySecret}")
@@ -35,11 +42,12 @@ public class ALiSMSSender {
         request.setPhoneNumbers(to);
         request.setTemplateParam("{\"code\":\" " + code + " \", \"product\": \"EasyLinker\"}");
         SendSmsResponse response = acsClient.getAcsResponse(request);
-        if (response.getCode() != null && response.getCode().equals("OK")) {
-            System.out.println("发送成功！" + "key:" + to + " Value:" + code);
+        //System.out.println(new String(signName.getBytes(), StandardCharsets.UTF_8));
+        if (response.getCode() != null && OK.equals(response.getCode())) {
+            logger.info("发送成功！" + "key:" + to + " Value:" + code);
             return true;
         } else {
-            System.out.println("发送失败！" + response.getCode());
+            logger.error("发送失败！" + response.getCode() + " " + response.getRequestId());
             return false;
         }
     }

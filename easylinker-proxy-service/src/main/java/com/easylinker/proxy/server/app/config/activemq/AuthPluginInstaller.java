@@ -20,7 +20,7 @@ public class AuthPluginInstaller implements BrokerPlugin {
     private ClientDataEntryService clientDataEntryService;
 
 
-    public AuthPluginInstaller(MqttRemoteClientService service, int authType, StringRedisTemplate stringRedisTemplate,ClientDataEntryService clientDataEntryService) {
+    AuthPluginInstaller(MqttRemoteClientService service, int authType, StringRedisTemplate stringRedisTemplate, ClientDataEntryService clientDataEntryService) {
         this.service = service;
         this.stringRedisTemplate = stringRedisTemplate;
         this.authType = authType;

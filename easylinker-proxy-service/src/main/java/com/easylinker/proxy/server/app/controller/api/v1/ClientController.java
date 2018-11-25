@@ -3,6 +3,8 @@ package com.easylinker.proxy.server.app.controller.api.v1;
 import com.alibaba.fastjson.JSONObject;
 import com.easylinker.proxy.server.app.config.jwt.JwtAuthRole;
 import com.easylinker.proxy.server.app.config.mvc.WebReturnResult;
+import com.easylinker.proxy.server.app.config.security.user.model.AppUser;
+import com.easylinker.proxy.server.app.config.security.user.service.AppUserService;
 import com.easylinker.proxy.server.app.model.mqtt.ClientACLEntry;
 import com.easylinker.proxy.server.app.model.mqtt.ClientACLGroupEntry;
 import com.easylinker.proxy.server.app.model.mqtt.ClientDataEntry;
@@ -25,50 +27,37 @@ import java.util.UUID;
 /**
  * 在V3里面，所有的连接进来的东西都是客户端
  * 不管你是C  Cpp 还是Java Python
+ * 关于这里为何打破规则用了下划线：因为Spring的路径中出现数字以后会出问题
+ *
+ * @author mac
  */
-@JwtAuthRole(roles = {"ROLE_ADMIN"})
+@JwtAuthRole
 @RestController
-//关于这里为何打破规则用了下划线：因为Spring的路径中出现数字以后会出问题
 @RequestMapping(value = "/api/v_1_0/client")
 public class ClientController {
 
     private final MqttRemoteClientService mqttRemoteClientService;
     private final CacheHelper cacheHelper;
     private final ClientDataEntryService clientDataEntryService;
+    private final AppUserService appUserService;
 
 
     @Autowired
-    public ClientController(CacheHelper cacheHelper, MqttRemoteClientService mqttRemoteClientService, ClientDataEntryService clientDataEntryService) {
+    public ClientController(CacheHelper cacheHelper, MqttRemoteClientService mqttRemoteClientService, ClientDataEntryService clientDataEntryService, AppUserService appUserService) {
 
         this.cacheHelper = cacheHelper;
         this.mqttRemoteClientService = mqttRemoteClientService;
         this.clientDataEntryService = clientDataEntryService;
+        this.appUserService = appUserService;
     }
 
     /**
-     * {
-     * "name":"GPS",
-     * "info":"This is some info",
-     * "location":[
-     * "0",
-     * "0"
-     * ],
-     * "aclEntry":[
-     * {
-     * "topic":"/test",
-     * "acl":2,
-     * "group":[
-     * "DEFAULT_GROUP"
-     * ]
-     * }
-     * ]
-     * }
+     * 用户默认只有10个设备权限，用完以后不让创建
      *
      * @param requestBody
      * @return
      */
     @RequestMapping(value = "/", method = RequestMethod.POST)
-
     public JSONObject add(HttpServletRequest httpServletRequest, @RequestBody JSONObject requestBody) {
         if (StringUtils.hasText(requestBody.getString("name"))
                 && StringUtils.hasText(requestBody.getString("info"))
@@ -80,27 +69,42 @@ public class ClientController {
             if (userId == null) {
                 return WebReturnResult.returnTipMessage(401, "Token已过期!");
             }
-            //
-            MqttRemoteClient mqttRemoteClient = new MqttRemoteClient();
-            mqttRemoteClient.setName(requestBody.getString("name"));
-            mqttRemoteClient.setInfo(requestBody.getString("info"));
-            mqttRemoteClient.setUserId(userId);
-            //配置默认的ACL
-            ClientACLEntry defaultACLEntry = new ClientACLEntry();
-            defaultACLEntry.setTopic("/" + userId + "/" + mqttRemoteClient.getClientId() + "/" + UUID.randomUUID().toString().replace("-", "").substring(0, 10));
-            //ACL加入组
-            List<ClientACLEntry> aclEntryList = new ArrayList<>();
-            aclEntryList.add(defaultACLEntry);
-            mqttRemoteClient.setAclEntries(aclEntryList);
+            //数目-1
+            AppUser appUser = appUserService.findById(userId);
+            if (appUser != null) {
+                Long clientCount = appUser.getClientCount();
+                if (clientCount <= 0L) {
+                    return WebReturnResult.returnTipMessage(0, "创建次数已经用完，请充值!");
+                } else {
+                    //构建数据
+                    MqttRemoteClient mqttRemoteClient = new MqttRemoteClient();
+                    mqttRemoteClient.setName(requestBody.getString("name"));
+                    mqttRemoteClient.setInfo(requestBody.getString("info"));
+                    mqttRemoteClient.setUserId(userId);
+                    //配置默认的ACL
+                    ClientACLEntry defaultACLEntry = new ClientACLEntry();
+                    defaultACLEntry.setTopic("/" + userId + "/" + mqttRemoteClient.getClientId() + "/" + UUID.randomUUID().toString().replace("-", "").substring(0, 10));
+                    //ACL加入组
+                    List<ClientACLEntry> aclEntryList = new ArrayList<>();
+                    aclEntryList.add(defaultACLEntry);
+                    mqttRemoteClient.setAclEntries(aclEntryList);
+                    //分组
+                    List<ClientACLGroupEntry> clientACLGroupEntryList = new ArrayList<>();
+                    setACL(requestBody, clientACLGroupEntryList);
+                    mqttRemoteClient.setClientACLGroupEntries(clientACLGroupEntryList);
+                    //保存
+                    mqttRemoteClientService.save(mqttRemoteClient);
+                    //用户客户端数目-1
+                    appUser.setClientCount(appUser.getClientCount() - 1L);
+                    appUserService.save(appUser);
+                    return WebReturnResult.returnTipMessage(1, "客户端创建成功!");
+                }
 
-            //分组
-            List<ClientACLGroupEntry> clientACLGroupEntryList = new ArrayList<>();
-            setACL(requestBody, clientACLGroupEntryList);
+            } else {
+                return WebReturnResult.returnTipMessage(0, "用户不存在!");
 
-            mqttRemoteClient.setClientACLGroupEntries(clientACLGroupEntryList);
-            mqttRemoteClientService.save(mqttRemoteClient);
+            }
 
-            return WebReturnResult.returnTipMessage(1, "添加成功!");
         } else {
             return WebReturnResult.returnTipMessage(0, "参数不全!");
 
