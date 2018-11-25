@@ -10,21 +10,35 @@ import org.springframework.stereotype.Component;
  */
 public class AliPayConfig {
 
-    public static String app_id = "0123456789";
+    // 支付宝应用ID
+    public static String app_id = "2016091400512253";
 
-    public static String private_key = "MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCWOv+EAo3mxNToTtR5qg8b15sOB6TKV6amJe4n/RrRF3Z7BjCSq2g6zJcz0MrnTQQ8ITTu5nFo6WO2Sg32Kv5l7FbQoQ/nCX2Qxi/xMqW1/0VAtxxJS10hdBAxPvEc4WOvz+20Tg78w1Xh1dY/FEpGXZIT+21/HLbREjKb17V2+TA7RohWeK65wZ08NevzjeK2nL2FFlKbeCc5CsuRp1UJFUl9L+c1qyxf8+y8K9Y9PMm+vk5vmzzuwOyVThLMdexQgqpV3hdcicH1JrFgnhSbGklbRi+n+ZdlEw2vjPNfOHjtWQSjRLJpfenGCJw7uTBy0HpWXORMeM/pETy5uXaNAgMBAAECggEAKTjxKgkFZQA3p7MRzHykfrBPxK7GQhuBB/A6hFCITj2Q7jsJkwVjqVbAWqB9PLC+a7105+Tl07LPAJMbd6PegJs0SzUWxv+sq9AmEZojLGhqWVKleVsrp+VQGCM8R/90uiZlBGey5xq2cyyZCGAJ7Xr5fXAtYIbBh2bl6itriMR1xUCUcDHpTJZQwz2Amh2keONU1YQRa1hdpJ4OF5n2Y1WLGHB3JpOVCaW9re4/3SXcd98CGF1SNGfTryek7iRouwJkqevZWyna/Ybtg1VL4UqGQIEQEVhpdGBjcXRB6USLZyocWZtpMQzeB+cV7SqZyXUNe45wzNjEKxuw0YMmpQKBgQDUkM2lRVqe7JYJXMrOu3WF02y1GEDoLVI3oZPSQcU/SnQGngeKdW0+B7LY8zsUE3geBcvyIr/HRHksJw3Gg4zN/IWhlrY7r8eSM8objuRS8v3mE+9yyrm6IM6CyozO+0staNPdmK+QaFR+r3NzQZYYodltGcTRUgyAEYgfD0L5LwKBgQC07Xl5nLxiP1E52kowdPpGRg6gMZm2V9uycyAZBQ9IiIVo/r0WkYna93u5PIygsH+eeQzeKrp7UhNc92DwbNKHPS5di0mxPPZ8d0QkW3VZ3sxuvOvDR1r1KDnIcAQfeLgAV96ot9HddAdO+d4ey4WiCzSX5czegF9mYPf/oC9lAwKBgQCvMCycop0+T+SUEMsBORRx2D9GvZd5Ayk4uk03Q4eKUxVvAr1aSs9fCT9IeKZfNHCR5dshU6xVUcTAM+uxiWf5uL51392PMZ88irxunATnrGa/Qfzd0eDiWvl4Z/FHAWsDINtETfub+7BvvLBc9Ff9Mx8cQNmqXoH45voWByD+dwKBgAfOp4tD5C0pJkwky0bEBXi61S68dTGVIPnWVfA+c6ZhncAmHeq3ZQd53nDj1/2nIBqqho+fsGRZ6lP8qMY3K+6CCVooBIoNY2WDkAExoSK7pn6w0Eug7J/fmH65trPU9buuDwGgzQGNXDNgPOF/TsjrSt2zIOAJEhTM4ma5dtIZAoGBAL0sOy2LQUNSgrLITzjODusn/OGjw338eM4SFj26N8VBEsBBJP9KCZQlwThlKBohprgPRonb4Iv2v7rq2JxKSWugaJ1SVYgGYJsYW8QWak3oT6pWs3XVIoNajSn0NeZx7xPwPuy4kTRBD56AUNg0dgMPA7e/m8qbWBDl5K5QouD5";
+    // 私钥
+    public static String private_key = "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCqZSLiaq1YnHhhzBK6HjjlWBecR0Wc7HX+YQANJc1ngsHvGCV92Svw62Ljx9rb6mWBcQ9NsCh8T0e/sgWNlCKzXy5SoANHbd8qAUAZVwyYdiOjWH/2CM4m6q4LtiGwVHeQ/xRu3zGvybkhaEMNB+858HdWmtgse+0xZdeAl578rMqCtuRM8we0GIERq2nb+3/mE1qIrTuC3sX31mT3oqjuXl/2Cw8uniBy3skBmv2dIlGvEgNuewAh6JSLV3ZaP5rqpxs6pyt9sl/5BOF12+GsjxmhHS/U94s2FdnuwjCHUqVwfsX2CNsjd4Nc7MXOzrakitB223o011hw25MLogcxAgMBAAECggEADDOj1NzYvvCteitX5/YEEwBE6I7+ACe6p1Wg4FAlrlThuFJdVO65Q85HTZJhLMBTNnq3ItQLgiNXOvXvidziwz98nLQSqAnJIkPmqCngoAZNtQPAXgjxYj4J6pLHRM43pa1udCYNc84ZMLg7nPJFgjujABOkiULykEf/r5ir7OIAppTriQQs+FVYS4KaR5NFjkWrhTj5amyS8lKnO9Tqqm3rjTTF8UvsaQlxWzrcGcRQnfMyeeco+M0IRVeixVuwHJ5uF39dMb5/QokNiR7Xvs6TMqkVLsO0q34hmI020xG6OqRwuOUXFl1gvF5qZJl4GB5Dal20lZ7a195OlR26BQKBgQDn/xObr+rQBeePgqnkV8tZh2m0cPG4bI4rrjxw67bXalMcId3CVCbHuMaJbfrg00PzTmZKWK6ae+tIYO/vQjKJMzhWjdYTVSOjW5GxNLYf1Qf3Ht+SM3v8ntfg7aJ5KYZcfgNMda4skUgM5l63ulf5WyE75EUldFHki6RzGY9X8wKBgQC8Bmp9zW7hTROB2XirM0LoX0AbbyXnKdgVP1A6D7s+DNJe/MxpmNnFAm9lj5O2M536wY9/a8m7IRtno1hpT3K5OIV6AECcKXJ64Z6bG27qSDWVUn6lqGqffYFyAxkYZOnxifvdJQyDgb2c4TDJ5HfK5F4YjDLH/zqj6fPzMStxSwKBgHaCgLu5A5Q8T+upbavthT04xTCduXziR0Xc/ZcZcg9cixQF4MhSQHUp2JF/kvaiNUXmuK4l2xujTa9thWONR0960L62ObMqfMgIEMabDKX6JtV/+ekvT5jec5y9B5ApPC+nV3wJaW3u0QV18NCd6i7A9JspooDdiK/c/aamWektAoGAUTTwL29XkUUpxK45WK+mGRhyZqblluZSpjKXIsyCkTUWcuH6Iy1Z+KWpmRKeuFWoyJFquZzDHugYnvVEjQ88PFT2CRAs14VrJTlmuBTsHZGcWuarPj7z9fhNvQEriIalJ6XxurxyoCWb0DLOUJQ1TNK+9RkwIYLRP9QegY1d9usCgYEAybrFBq9qRM0kFxTyOz7pNGSKy7SQb7eYWW5xF1fSS+C37of3FBKjPopZXsmoyqOErErlquIGLPhLmZgVU0H4MjQGUGRx+lGrpc9haorZXidh9ACSUnpE17Thj+4AKvRvtOfQaDh5ixFhifpMkbTUky5ZnNx4jkLFJmBAKhO/1+8=";
 
-    public static String notify_url = "http://www.linhongcun.com/SpringBootPay-0.0.1-SNAPSHOT/pay/notifyUrl";
+    // 公钥
+    public static String public_key = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnRsVJO7PcNYM+kPIXCnVOQ/wEeQTwk/mtKPWmwgPvQiAll2QNzl0VqhqPMI0uHjXRvYXu6CUN+xA0wWWulZ37Wh2zffF8Vnt3Tr6dxWsvIAtuprFmq6+uiboNSf33OcOT4bZcYvti9DBQiMO8+wY8o6pwcEJU9E0VpzjKFZ9ZsItOP5FEi7l3nEdBAjZA4/CA2iO6sJRsIXYTxxHm86ae590FgZij1wl3u/PbyV4T7yC48UWR9LtY4s1C6EC6sT9QbIHTUqXwbGNXxxJhvuYOJCJY+HLzLAc5HlvO8kJhFtkAuh9al03TFXWGteCl9gnceNykgdVlJyPv3qCt7Rm8QIDAQAB";
 
-    public static String return_url = "http://www.linhongcun.com/SpringBootPay-0.0.1-SNAPSHOT/pay/returnUrl";
+    // 异步通知地址
+    public static String notify_url = "http://gnikweb.imwork.net/pay/notify";
 
-    public static String url = "https://openapi.alipaydev.com/gateway.do";
+    // 回调地址
+    public static String return_url = "http://gnikweb.imwork.net/pay/returnUrl";
+
+    // 签名方式
+    public static String sign_type = "RSA2";
 
     public static String charset = "UTF-8";
 
+    /**
+     * TODO 支付宝网关配置
+     * 沙箱环境：https://openapi.alipaydev.com/gateway.do
+     * 正式环境：https://openapi.alipay.com/gateway.do
+     */
+    public static String url = "https://openapi.alipaydev.com/gateway.do";
+
+
     public static String format = "json";
 
-    public static String public_key = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAljr/hAKN5sTU6E7UeaoPG9ebDgekylempiXuJ/0a0Rd2ewYwkqtoOsyXM9DK500EPCE07uZxaOljtkoN9ir+ZexW0KEP5wl9kMYv8TKltf9FQLccSUtdIXQQMT7xHOFjr8/ttE4O/MNV4dXWPxRKRl2SE/ttfxy20RIym9e1dvkwO0aIVniuucGdPDXr843itpy9hRZSm3gnOQrLkadVCRVJfS/nNassX/PsvCvWPTzJvr5Ob5s87sDslU4SzHXsUIKqVd4XXInB9SaxYJ4UmxpJW0Yvp/mXZRMNr4zzXzh47VkEo0SyaX3pxgicO7kwctB6VlzkTHjP6RE8ubl2jQIDAQAB";
-    public static String signtype = "RSA2";
 
 }

@@ -13,8 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
-
 @Component
 public class ALiSMSSender {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -38,6 +36,7 @@ public class ALiSMSSender {
         SendSmsRequest request = new SendSmsRequest();
         request.setMethod(MethodType.POST);
         request.setSignName(signName);
+        System.out.println(signName);
         request.setTemplateCode(template);
         request.setPhoneNumbers(to);
         request.setTemplateParam("{\"code\":\" " + code + " \", \"product\": \"EasyLinker\"}");

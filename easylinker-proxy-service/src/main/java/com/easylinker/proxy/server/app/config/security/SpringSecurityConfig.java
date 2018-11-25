@@ -75,7 +75,8 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/forgetPassword",//发送忘记密码的邮件
                         "/user/active/**",//激活
                         "/api/v1/**",//这个是Jwt的路径
-                        "/web-socket/**"
+                        "/web-socket/**",
+                        "/pay/**" //支付宝
 
                 )
                 .permitAll();
