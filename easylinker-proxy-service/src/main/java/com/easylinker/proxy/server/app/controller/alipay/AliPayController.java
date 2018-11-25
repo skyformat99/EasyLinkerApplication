@@ -41,7 +41,7 @@ public class AliPayController {
 
     /**
      * 创建订单
-     *
+     * TODO 此接口后期重构，只负责创建订单和获取支付链接，避免在Controller中直接使用
      * @throws Exception
      */
     @RequestMapping("/pay")
@@ -63,9 +63,8 @@ public class AliPayController {
         orderEntity.setTotal_amount("100");
         orderEntity.setSubject("云易物联接口充值");
         orderEntity.setBody("云易物联接口调用次数充值");
-        //orderEntity.setTimeout_express("10m");
+        orderEntity.setTimeout_express("10m");
         String order = JSONObject.toJSONString(orderEntity);
-        System.out.println(order);
         alipayRequest.setBizContent(order);
         String form = client.pageExecute(alipayRequest).getBody();
         // 生成表单
@@ -97,6 +96,8 @@ public class AliPayController {
             String out_trade_no = request.getParameter("out_trade_no");
             String trade_no = request.getParameter("trade_no");
             String total_amount = request.getParameter("total_amount");
+
+            System.out.println("====================回调页面=======================================");
             System.out.println("商户订单号："+out_trade_no);
             System.out.println("支付宝交易号："+trade_no);
             System.out.println("付款金额："+total_amount);
@@ -110,12 +111,12 @@ public class AliPayController {
 
     /**
      * 支付宝服务器异步通知
-     *
+     * 详细信息请参考https://docs.open.alipay.com/270/105902/
      * @param request
      * @throws Exception
      */
     @PostMapping("/notify")
-    public JSONObject notify(HttpServletRequest request) throws Exception {
+    public String notify(HttpServletRequest request) throws Exception {
         // 获取支付宝POST过来反馈信息
         Map<String, String> params = new HashMap<>();
         Map<String, String[]> requestParams = request.getParameterMap();
@@ -130,14 +131,21 @@ public class AliPayController {
             String trade_no = request.getParameter("trade_no");
             // 交易状态
             String trade_status = request.getParameter("trade_status");
-
+            System.out.println("=====================异步通知结果=================================");
             System.out.println("商户订单号："+out_trade_no);
             System.out.println("支付宝交易号："+trade_no);
             System.out.println("交易状态："+trade_status);
             // 修改数据库
-            return WebReturnResult.returnTipMessage(1, "Success!");
+
+            /**
+             * 程序执行完后必须打印输出“success”（不包含引号）。
+             * 如果商户反馈给支付宝的字符不是success这7个字符，
+             * 支付宝服务器会不断重发通知，直到超过24小时22分钟。一般情况下，25小时以内完成8次通知
+             * （通知的间隔频率一般是：4m,10m,10m,1h,2h,6h,15h）
+             */
+            return "success";
         } else {
-            return WebReturnResult.returnTipMessage(0, "Failed!");
+            return "error";
 
         }
     }
