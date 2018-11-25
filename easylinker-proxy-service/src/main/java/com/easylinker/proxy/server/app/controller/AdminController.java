@@ -5,14 +5,15 @@ import com.easylinker.proxy.server.app.config.jwt.JwtAuthRole;
 import com.easylinker.proxy.server.app.config.mvc.WebReturnResult;
 import com.easylinker.proxy.server.app.config.security.user.model.AppUser;
 import com.easylinker.proxy.server.app.config.security.user.service.AppUserService;
+import com.easylinker.proxy.server.app.model.charge.ChargeBill;
+import com.easylinker.proxy.server.app.service.ChargeBillService;
+import com.easylinker.proxy.server.app.service.SystemLogService;
 import com.easylinker.proxy.server.app.utils.CacheHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -32,11 +33,15 @@ import javax.servlet.http.HttpServletRequest;
 public class AdminController {
     private final CacheHelper cacheHelper;
     private final AppUserService appUserService;
+    private final SystemLogService systemLogService;
+    private final ChargeBillService chargeBillService;
 
     @Autowired
-    public AdminController(CacheHelper cacheHelper, AppUserService appUserService) {
+    public AdminController(CacheHelper cacheHelper, AppUserService appUserService, SystemLogService systemLogService, ChargeBillService chargeBillService) {
         this.cacheHelper = cacheHelper;
         this.appUserService = appUserService;
+        this.systemLogService = systemLogService;
+        this.chargeBillService = chargeBillService;
     }
 
     @RequestMapping(value = "/listUsers/{page}/{size}", method = RequestMethod.GET)
@@ -113,8 +118,65 @@ public class AdminController {
             }
         }
 
+    }
+
+    /**
+     * 获取日志
+     *
+     * @param httpServletRequest
+     * @param page
+     * @param size
+     * @return
+     */
+
+    @RequestMapping(value = "/listLog/{page}/{size}", method = RequestMethod.GET)
+    public JSONObject listLog(HttpServletRequest httpServletRequest,
+                              @PathVariable int page,
+                              @PathVariable int size) {
+        //从缓存中拿出用户ID
+        if (cacheHelper.getCurrentUserIdFromRedisCache(httpServletRequest) == null) {
+            return WebReturnResult.returnTipMessage(401, "Token已过期!");
+        }
+
+        return WebReturnResult.returnDataMessage(1, "查询成功!", systemLogService.getAll(
+                PageRequest.of(page,
+                        size,
+                        Sort.by(Sort.Direction.DESC, "createTime"))));
 
     }
 
+    /**
+     * 充值
+     *
+     * @param httpServletRequest
+     * @param requestBody
+     * @return
+     */
+    @RequestMapping(value = "/charge", method = RequestMethod.POST)
+    public JSONObject charge(HttpServletRequest httpServletRequest, @RequestBody JSONObject requestBody) {
+        if (cacheHelper.getCurrentUserIdFromRedisCache(httpServletRequest) == null) {
+            return WebReturnResult.returnTipMessage(401, "Token已过期!");
+        }
 
+        if (StringUtils.hasText(requestBody.getString("userId"))
+                && StringUtils.hasText(requestBody.getString("chargeCount"))) {
+            AppUser appUser = appUserService.findById(requestBody.getLongValue("userId"));
+            if (appUser == null) {
+                return WebReturnResult.returnTipMessage(0, "用户不存在!");
+            } else {
+                appUser.setClientCount(appUser.getClientCount() + requestBody.getLongValue("chargeCount"));
+                appUserService.save(appUser);
+                //打印一个账单
+                ChargeBill chargeBill = new ChargeBill();
+                chargeBill.setUserId(appUser.getId());
+                chargeBill.setGoodsName("客户端充值");
+                chargeBill.setInfo("充值客户端数 :" + requestBody.getLongValue("chargeCount"));
+                chargeBillService.save(chargeBill);
+                return WebReturnResult.returnTipMessage(1, "充值成功!");
+            }
+        } else {
+            return WebReturnResult.returnTipMessage(0, "参数缺少!");
+
+        }
+    }
 }
