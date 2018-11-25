@@ -8,6 +8,8 @@ import com.aliyuncs.exceptions.ClientException;
 import com.aliyuncs.http.MethodType;
 import com.aliyuncs.profile.DefaultProfile;
 import com.aliyuncs.profile.IClientProfile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +23,7 @@ public class ALiSMSSender {
     String template;
     @Value("${ali.sms.signName}")
     String signName;
-
+    private static final Logger logger = LoggerFactory.getLogger(ALiSMSSender.class);
     public boolean sendSms(String to, String code) throws ClientException {
         System.setProperty("sun.net.client.defaultConnectTimeout", "10000");
         System.setProperty("sun.net.client.defaultReadTimeout", "10000");
@@ -37,9 +39,10 @@ public class ALiSMSSender {
         SendSmsResponse response = acsClient.getAcsResponse(request);
         if (response.getCode() != null && response.getCode().equals("OK")) {
             System.out.println("发送成功！" + "key:" + to + " Value:" + code);
+            logger.info("验证码发送成功：手机号：{},验证码：{}", to, code);
             return true;
         } else {
-            System.out.println("发送失败！" + response.getCode());
+            logger.error("验证码发送失败：错误码：{},请求ID：{},错误信息：{}", response.getCode(), response.getRequestId(), response.getMessage());
             return false;
         }
     }
