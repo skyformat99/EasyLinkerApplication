@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
 
-public class BaseEntity  {
+public class BaseEntity implements Serializable {
     @Id
     private Long id = System.currentTimeMillis() + (long) (Math.random() * 100000L);
     private Date createTime = new Date();

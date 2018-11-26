@@ -178,17 +178,17 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
      * 连接成功以后缓存到redis
      * KEY:username-VALUE:
      * {
-     *     "acls": [
-     *         {
-     *             "topic": "/system/echo",
-     *             "acl": 3
-     *         },
-     *         {
-     *             "topic": "/1542359901679/fe6f6b2081994054978586c5eb42b71f/test",
-     *             "acl": 3
-     *         }
-     *     ],
-     *     "clientKey": "6532460fe1734a5e9b7b86eb6deb5a91"
+     * "acls": [
+     * {
+     * "topic": "/system/echo",
+     * "acl": 3
+     * },
+     * {
+     * "topic": "/1542359901679/fe6f6b2081994054978586c5eb42b71f/test",
+     * "acl": 3
+     * }
+     * ],
+     * "clientKey": "6532460fe1734a5e9b7b86eb6deb5a91"
      * }
      *
      * @param param
@@ -409,14 +409,31 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                         synchronized (this) {
 
                             executorService.execute(() -> {
-                                if (dataJson.getBooleanValue("persistent")) {
-                                    ClientDataEntry clientDataEntry = new ClientDataEntry();
-                                    clientDataEntry.setClientId(clientId);
-                                    clientDataEntry.setData(dataJson.getJSONObject("data"));
-                                    clientDataEntry.setInfo(dataJson.getString("info"));
-                                    clientDataEntryService.save(clientDataEntry);
-                                    System.out.println("持久化成功!");
+                                /**
+                                 * 1 查询当前用户的余额
+                                 * 2 余额是否足够
+                                 * 3 余额不足 消息拦截，打印日志
+                                 * 4 余额充足，执行下面的代码
+                                 */
+                                MqttRemoteClient mqttRemoteClient = service.findOneByClientId(clientId);
+                                Long dataRows = mqttRemoteClient.getDataRows();
+                                if (dataRows <= 0) {
+                                    System.out.println("余额不足!");
+                                } else {
+
+                                    if (dataJson.getBooleanValue("persistent")) {
+                                        ClientDataEntry clientDataEntry = new ClientDataEntry();
+                                        clientDataEntry.setClientId(clientId);
+                                        clientDataEntry.setData(dataJson.getJSONObject("data"));
+                                        clientDataEntry.setInfo(dataJson.getString("info"));
+                                        clientDataEntryService.save(clientDataEntry);
+                                        System.out.println("持久化成功!");
+                                        //扣费
+                                        mqttRemoteClient.setDataRows(mqttRemoteClient.getDataRows() - 1);
+                                        service.save(mqttRemoteClient);
+                                    }
                                 }
+
                             });
 
 
@@ -625,19 +642,20 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
 
     /**
      * 使用redis缓存连接信息
-     *{
-     *     "acls": [
-     *         {
-     *             "topic": "/system/echo",
-     *             "acl": 3
-     *         },
-     *         {
-     *             "topic": "/1542359901679/fe6f6b2081994054978586c5eb42b71f/test",
-     *             "acl": 3
-     *         }
-     *     ],
-     *     "clientKey": "6532460fe1734a5e9b7b86eb6deb5a91"
+     * {
+     * "acls": [
+     * {
+     * "topic": "/system/echo",
+     * "acl": 3
+     * },
+     * {
+     * "topic": "/1542359901679/fe6f6b2081994054978586c5eb42b71f/test",
+     * "acl": 3
      * }
+     * ],
+     * "clientKey": "6532460fe1734a5e9b7b86eb6deb5a91"
+     * }
+     *
      * @param param
      * @throws Exception 缓存进去的数据格式
      *                   clientID: topic,acl,group

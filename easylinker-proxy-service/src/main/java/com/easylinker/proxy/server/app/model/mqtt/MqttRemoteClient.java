@@ -24,6 +24,16 @@ public class MqttRemoteClient extends BaseEntity {
     private String info = "Nothing";
     private Long userId;
 
+    private Long dataRows=10000L;
+
+    public Long getDataRows() {
+        return dataRows;
+    }
+
+    public void setDataRows(Long dataRows) {
+        this.dataRows = dataRows;
+    }
+
     //ACL 描述
     private List<ClientACLEntry> aclEntries;
     //
