@@ -5,9 +5,9 @@ import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.api.request.AlipayTradePagePayRequest;
-import com.easylinker.proxy.server.app.config.alipay.AliPayConfig;
 import com.easylinker.proxy.server.app.config.mvc.WebReturnResult;
 import com.easylinker.proxy.server.app.model.AlipayOrderEntity;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,8 +18,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.easylinker.proxy.server.app.config.alipay.AliPayConfig.sign_type;
-
 /**
  * 支付宝支付Controller
  *
@@ -29,19 +27,29 @@ import static com.easylinker.proxy.server.app.config.alipay.AliPayConfig.sign_ty
 @RequestMapping("/pay")
 public class AliPayController {
 
-    private String appId = AliPayConfig.app_id;
-    private String privateKey = AliPayConfig.private_key;
-    private String notifyUrl = AliPayConfig.notify_url;
-    private String returnUrl = AliPayConfig.return_url;
-    private String url = AliPayConfig.url;
-    private String charset = AliPayConfig.charset;
-    private String format = AliPayConfig.format;
-    private String publicKey = AliPayConfig.public_key;
-    private String signType = sign_type;
+    @Value("${alipay.appId}")
+    private String appId;
+    @Value("${alipay.privateKey}")
+    private String privateKey;
+    @Value("${alipay.notifyUrl}")
+    private String notifyUrl;
+    @Value("${alipay.returnUrl}")
+    private String returnUrl;
+    @Value("${alipay.gateway}")
+    private String gateway;
+    @Value("${alipay.charset}")
+    private String charset;
+    @Value("${alipay.format}")
+    private String format;
+    @Value("${alipay.publicKey}")
+    private String publicKey;
+    @Value("${alipay.signType}")
+    private String signType;
 
     /**
      * 创建订单
      * TODO 此接口后期重构，只负责创建订单和获取支付链接，避免在Controller中直接使用
+     *
      * @throws Exception
      */
     @RequestMapping("/pay")
@@ -49,24 +57,24 @@ public class AliPayController {
 
 
         // 创建请求客户端
-        AlipayClient client = new DefaultAlipayClient(url,
+        AlipayClient client = new DefaultAlipayClient(gateway,
                 appId, privateKey, format, charset, publicKey, signType);
 
         // 设置请求参数
-        AlipayTradePagePayRequest alipayRequest = new AlipayTradePagePayRequest();
-        alipayRequest.setReturnUrl(returnUrl);
-        alipayRequest.setNotifyUrl(notifyUrl);
+        AlipayTradePagePayRequest alipayTradePagePayRequest = new AlipayTradePagePayRequest();
+        alipayTradePagePayRequest.setReturnUrl(returnUrl);
+        alipayTradePagePayRequest.setNotifyUrl(notifyUrl);
 
         // 封装订单信息
         AlipayOrderEntity orderEntity = new AlipayOrderEntity();
-        orderEntity.setOut_trade_no(UUID.randomUUID().toString().replace("-", ""));
-        orderEntity.setTotal_amount("100");
+        orderEntity.setTradeNumber(UUID.randomUUID().toString().replace("-", ""));
+        orderEntity.setTotalAmount("100");
         orderEntity.setSubject("云易物联接口充值");
         orderEntity.setBody("云易物联接口调用次数充值");
-        orderEntity.setTimeout_express("10m");
+        orderEntity.setTimeoutExpress("10m");
         String order = JSONObject.toJSONString(orderEntity);
-        alipayRequest.setBizContent(order);
-        String form = client.pageExecute(alipayRequest).getBody();
+        alipayTradePagePayRequest.setBizContent(order);
+        String form = client.pageExecute(alipayTradePagePayRequest).getBody();
         // 生成表单
         response.setContentType("text/html;charset=" + charset);
         // 直接将完整的表单html输出到页面
@@ -85,11 +93,10 @@ public class AliPayController {
     public JSONObject returnUrl(HttpServletRequest request) throws Exception {
 
         // 获取支付宝GET过来反馈信息（官方固定代码）
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         Map<String, String[]> requestParams = request.getParameterMap();
-        handleResult(params, requestParams);
         // 调用SDK验证签名
-        boolean signVerified = AlipaySignature.rsaCheckV1(params, publicKey, charset, signType);
+        boolean signVerified = AlipaySignature.rsaCheckV1(verifySign(params, requestParams), publicKey, charset, signType);
 
         // 返回界面
         if (signVerified) {
@@ -98,9 +105,9 @@ public class AliPayController {
             String total_amount = request.getParameter("total_amount");
 
             System.out.println("====================回调页面=======================================");
-            System.out.println("商户订单号："+out_trade_no);
-            System.out.println("支付宝交易号："+trade_no);
-            System.out.println("付款金额："+total_amount);
+            System.out.println("商户订单号：" + out_trade_no);
+            System.out.println("支付宝交易号：" + trade_no);
+            System.out.println("付款金额：" + total_amount);
             return WebReturnResult.returnTipMessage(1, "Success!");
         } else {
             return WebReturnResult.returnTipMessage(0, "Failed!");
@@ -112,6 +119,7 @@ public class AliPayController {
     /**
      * 支付宝服务器异步通知
      * 详细信息请参考https://docs.open.alipay.com/270/105902/
+     *
      * @param request
      * @throws Exception
      */
@@ -120,7 +128,7 @@ public class AliPayController {
         // 获取支付宝POST过来反馈信息
         Map<String, String> params = new HashMap<>();
         Map<String, String[]> requestParams = request.getParameterMap();
-        handleResult(params, requestParams);
+        verifySign(params, requestParams);
         // 调用SDK验证签名
         boolean signVerified = AlipaySignature.rsaCheckV1(params, publicKey, charset, signType);
         // 验证成功 更新订单信息
@@ -132,9 +140,9 @@ public class AliPayController {
             // 交易状态
             String trade_status = request.getParameter("trade_status");
             System.out.println("=====================异步通知结果=================================");
-            System.out.println("商户订单号："+out_trade_no);
-            System.out.println("支付宝交易号："+trade_no);
-            System.out.println("交易状态："+trade_status);
+            System.out.println("商户订单号：" + out_trade_no);
+            System.out.println("支付宝交易号：" + trade_no);
+            System.out.println("交易状态：" + trade_status);
             // 修改数据库
 
             /**
@@ -150,7 +158,7 @@ public class AliPayController {
         }
     }
 
-    private void handleResult(Map<String, String> params, Map<String, String[]> requestParams) {
+    private Map<String, String> verifySign(Map<String, String> params, Map<String, String[]> requestParams) {
         for (String name : requestParams.keySet()) {
             String[] values = requestParams.get(name);
             String valueStr = "";
@@ -159,6 +167,7 @@ public class AliPayController {
             }
             params.put(name, valueStr);
         }
+        return params;
     }
 
 }
