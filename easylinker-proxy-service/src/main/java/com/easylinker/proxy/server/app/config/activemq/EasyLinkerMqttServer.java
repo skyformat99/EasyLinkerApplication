@@ -1,5 +1,6 @@
 package com.easylinker.proxy.server.app.config.activemq;
 
+import com.easylinker.proxy.server.app.config.redis.RedisService;
 import com.easylinker.proxy.server.app.service.ClientDataEntryService;
 import com.easylinker.proxy.server.app.service.MqttRemoteClientService;
 import org.apache.activemq.broker.BrokerPlugin;
@@ -41,10 +42,12 @@ public class EasyLinkerMqttServer extends BrokerService implements InitializingB
                                         int authType,
                                 MqttRemoteClientService service,
                                 StringRedisTemplate stringRedisTemplate,
+                                RedisService redisService,
 
                                 ClientDataEntryService clientDataEntryService
     ) throws Exception {
-        setPlugins(new BrokerPlugin[]{new AuthPluginInstaller(service, authType, stringRedisTemplate, clientDataEntryService)});
+        setPlugins(new BrokerPlugin[]{new AuthPluginInstaller(service, authType, stringRedisTemplate, clientDataEntryService),
+                new IpFrequencyLimitPluginInstaller(redisService)});
         /**
          * Activemq 的通知消息相关的资料在这里
          * http://activemq.apache.org/advisory-message.html

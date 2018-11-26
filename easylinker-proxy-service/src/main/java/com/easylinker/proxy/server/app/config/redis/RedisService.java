@@ -11,6 +11,7 @@ public class RedisService {
 
     private StringRedisTemplate stringRedisTemplate;
 
+
     @Autowired
     public RedisService(StringRedisTemplate stringRedisTemplate) {
         this.stringRedisTemplate = stringRedisTemplate;
@@ -62,4 +63,7 @@ public class RedisService {
         stringRedisTemplate.opsForValue().set(key, value, time, timeUnit);
     }
 
+    public void increment(String k, Long v) {
+        stringRedisTemplate.opsForValue().increment(k, v);
+    }
 }
