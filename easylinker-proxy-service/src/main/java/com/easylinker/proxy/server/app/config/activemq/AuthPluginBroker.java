@@ -268,7 +268,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                 password.equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)
                 || username.equals(WEB_CONSOLE_PUSHER_USERNAME) &&
                 username.equals(WEB_CONSOLE_PUSHER_PASSWORD)
-        ) {
+                ) {
             logger.info("内部推送客户端消费");
             super.addConsumer(context, info);
 
@@ -349,7 +349,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                 password.equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)
                 || username.equals(WEB_CONSOLE_PUSHER_USERNAME) &&
                 username.equals(WEB_CONSOLE_PUSHER_PASSWORD)
-        ) {
+                ) {
             System.out.println("MESSAGE_PUSHER");
             super.send(producerExchange, messageSend);
         } else {
@@ -399,44 +399,48 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
         if (checkPubSubAcl(getCachedClientInfo(username), toTopic)) {
             if (StringUtils.hasText(dataJson.getString("type"))) {
                 System.out.println("消息类型:" + dataJson.getString("type"));
+                /**
+                 * 1 查询当前用户的余额
+                 * 2 余额是否足够
+                 * 3 余额不足 消息拦截，打印日志
+                 * 4 余额充足，执行下面的代码
+                 */
+//                MqttRemoteClient mqttRemoteClient = service.findOneByClientId(clientId);
+//                Long dataRows = mqttRemoteClient.getDataRows();
+//                //扣费
+//                if (dataRows <= 0) {
+//                    System.out.println("余额不足!");
+//                    throw new Exception("余额不足");
+//                } else {
+//                    mqttRemoteClient.setDataRows(mqttRemoteClient.getDataRows() - 1);
+//                    service.save(mqttRemoteClient);
+//                }
+
 
                 //
                 switch (dataJson.getString("type")) {
                     case "data":
                         //是否是持久化数据
-                        super.send(producerExchange, messageSend);
                         //考虑到数据库持久化会浪费时间，所以开启多线程去保存数据，同时多线程又面临着上下文的问题，所以需要同步
                         synchronized (this) {
 
                             executorService.execute(() -> {
-                                /**
-                                 * 1 查询当前用户的余额
-                                 * 2 余额是否足够
-                                 * 3 余额不足 消息拦截，打印日志
-                                 * 4 余额充足，执行下面的代码
-                                 */
-                                MqttRemoteClient mqttRemoteClient = service.findOneByClientId(clientId);
-                                Long dataRows = mqttRemoteClient.getDataRows();
-                                if (dataRows <= 0) {
-                                    System.out.println("余额不足!");
-                                } else {
-
-                                    if (dataJson.getBooleanValue("persistent")) {
-                                        ClientDataEntry clientDataEntry = new ClientDataEntry();
-                                        clientDataEntry.setClientId(clientId);
-                                        clientDataEntry.setData(dataJson.getJSONObject("data"));
-                                        clientDataEntry.setInfo(dataJson.getString("info"));
-                                        clientDataEntryService.save(clientDataEntry);
-                                        System.out.println("持久化成功!");
-                                        //扣费
-                                        mqttRemoteClient.setDataRows(mqttRemoteClient.getDataRows() - 1);
-                                        service.save(mqttRemoteClient);
-                                    }
+                                if (dataJson.getBooleanValue("persistent")) {
+                                    ClientDataEntry clientDataEntry = new ClientDataEntry();
+                                    clientDataEntry.setClientId(clientId);
+                                    clientDataEntry.setData(dataJson.getJSONObject("data"));
+                                    clientDataEntry.setInfo(dataJson.getString("info"));
+                                    clientDataEntryService.save(clientDataEntry);
+                                    //System.out.println("持久化成功!");
                                 }
-
+                                try {
+                                    super.send(producerExchange, messageSend);
+                                } catch (Exception e) {
+                                    //
+                                    e.printStackTrace();
+                                    logger.error("Error:" + e.getMessage());
+                                }
                             });
-
-
                         }
 
                         break;
@@ -590,7 +594,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                 password.equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)
                 || username.equals(WEB_CONSOLE_PUSHER_USERNAME) &&
                 username.equals(WEB_CONSOLE_PUSHER_PASSWORD)
-        ) {
+                ) {
             logger.info("内部推送客户断开端连接");
             super.removeConnection(context, info, error);
 
