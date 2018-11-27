@@ -47,6 +47,9 @@
         <californium-scandium.version>2.0.0-M3</californium-scandium.version>
         <californium-californium-core.version>2.0.0-M3</californium-californium-core.version>
         <californium-element-connector.version>2.0.0-M3</californium-element-connector.version>
+        <wxpay-sdk.version>0.0.3</wxpay-sdk.version>
+        <apache-commons-lang3.version>3.8.1</apache-commons-lang3.version>
+        <ulisesbocchio-jasypt.version>2.0.0</ulisesbocchio-jasypt.version>
     </properties>
 
     <dependencyManagement>
@@ -182,6 +185,24 @@
                 <groupId>org.eclipse.californium</groupId>
                 <artifactId>scandium</artifactId>
                 <version>${californium-scandium.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.wxpay</groupId>
+                <artifactId>wxpay-sdk</artifactId>
+                <version>${wxpay-sdk.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${apache-commons-lang3.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.ulisesbocchio</groupId>
+                <artifactId>jasypt-spring-boot-starter</artifactId>
+                <version>${ulisesbocchio-jasypt.version}</version>
             </dependency>
 
         </dependencies>

@@ -76,7 +76,7 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/user/active/**",//激活
                         "/api/v1/**",//这个是Jwt的路径
                         "/web-socket/**",
-                        "/pay/**" // TODO 临时放行支付宝支付链接，后期研究具体策略
+                        "/pay/**" // TODO 临时放行支付链接，后期研究具体策略
 
                 )
                 .permitAll();
