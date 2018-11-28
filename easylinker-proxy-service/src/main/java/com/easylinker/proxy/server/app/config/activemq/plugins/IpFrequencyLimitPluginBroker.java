@@ -1,4 +1,4 @@
-package com.easylinker.proxy.server.app.config.activemq;
+package com.easylinker.proxy.server.app.config.activemq.plugins;
 
 import com.easylinker.proxy.server.app.config.redis.RedisService;
 import org.apache.activemq.broker.Broker;
@@ -23,7 +23,7 @@ public class IpFrequencyLimitPluginBroker extends BrokerFilter {
     private static final int LIMIT = 10;
     private final RedisService redisService;
 
-    IpFrequencyLimitPluginBroker(Broker next, RedisService redisService) {
+    public IpFrequencyLimitPluginBroker(Broker next, RedisService redisService) {
         super(next);
         this.redisService = redisService;
     }
@@ -37,7 +37,7 @@ public class IpFrequencyLimitPluginBroker extends BrokerFilter {
             redisService.setExpires(ip, "1", 5L, TimeUnit.SECONDS);
         } else if (Integer.valueOf(ipCount) > LIMIT) {
             logger.error("频率拦截器拒绝:[" + ip + "]因为该IP请求频率超过最大值!");
-            throw new SecurityException("ACL拒绝:[" + ip + "]因为该IP请求频率太高!");
+            //throw new SecurityException("ACL拒绝:[" + ip + "]因为该IP请求频率太高!");
         } else {
             redisService.increment(ip, 1L);
         }

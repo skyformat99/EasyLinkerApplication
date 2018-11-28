@@ -1,5 +1,6 @@
-package com.easylinker.proxy.server.app.config.activemq;
+package com.easylinker.proxy.server.app.config.activemq.installer;
 
+import com.easylinker.proxy.server.app.config.activemq.plugins.IpFrequencyLimitPluginBroker;
 import com.easylinker.proxy.server.app.config.redis.RedisService;
 import org.apache.activemq.broker.Broker;
 import org.apache.activemq.broker.BrokerPlugin;

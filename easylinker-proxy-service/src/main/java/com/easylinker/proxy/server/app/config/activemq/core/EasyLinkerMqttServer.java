@@ -1,5 +1,7 @@
-package com.easylinker.proxy.server.app.config.activemq;
+package com.easylinker.proxy.server.app.config.activemq.core;
 
+import com.easylinker.proxy.server.app.config.activemq.installer.AuthPluginInstaller;
+import com.easylinker.proxy.server.app.config.activemq.installer.IpFrequencyLimitPluginInstaller;
 import com.easylinker.proxy.server.app.config.redis.RedisService;
 import com.easylinker.proxy.server.app.service.ClientDataEntryService;
 import com.easylinker.proxy.server.app.service.MqttRemoteClientService;

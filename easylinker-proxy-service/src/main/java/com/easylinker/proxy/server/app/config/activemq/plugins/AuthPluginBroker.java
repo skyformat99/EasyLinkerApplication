@@ -1,4 +1,4 @@
-package com.easylinker.proxy.server.app.config.activemq;
+package com.easylinker.proxy.server.app.config.activemq.plugins;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -19,16 +19,14 @@ import org.apache.activemq.security.AbstractAuthenticationBroker;
 import org.apache.activemq.security.SecurityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.StringUtils;
 
 import javax.jms.MessageNotWriteableException;
 import java.security.Principal;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -41,7 +39,7 @@ import java.util.concurrent.TimeUnit;
  * 官网文档:http://activemq.apache.org/developing-plugins.html
  */
 
-class AuthPluginBroker extends AbstractAuthenticationBroker {
+public class AuthPluginBroker extends AbstractAuthenticationBroker {
     private static Logger logger = LoggerFactory.getLogger(AuthPluginBroker.class);
     private MqttRemoteClientService service;
     private int authType;
@@ -74,18 +72,65 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
             new EasyThreadFactory(),
             new ThreadPoolExecutor.AbortPolicy());
 
+    private final AmqpTemplate amqpTemplate;
 
-    AuthPluginBroker(Broker next, MqttRemoteClientService service, int authType, StringRedisTemplate stringRedisTemplate, ClientDataEntryService clientDataEntryService) {
+
+    public AuthPluginBroker(Broker next,
+                            MqttRemoteClientService service,
+                            int authType,
+                            StringRedisTemplate stringRedisTemplate,
+                            ClientDataEntryService clientDataEntryService,
+                            AmqpTemplate amqpTemplate
+
+    ) {
         super(next);
         this.service = service;
         this.authType = authType;
         this.stringRedisTemplate = stringRedisTemplate;
         this.clientDataEntryService = clientDataEntryService;
+        this.amqpTemplate = amqpTemplate;
+    }
+
+    /**
+     * 缓存计费信息
+     * K:data_rows_ID
+     * V:dataRows
+     */
+
+    private void setCacheClientChargingInfo(MqttRemoteClient mqttRemoteClient) {
+        stringRedisTemplate.opsForValue().set("data_rows_" + mqttRemoteClient.getClientId(), mqttRemoteClient.getDataRows().toString());
+    }
+
+    /**
+     * 删除缓存计费信息
+     * K:dataRows_ID
+     * V:dataRows
+     */
+    private void deleteCacheClientChargingInfo(MqttRemoteClient mqttRemoteClient) {
+        stringRedisTemplate.delete("data_rows_" + mqttRemoteClient.getId());
+    }
+
+    /**
+     * 计费
+     *
+     * @param clientId
+     */
+
+    private boolean canCharging(String clientId) {
+        Long dataRows = Long.valueOf(Objects.requireNonNull(stringRedisTemplate.opsForValue().get("data_rows_" + clientId)));
+        if (dataRows > 0) {
+            stringRedisTemplate.opsForValue().decrement("data_rows_" + clientId);
+            return true;
+        } else {
+            return false;
+        }
+
+
     }
 
     @Override
     public void addConnection(ConnectionContext context, ConnectionInfo info) throws Exception {
-        System.out.println("客户端请求连接: " + info.toString());
+        //System.out.println("客户端请求连接: " + info.toString());
         //放行推送的客户端
         if (info.getUserName().equals(INTERNAL_MESSAGE_PUSHER_USERNAME) &&
                 info.getPassword().equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)) {
@@ -201,16 +246,20 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
             logger.info("客户端连接授权成功");
             mqttRemoteClient.setOnLine(true);
             service.save(mqttRemoteClient);
+            /**
+             * 连接成功以后缓冲计费
+             */
+            setCacheClientChargingInfo(mqttRemoteClient);
 
             try {
                 switch (authType) {
                     case 1:
                         //username 认证
-                        cacheClientInfo(mqttRemoteClient.getUsername(), clientInfoToCacheJson(mqttRemoteClient));
+                        cacheClientInfo("online_client_" + mqttRemoteClient.getUsername(), clientInfoToCacheJson(mqttRemoteClient));
                         break;
                     case 2:
                         //clientId认证
-                        cacheClientInfo(mqttRemoteClient.getClientId(), clientInfoToCacheJson(mqttRemoteClient));
+                        cacheClientInfo("online_client_" + mqttRemoteClient.getClientId(), clientInfoToCacheJson(mqttRemoteClient));
                         break;
                     default:
                         break;
@@ -262,13 +311,13 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
         String username = context.getConnectionState().getInfo().getUserName();
         String password = context.getConnectionState().getInfo().getPassword();
         String clientId = context.getConnectionState().getInfo().getClientId();
-        System.out.println("客户端:" + username + " 订阅了 " + subscribeTopic);
+        //System.out.println("客户端:" + username + " 订阅了 " + subscribeTopic);
 
         if (username.equals(INTERNAL_MESSAGE_PUSHER_USERNAME) &&
                 password.equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)
                 || username.equals(WEB_CONSOLE_PUSHER_USERNAME) &&
                 username.equals(WEB_CONSOLE_PUSHER_PASSWORD)
-                ) {
+        ) {
             logger.info("内部推送客户端消费");
             super.addConsumer(context, info);
 
@@ -349,7 +398,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                 password.equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)
                 || username.equals(WEB_CONSOLE_PUSHER_USERNAME) &&
                 username.equals(WEB_CONSOLE_PUSHER_PASSWORD)
-                ) {
+        ) {
             System.out.println("MESSAGE_PUSHER");
             super.send(producerExchange, messageSend);
         } else {
@@ -376,6 +425,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                         break;
                 }
             } catch (Exception e) {
+                e.printStackTrace();
                 throw new SecurityException("非JSON数据不予处理!");
             }
 
@@ -396,28 +446,20 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
      * @throws Exception
      */
     private synchronized void handleSend(ProducerBrokerExchange producerExchange, Message messageSend, String toTopic, String username, String clientId, JSONObject dataJson) throws Exception {
-        if (checkPubSubAcl(getCachedClientInfo(username), toTopic)) {
+
+        boolean isPass = checkPubSubAcl(getCachedClientInfo("online_client_" + username), toTopic);
+        System.out.println(isPass + "__" + getCachedClientInfo("online_client_" + username).toJSONString());
+
+        if (checkPubSubAcl(getCachedClientInfo("online_client_" + username), toTopic)) {
             if (StringUtils.hasText(dataJson.getString("type"))) {
                 System.out.println("消息类型:" + dataJson.getString("type"));
-                /**
-                 * 1 查询当前用户的余额
-                 * 2 余额是否足够
-                 * 3 余额不足 消息拦截，打印日志
-                 * 4 余额充足，执行下面的代码
-                 */
-//                MqttRemoteClient mqttRemoteClient = service.findOneByClientId(clientId);
-//                Long dataRows = mqttRemoteClient.getDataRows();
-//                //扣费
-//                if (dataRows <= 0) {
-//                    System.out.println("余额不足!");
-//                    throw new Exception("余额不足");
-//                } else {
-//                    mqttRemoteClient.setDataRows(mqttRemoteClient.getDataRows() - 1);
-//                    service.save(mqttRemoteClient);
-//                }
+                if (canCharging(clientId)) {
+                    System.out.println("余额充足");
+                } else {
+                    System.out.println("余额不足");
+                    amqpTemplate.convertAndSend("client_charging", clientId);
+                }
 
-
-                //
                 switch (dataJson.getString("type")) {
                     case "data":
                         //是否是持久化数据
@@ -594,7 +636,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                 password.equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)
                 || username.equals(WEB_CONSOLE_PUSHER_USERNAME) &&
                 username.equals(WEB_CONSOLE_PUSHER_PASSWORD)
-                ) {
+        ) {
             logger.info("内部推送客户断开端连接");
             super.removeConnection(context, info, error);
 
@@ -607,27 +649,21 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                 case 1:
                     //username 认证
                     mqttRemoteClient = service.findOneByUsernameAndPassword(username, password);
-                    if (mqttRemoteClient != null) {
-                        mqttRemoteClient.setOnLine(false);
-                        service.save(mqttRemoteClient);
-                        System.out.println("客户端断开连接:" + info.toString());
-                        super.removeConnection(context, info, error);
-                        deleteCacheClientInfo(mqttRemoteClient.getUsername());
-                    }
+                    handleOffLine(context, info, error, mqttRemoteClient);
 
+                    //删除客户端缓存
+                    //type 1 2
 
+                    deleteCacheClientInfo("online_client_" + mqttRemoteClient.getUsername());
                     break;
                 case 2:
                     //clientId认证
                     mqttRemoteClient = service.findOneByClientId(clientId);
-                    if (mqttRemoteClient != null) {
-                        mqttRemoteClient.setOnLine(false);
-                        service.save(mqttRemoteClient);
-                        System.out.println("客户端断开连接:" + info.toString());
-                        super.removeConnection(context, info, error);
-                        deleteCacheClientInfo(mqttRemoteClient.getClientId());
-                    }
+                    handleOffLine(context, info, error, mqttRemoteClient);
+                    //删除客户端缓存
+                    //type 1 2
 
+                    deleteCacheClientInfo("online_client_" + mqttRemoteClient.getClientId());
 
                     break;
                 case 3:
@@ -638,10 +674,37 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
                 default:
                     System.out.println("客户端断开连接:" + info.toString());
                     super.removeConnection(context, info, error);
+
                     break;
             }
         }
 
+    }
+
+    /**
+     * 处理掉线
+     *
+     * @param context
+     * @param info
+     * @param error
+     * @param mqttRemoteClient
+     * @throws Exception
+     */
+
+    private void handleOffLine(ConnectionContext context, ConnectionInfo info, Throwable error, MqttRemoteClient mqttRemoteClient) throws Exception {
+        if (mqttRemoteClient != null) {
+            mqttRemoteClient.setOnLine(false);
+            service.save(mqttRemoteClient);
+            System.out.println("客户端断开连接:" + info.toString());
+            super.removeConnection(context, info, error);
+
+            //删除扣费缓存
+            deleteCacheClientChargingInfo(mqttRemoteClient);
+
+            amqpTemplate.convertAndSend("client_charging", mqttRemoteClient.getClientId());
+
+
+        }
     }
 
     /**
@@ -666,6 +729,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
      */
 
     private void cacheClientInfo(String param, JSONObject clientInfo) {
+
         stringRedisTemplate.opsForValue().set(param, clientInfo.toJSONString());
     }
 
@@ -685,7 +749,7 @@ class AuthPluginBroker extends AbstractAuthenticationBroker {
      * @return
      * @throws Exception
      */
-    private JSONObject getCachedClientInfo(String clientKey) throws Exception {
+    private JSONObject getCachedClientInfo(String clientKey) {
 
         return (JSONObject) JSONObject.parse(stringRedisTemplate.opsForValue().get(clientKey));
 

@@ -1,5 +1,6 @@
 package com.easylinker.proxy.server.app.config.jwt;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.easylinker.proxy.server.app.config.mvc.WebReturnResult;
 import com.easylinker.proxy.server.app.config.redis.RedisService;
@@ -44,10 +45,16 @@ public class JwtRBACHandlerInterceptor implements HandlerInterceptor {
                 //获取控制器上的注解里面的Roles
                 String[] annotationRoleList = jwtAnnotation.roles();
                 //遍历用户的Roles
-                //JSONArray userRoles = JSONArray.parseArray(redisService.get("user_roles_" + userId));
                 JSONObject userInfo = JSONObject.parseObject(redisService.get("user_info_" + userId));
-                for (String role : annotationRoleList) {
-                    access = userInfo.getJSONArray("authorities").contains(role);
+                System.out.println("userInfo " + userInfo.getJSONArray("authorities"));
+                for (String annotation : annotationRoleList) {
+                    JSONArray authorities = userInfo.getJSONArray("authorities");
+                    for (Object role : authorities) {
+                        access = ((JSONObject) role).getString("authority").equals(annotation);
+                        System.out.println("注解:" + annotation + " 权限:" + ((JSONObject) role).getString("authority") + "  " + access);
+
+                    }
+
                 }
             } else {
                 //如果没有注解默认就是可访问的
