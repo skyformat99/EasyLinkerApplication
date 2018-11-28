@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.0.0.RELEASE</version>
+        <version>2.1.0.RELEASE</version>
     </parent>
 
     <groupId>com.easylinker.application</groupId>
@@ -17,8 +17,7 @@
     <modules>
         <module>easylinker-dependencies</module>
         <module>easylinker-proxy-service</module>
-        <module>easylinker-client-service</module>
-        <module>easylinker-3rdparty-service</module>
+        <module>easylinker-rabbitmq</module>
     </modules>
 
 

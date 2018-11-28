@@ -30,7 +30,7 @@
         <google-zxing-core.version>3.3.0</google-zxing-core.version>
         <google-zxing-javase.version>3.2.0</google-zxing-javase.version>
         <upyun-javasdk.version>3.20</upyun-javasdk.version>
-        <novemberain-quartz-mongodb.version>2.0.0-rc2</novemberain-quartz-mongodb.version>
+        <novemberain-quartz-mongodb.version>2.1.0</novemberain-quartz-mongodb.version>
         <quartz-scheduler-quartz-jobs.version>2.3.0</quartz-scheduler-quartz-jobs.version>
         <quartz-scheduler-quartz.version>2.2.1</quartz-scheduler-quartz.version>
         <apache-activemq-all.version>5.15.6</apache-activemq-all.version>
@@ -294,13 +294,37 @@
         <repository>
             <id>aliyun-repos</id>
             <name>Aliyun Repository</name>
-            <url>http://maven.aliyun.com/nexus/content/groups/public</url>
+            <url>https://maven.aliyun.com/repository/central</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
+        </repository>
+
+        <!-- Spring官方仓库 -->
+        <repository>
+            <id>spring-snapshots</id>
+            <name>Spring Snapshots</name>
+            <url>https://repo.spring.io/snapshot</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
+        <!-- Quartz MongoDB支持的私人仓库 -->
+        <repository>
+            <id>michaelklishin</id>
+            <url>https://dl.bintray.com/michaelklishin/maven/</url>
         </repository>
     </repositories>
 
@@ -309,7 +333,7 @@
         <pluginRepository>
             <id>aliyun-repos</id>
             <name>Aliyun Repository</name>
-            <url>http://maven.aliyun.com/nexus/content/groups/public</url>
+            <url>https://maven.aliyun.com/repository/central</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
