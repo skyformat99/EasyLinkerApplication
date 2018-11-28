@@ -20,12 +20,8 @@ import java.util.Date;
 @Component
 public class HelloRabbitMQProvider {
 
-    private final AmqpTemplate amqpTemplate;
-
     @Autowired
-    public HelloRabbitMQProvider(AmqpTemplate amqpTemplate) {
-        this.amqpTemplate = amqpTemplate;
-    }
+    private AmqpTemplate amqpTemplate;
 
     public void send() {
         String data = "Hello" + new Date();

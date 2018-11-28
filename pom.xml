@@ -18,7 +18,7 @@
         <module>easylinker-dependencies</module>
         <module>easylinker-proxy-service</module>
         <module>easylinker-rabbitmq-provider</module>
-        <module>easylinker-rabbitmq.consumer</module>
+        <module>easylinker-rabbitmq-consumer</module>
     </modules>
 
 
