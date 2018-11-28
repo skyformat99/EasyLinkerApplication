@@ -50,6 +50,8 @@
         <wxpay-sdk.version>0.0.3</wxpay-sdk.version>
         <apache-commons-lang3.version>3.8.1</apache-commons-lang3.version>
         <ulisesbocchio-jasypt.version>2.0.0</ulisesbocchio-jasypt.version>
+        <alibaba-druid.version>1.1.10</alibaba-druid.version>
+        <mysql-connector-java.version>5.1.47</mysql-connector-java.version>
     </properties>
 
     <dependencyManagement>
@@ -203,6 +205,17 @@
                 <groupId>com.github.ulisesbocchio</groupId>
                 <artifactId>jasypt-spring-boot-starter</artifactId>
                 <version>${ulisesbocchio-jasypt.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid-spring-boot-starter</artifactId>
+                <version>${alibaba-druid.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>${mysql-connector-java.version}</version>
             </dependency>
 
         </dependencies>
