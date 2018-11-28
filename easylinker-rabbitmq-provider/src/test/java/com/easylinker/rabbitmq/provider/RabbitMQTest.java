@@ -16,8 +16,8 @@ public class RabbitMQTest {
 
     @Test
     public void testSender(){
-        for (int i = 0; i < 100; i++) {
-            provider.send();
+        for (int i = 0; i < 1000; i++) {
+            provider.send(i);
         }
 
     }

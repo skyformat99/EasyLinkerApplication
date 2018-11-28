@@ -4,6 +4,7 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.text.DateFormat;
 import java.util.Date;
 
 
@@ -23,8 +24,8 @@ public class HelloRabbitMQProvider {
     @Autowired
     private AmqpTemplate amqpTemplate;
 
-    public void send() {
-        String data = "Hello" + new Date();
+    public void send(int i) {
+        String data = "第"+i+"条消息："+"Hello," + DateFormat.getTimeInstance().format(new Date());
         System.out.println(data);
         amqpTemplate.convertAndSend("TestRabbit", data);
 
