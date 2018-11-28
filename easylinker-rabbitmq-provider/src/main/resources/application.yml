@@ -4,5 +4,5 @@ spring:
   rabbitmq:
     host: 112.74.44.130
     port: 5672
-    username: rabbit
+    username: demo
     password: 123456
