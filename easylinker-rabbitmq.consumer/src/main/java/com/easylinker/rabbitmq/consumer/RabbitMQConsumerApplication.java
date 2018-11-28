@@ -1,11 +1,11 @@
-package com.easylinker.proxy.server.app;
+package com.easylinker.rabbitmq.consumer;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class Main {
+public class RabbitMQConsumerApplication {
     public static void main(String[] args) {
-        SpringApplication.run(Main.class, args);
+        SpringApplication.run(RabbitMQConsumerApplication.class, args);
     }
 }

@@ -3,7 +3,6 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <groupId>com.easylinker.application</groupId>
         <artifactId>easylinker-dependencies</artifactId>
@@ -11,11 +10,11 @@
         <relativePath>../easylinker-dependencies/pom.xml</relativePath>
     </parent>
 
-    <artifactId>easylinker-rabbitmq</artifactId>
+    <artifactId>easylinker-rabbitmq-consumer</artifactId>
     <packaging>jar</packaging>
 
-    <name>easylinker-rabbitmq</name>
-    <description>测试RabbitMQ</description>
+    <name>easylinker-rabbitmq-consumer</name>
+    <description>RabbitMQ消费者测试</description>
 
     <dependencies>
         <dependency>
@@ -24,7 +23,26 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.easylinker.rabbitmq.consumer.RabbitMQConsumerApplication</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+
+
 </project>

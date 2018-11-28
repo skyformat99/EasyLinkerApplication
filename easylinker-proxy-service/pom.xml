@@ -219,7 +219,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.easylinker.proxy.server.app.Main</mainClass>
+                    <mainClass>com.easylinker.proxy.server.app.ProxyServerApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>
