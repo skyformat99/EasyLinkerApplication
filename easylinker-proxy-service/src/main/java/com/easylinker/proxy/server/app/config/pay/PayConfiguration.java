@@ -57,7 +57,7 @@ public class PayConfiguration {
                 aliPayConfig.getFormat(),
                 aliPayConfig.getCharset(),
                 aliPayConfig.getPublicKey(),
-                alipayConfig().getSignType()
+                aliPayConfig.getSignType()
         );
     }
 }

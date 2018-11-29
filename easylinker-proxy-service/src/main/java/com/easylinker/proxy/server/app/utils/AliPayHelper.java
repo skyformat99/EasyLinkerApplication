@@ -21,7 +21,7 @@ import java.util.Map;
  * @Author:   zhaolei
  * @Version   1.0.4
  *
- * @Description: 支付宝参数处理
+ * @Description: 支付宝下单工具类
  * @Date:     2018/11/27 14:44
  * Copyright (C), 2016-2018, EasyLinker V3
  */
