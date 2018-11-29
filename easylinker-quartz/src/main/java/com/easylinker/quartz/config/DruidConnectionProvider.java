@@ -19,6 +19,8 @@ import java.sql.SQLException;
  * Copyright (C), 2016-2018, EasyLinker V3
  */
 
+
+@Deprecated
 @Getter
 @Setter
 public class DruidConnectionProvider implements ConnectionProvider {
@@ -53,6 +55,7 @@ public class DruidConnectionProvider implements ConnectionProvider {
     public void shutdown() throws SQLException {
         dataSource.close();
     }
+
 
     @Override
     public void initialize() throws SQLException {

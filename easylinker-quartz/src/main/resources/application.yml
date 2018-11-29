@@ -16,6 +16,7 @@ spring:
           log-slow-sql: true
           merge-sql: true
 
+
   quartz:
     properties:
       org:
@@ -33,5 +34,10 @@ spring:
             threadsInheritContextClassLoaderOfInitializingThread: true
 
     job-store-type: jdbc
+    overwrite-existing-jobs: true
+    auto-startup: true
+    startup-delay: 10
 
-
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.easylinker.quartz.entity
