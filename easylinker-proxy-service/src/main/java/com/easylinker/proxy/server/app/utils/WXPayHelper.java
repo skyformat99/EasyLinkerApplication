@@ -17,7 +17,7 @@ import java.util.Map;
  * @Author:   zhaolei
  * @Version   1.0.4
  *
- * @Description: 微信支付参数处理
+ * @Description: 微信支付下单工具类
  * @Date:     2018/11/26 17:24
  * Copyright (C), 2016-2018, EasyLinker V3
  */

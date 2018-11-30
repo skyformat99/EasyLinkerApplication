@@ -8,7 +8,7 @@ import com.easylinker.proxy.server.app.config.mvc.WebReturnResult;
 import com.easylinker.proxy.server.app.config.redis.RedisService;
 import com.easylinker.proxy.server.app.config.security.user.model.AppUser;
 import com.easylinker.proxy.server.app.config.security.user.service.AppUserService;
-import com.easylinker.proxy.server.app.config.thirdparty.ALiSMSSender;
+import com.easylinker.proxy.server.app.utils.AliYunSMSHelper;
 import com.easylinker.proxy.server.app.utils.CacheHelper;
 import com.easylinker.proxy.server.app.utils.Md5Util;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,17 +31,17 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping(value = "/user")
 public class UserController {
 
-    private final ALiSMSSender aLiSMSSender;
+    private final AliYunSMSHelper aliYunSMSHelper;
     private final CacheHelper cacheHelper;
     private final AppUserService appUserService;
     private final RedisService redisService;
 
     @Autowired
-    public UserController(CacheHelper cacheHelper, AppUserService appUserService, RedisService redisService, ALiSMSSender aLiSMSSender) {
+    public UserController(CacheHelper cacheHelper, AppUserService appUserService, RedisService redisService, AliYunSMSHelper aliYunSMSHelper) {
         this.cacheHelper = cacheHelper;
         this.appUserService = appUserService;
         this.redisService = redisService;
-        this.aLiSMSSender = aLiSMSSender;
+        this.aliYunSMSHelper = aliYunSMSHelper;
     }
 
 
@@ -107,7 +107,7 @@ public class UserController {
             try {
                 String phone = requestBody.getString("phone");
                 String code = String.valueOf(((int) (Math.random() * 1000000)));
-                if (aLiSMSSender.sendSms(phone, code)) {
+                if (aliYunSMSHelper.sendSms(phone, code)) {
                     //验证码10分钟过期
                     redisService.setExpires("sms_" + phone, code, 10L, TimeUnit.MINUTES);
                     appUserService.save(appUser);

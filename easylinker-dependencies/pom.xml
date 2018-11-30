@@ -27,7 +27,7 @@
         <springframework-spring-session.version>1.3.0.RELEASE</springframework-spring-session.version>
         <spring-integration-mqtt.version>4.3.11.RELEASE</spring-integration-mqtt.version>
         <alibaba-fastjson.version>1.2.51</alibaba-fastjson.version>
-        <google-zxing-core.version>3.3.0</google-zxing-core.version>
+        <google-zxing-core.version>3.3.1</google-zxing-core.version>
         <google-zxing-javase.version>3.2.0</google-zxing-javase.version>
         <upyun-javasdk.version>3.20</upyun-javasdk.version>
         <novemberain-quartz-mongodb.version>2.1.0</novemberain-quartz-mongodb.version>
@@ -50,6 +50,11 @@
         <wxpay-sdk.version>0.0.3</wxpay-sdk.version>
         <apache-commons-lang3.version>3.8.1</apache-commons-lang3.version>
         <ulisesbocchio-jasypt.version>2.0.0</ulisesbocchio-jasypt.version>
+        <alibaba-druid.version>1.1.10</alibaba-druid.version>
+        <mysql-connector-java.version>5.1.47</mysql-connector-java.version>
+        <hutool-all.version>4.2.1</hutool-all.version>
+        <tk-mybatis-mapper.version>2.0.4</tk-mybatis-mapper.version>
+        <github-pagehelper.version>1.2.10</github-pagehelper.version>
     </properties>
 
     <dependencyManagement>
@@ -203,6 +208,35 @@
                 <groupId>com.github.ulisesbocchio</groupId>
                 <artifactId>jasypt-spring-boot-starter</artifactId>
                 <version>${ulisesbocchio-jasypt.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid-spring-boot-starter</artifactId>
+                <version>${alibaba-druid.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>${mysql-connector-java.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool-all.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>tk.mybatis</groupId>
+                <artifactId>mapper-spring-boot-starter</artifactId>
+                <version>${tk-mybatis-mapper.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.pagehelper</groupId>
+                <artifactId>pagehelper-spring-boot-starter</artifactId>
+                <version>${github-pagehelper.version}</version>
             </dependency>
 
         </dependencies>

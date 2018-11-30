@@ -61,6 +61,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
@@ -81,7 +82,6 @@
             <artifactId>jedis</artifactId>
         </dependency>
 
-
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
@@ -91,36 +91,6 @@
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
         </dependency>
-
-        <!-- https://mvnrepository.com/artifact/com.google.zxing/core -->
-        <dependency>
-            <groupId>com.google.zxing</groupId>
-            <artifactId>core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.google.zxing</groupId>
-            <artifactId>javase</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.upyun</groupId>
-            <artifactId>java-sdk</artifactId>
-        </dependency>
-
-        <!-- Quartz Begin-->
-        <dependency>
-            <groupId>com.novemberain</groupId>
-            <artifactId>quartz-mongodb</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.quartz-scheduler</groupId>
-            <artifactId>quartz-jobs</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.quartz-scheduler</groupId>
-            <artifactId>quartz</artifactId>
-        </dependency>
-        <!-- Quartz End-->
 
         <!-- https://mvnrepository.com/artifact/org.apache.activemq/activemq-all -->
         <dependency>
@@ -189,12 +159,6 @@
             <groupId>com.github.wxpay</groupId>
             <artifactId>wxpay-sdk</artifactId>
         </dependency>
-
-        <!-- 添加Response xml消息转换器支持 暂时不用 -->
-        <!--<dependency>-->
-            <!--<groupId>com.fasterxml.jackson.dataformat</groupId>-->
-            <!--<artifactId>jackson-dataformat-xml</artifactId>-->
-        <!--</dependency>-->
 
         <!-- Properties 敏感信息加解密插件 -->
         <dependency>
