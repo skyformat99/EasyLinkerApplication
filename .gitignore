@@ -15,7 +15,7 @@
 *.iws
 *.iml
 *.ipr
-
+**/resources/rebel.xml
 ### NetBeans ###
 /nbproject/private/
 /build/

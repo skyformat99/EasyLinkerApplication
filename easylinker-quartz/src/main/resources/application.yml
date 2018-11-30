@@ -15,6 +15,9 @@ spring:
         stat:
           log-slow-sql: true
           merge-sql: true
+      pool-prepared-statements: true
+      max-open-prepared-statements: 100
+      test-while-idle: true
 
 
   quartz:
@@ -37,7 +40,3 @@ spring:
     overwrite-existing-jobs: true
     auto-startup: true
     startup-delay: 10
-
-mybatis:
-  mapper-locations: classpath:mapper/*.xml
-  type-aliases-package: com.easylinker.quartz.entity

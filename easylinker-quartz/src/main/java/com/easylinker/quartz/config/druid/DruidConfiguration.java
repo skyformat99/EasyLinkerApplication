@@ -1,4 +1,4 @@
-package com.easylinker.quartz.config;
+package com.easylinker.quartz.config.druid;
 
 import com.alibaba.druid.support.http.StatViewServlet;
 import com.alibaba.druid.support.http.WebStatFilter;
