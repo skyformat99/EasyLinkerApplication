@@ -39,8 +39,8 @@ import java.util.concurrent.TimeUnit;
  * 官网文档:http://activemq.apache.org/developing-plugins.html
  */
 
-public class AuthPluginBroker extends AbstractAuthenticationBroker {
-    private static Logger logger = LoggerFactory.getLogger(AuthPluginBroker.class);
+public class ClientAuthPlugin extends AbstractAuthenticationBroker {
+    private static Logger logger = LoggerFactory.getLogger(ClientAuthPlugin.class);
     private MqttRemoteClientService service;
     private int authType;
     private static final int SUB_PERMISSION = 1;
@@ -59,6 +59,7 @@ public class AuthPluginBroker extends AbstractAuthenticationBroker {
     private final String WEB_CONSOLE_PUSHER_USERNAME = "WEB_CONSOLE_MESSAGE_PUSHER";
     private final String WEB_CONSOLE_PUSHER_PASSWORD = "WEB_CONSOLE_MESSAGE_PUSHER";
     private final ClientDataEntryService clientDataEntryService;
+    private final AmqpTemplate amqpTemplate;
 
     /**
      * 线程池
@@ -72,17 +73,8 @@ public class AuthPluginBroker extends AbstractAuthenticationBroker {
             new EasyThreadFactory(),
             new ThreadPoolExecutor.AbortPolicy());
 
-    private final AmqpTemplate amqpTemplate;
 
-
-    public AuthPluginBroker(Broker next,
-                            MqttRemoteClientService service,
-                            int authType,
-                            StringRedisTemplate stringRedisTemplate,
-                            ClientDataEntryService clientDataEntryService,
-                            AmqpTemplate amqpTemplate
-
-    ) {
+    public ClientAuthPlugin(Broker next, MqttRemoteClientService service, int authType, StringRedisTemplate stringRedisTemplate, ClientDataEntryService clientDataEntryService, AmqpTemplate amqpTemplate) {
         super(next);
         this.service = service;
         this.authType = authType;
@@ -107,7 +99,19 @@ public class AuthPluginBroker extends AbstractAuthenticationBroker {
      * V:dataRows
      */
     private void deleteCacheClientChargingInfo(MqttRemoteClient mqttRemoteClient) {
-        stringRedisTemplate.delete("data_rows_" + mqttRemoteClient.getId());
+        stringRedisTemplate.delete("data_rows_" + mqttRemoteClient.getClientId());
+    }
+
+    /**
+     * update client data rows
+     */
+    private void updateDataRows(MqttRemoteClient mqttRemoteClient) {
+        String dataRows = stringRedisTemplate.opsForValue().get("data_rows_" + mqttRemoteClient.getClientId());
+        if (dataRows != null) {
+            mqttRemoteClient.setDataRows(Long.valueOf(Objects.requireNonNull(stringRedisTemplate.opsForValue().get("data_rows_" + mqttRemoteClient.getClientId()))));
+        }
+        service.save(mqttRemoteClient);
+
     }
 
     /**
@@ -250,6 +254,7 @@ public class AuthPluginBroker extends AbstractAuthenticationBroker {
              * 连接成功以后缓冲计费
              */
             setCacheClientChargingInfo(mqttRemoteClient);
+
 
             try {
                 switch (authType) {
@@ -453,12 +458,31 @@ public class AuthPluginBroker extends AbstractAuthenticationBroker {
         if (checkPubSubAcl(getCachedClientInfo("online_client_" + username), toTopic)) {
             if (StringUtils.hasText(dataJson.getString("type"))) {
                 System.out.println("消息类型:" + dataJson.getString("type"));
+                /**
+                 * 计费开始
+                 */
+                JSONObject chargingJson = new JSONObject();
+
                 if (canCharging(clientId)) {
-                    System.out.println("余额充足");
+                    /**
+                     * Send charging message to RMQ
+                     */
+                    chargingJson.put("clientId", clientId);
+                    chargingJson.put("type", "CHARGING");
+                    chargingJson.put("canCharging", true);
+                    chargingJson.put("dataRows", stringRedisTemplate.opsForValue().get("data_rows_" + clientId));
+                    amqpTemplate.convertAndSend("client_charging", chargingJson.toJSONString());
                 } else {
-                    System.out.println("余额不足");
-                    amqpTemplate.convertAndSend("client_charging", clientId);
+                    /**
+                     * Send charging message to RMQ
+                     */
+                    chargingJson.put("clientId", clientId);
+                    chargingJson.put("type", "CHARGING");
+                    chargingJson.put("canCharging", false);
+                    chargingJson.put("dataRows", stringRedisTemplate.opsForValue().get("data_rows_" + clientId));
+                    amqpTemplate.convertAndSend("client_charging", chargingJson.toJSONString());
                 }
+
 
                 switch (dataJson.getString("type")) {
                     case "data":
@@ -653,7 +677,8 @@ public class AuthPluginBroker extends AbstractAuthenticationBroker {
 
                     //删除客户端缓存
                     //type 1 2
-
+                    //update data rows
+                    updateDataRows(mqttRemoteClient);
                     deleteCacheClientInfo("online_client_" + mqttRemoteClient.getUsername());
                     break;
                 case 2:
@@ -662,19 +687,17 @@ public class AuthPluginBroker extends AbstractAuthenticationBroker {
                     handleOffLine(context, info, error, mqttRemoteClient);
                     //删除客户端缓存
                     //type 1 2
-
+                    //update data rows
+                    updateDataRows(mqttRemoteClient);
                     deleteCacheClientInfo("online_client_" + mqttRemoteClient.getClientId());
-
                     break;
                 case 3:
                     //匿名模式
-                    authAnonymous();
                     super.removeConnection(context, info, error);
                     break;
                 default:
                     System.out.println("客户端断开连接:" + info.toString());
                     super.removeConnection(context, info, error);
-
                     break;
             }
         }
@@ -700,9 +723,6 @@ public class AuthPluginBroker extends AbstractAuthenticationBroker {
 
             //删除扣费缓存
             deleteCacheClientChargingInfo(mqttRemoteClient);
-
-            amqpTemplate.convertAndSend("client_charging", mqttRemoteClient.getClientId());
-
 
         }
     }

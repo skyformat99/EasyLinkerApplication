@@ -1,6 +1,6 @@
 package com.easylinker.proxy.server.app.config.activemq.installer;
 
-import com.easylinker.proxy.server.app.config.activemq.plugins.AuthPluginBroker;
+import com.easylinker.proxy.server.app.config.activemq.plugins.ClientAuthPlugin;
 import com.easylinker.proxy.server.app.service.ClientDataEntryService;
 import com.easylinker.proxy.server.app.service.MqttRemoteClientService;
 import org.apache.activemq.broker.Broker;
@@ -34,6 +34,6 @@ public class AuthPluginInstaller implements BrokerPlugin {
 
     @Override
     public Broker installPlugin(Broker broker) {
-        return new AuthPluginBroker(broker, service, authType, stringRedisTemplate, clientDataEntryService,amqpTemplate);
+        return new ClientAuthPlugin(broker, service, authType, stringRedisTemplate, clientDataEntryService,amqpTemplate);
     }
 }

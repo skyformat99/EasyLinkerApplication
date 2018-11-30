@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
  * @author wwhai
  * 频率拦截器
  */
-public class IpFrequencyLimitPluginBroker extends BrokerFilter {
+public class IpFrequencyLimitPlugin extends BrokerFilter {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     /**
@@ -23,7 +23,7 @@ public class IpFrequencyLimitPluginBroker extends BrokerFilter {
     private static final int LIMIT = 10;
     private final RedisService redisService;
 
-    public IpFrequencyLimitPluginBroker(Broker next, RedisService redisService) {
+    public IpFrequencyLimitPlugin(Broker next, RedisService redisService) {
         super(next);
         this.redisService = redisService;
     }
