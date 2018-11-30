@@ -24,7 +24,7 @@ public class RabbitMQConfiguration {
     }
 
     @Bean
-    public Queue client_charging_queue(){
+    public Queue clientChargingQueue(){
         return new Queue("client_charging");
     }
 }

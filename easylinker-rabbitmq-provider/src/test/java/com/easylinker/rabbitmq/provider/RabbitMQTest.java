@@ -22,4 +22,11 @@ public class RabbitMQTest {
 
     }
 
+    @Test
+    public void clientCharging(){
+        for (int i = 0; i < 1000; i++) {
+            provider.sendClientCharging(i);
+        }
+    }
+
 }

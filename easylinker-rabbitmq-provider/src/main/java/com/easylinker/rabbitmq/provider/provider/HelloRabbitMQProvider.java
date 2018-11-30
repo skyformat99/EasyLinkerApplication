@@ -31,4 +31,10 @@ public class HelloRabbitMQProvider {
 
     }
 
+    public void sendClientCharging(int i) {
+        String data = "第"+i+"条消息："+"Hello," + DateFormat.getTimeInstance().format(new Date());
+        System.out.println(data);
+        amqpTemplate.convertAndSend("client_charging", data);
+    }
+
 }
