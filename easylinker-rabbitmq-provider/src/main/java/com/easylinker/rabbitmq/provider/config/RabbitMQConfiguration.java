@@ -19,7 +19,12 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMQConfiguration {
 
     @Bean
-    public Queue queue(){
+    public Queue testRabbitQueue(){
         return new Queue("TestRabbit");
+    }
+
+    @Bean
+    public Queue client_charging_queue(){
+        return new Queue("client_charging");
     }
 }

@@ -2,7 +2,6 @@ package com.easylinker.proxy.server.app.config.exception;
 
 import com.alibaba.fastjson.JSONObject;
 import com.mongodb.util.JSONParseException;
-import io.jsonwebtoken.ExpiredJwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -26,7 +25,7 @@ public class GlobalExceptionHandler {
     public JSONObject defaultErrorHandler(Exception e) {
         logger.error("出现了异常:" + e.getClass() + "=====" + e.getMessage());
         JSONObject resultJson = new JSONObject();
-        if (e instanceof ExpiredJwtException) {
+        if (e instanceof io.jsonwebtoken.ExpiredJwtException) {
 
             resultJson.put("state", 402);
             resultJson.put("message", "Token已经过期!");

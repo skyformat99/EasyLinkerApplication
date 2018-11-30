@@ -12,7 +12,9 @@ import org.apache.activemq.broker.region.policy.PolicyEntry;
 import org.apache.activemq.broker.region.policy.PolicyMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -35,7 +37,9 @@ public class EasyLinkerMqttServer extends BrokerService implements InitializingB
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    private final AmqpTemplate amqpTemplate;
 
+    @Autowired
     public EasyLinkerMqttServer(@Value("${easylinker.mqtt.server.host}")
                                         String host,
                                 @Value("${easylinker.mqtt.server.port}")
@@ -46,9 +50,9 @@ public class EasyLinkerMqttServer extends BrokerService implements InitializingB
                                 StringRedisTemplate stringRedisTemplate,
                                 RedisService redisService,
 
-                                ClientDataEntryService clientDataEntryService
-    ) throws Exception {
-        setPlugins(new BrokerPlugin[]{new AuthPluginInstaller(service, authType, stringRedisTemplate, clientDataEntryService),
+                                ClientDataEntryService clientDataEntryService,
+                                AmqpTemplate amqpTemplate) throws Exception {
+        setPlugins(new BrokerPlugin[]{new AuthPluginInstaller(service, authType, stringRedisTemplate, clientDataEntryService, amqpTemplate),
                 new IpFrequencyLimitPluginInstaller(redisService)});
         /**
          * Activemq 的通知消息相关的资料在这里
@@ -82,6 +86,7 @@ public class EasyLinkerMqttServer extends BrokerService implements InitializingB
         setDestinationPolicy(policyMap);
 
 
+        this.amqpTemplate = amqpTemplate;
     }
 
     @Override
