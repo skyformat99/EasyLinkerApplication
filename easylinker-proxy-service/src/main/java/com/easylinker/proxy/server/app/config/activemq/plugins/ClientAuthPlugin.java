@@ -393,8 +393,7 @@ public class ClientAuthPlugin extends AbstractAuthenticationBroker {
     @Override
     public void send(ProducerBrokerExchange producerExchange,
                      Message messageSend) throws Exception {
-        System.out.println("send:来自消息Topic:" + messageSend.getDestination().getQualifiedName() +
-                " 消息内容:" + new String(messageSend.getContent().getData()).trim());
+        //System.out.println("send:来自消息Topic:" + messageSend.getDestination().getQualifiedName() +  " 消息内容:" + new String(messageSend.getContent().getData()).trim());
         String toTopic = replaceWildcardCharacter(messageSend.getDestination().getPhysicalName());
         String username = producerExchange.getConnectionContext().getConnectionState().getInfo().getUserName();
         String clientId = producerExchange.getConnectionContext().getConnectionState().getInfo().getClientId();
@@ -430,8 +429,8 @@ public class ClientAuthPlugin extends AbstractAuthenticationBroker {
                         break;
                 }
             } catch (Exception e) {
-                e.printStackTrace();
-                throw new SecurityException("非JSON数据不予处理!");
+                //e.printStackTrace();
+                throw e;
             }
 
 
@@ -453,11 +452,9 @@ public class ClientAuthPlugin extends AbstractAuthenticationBroker {
     private synchronized void handleSend(ProducerBrokerExchange producerExchange, Message messageSend, String toTopic, String username, String clientId, JSONObject dataJson) throws Exception {
 
         boolean isPass = checkPubSubAcl(getCachedClientInfo("online_client_" + username), toTopic);
-        System.out.println(isPass + "__" + getCachedClientInfo("online_client_" + username).toJSONString());
-
-        if (checkPubSubAcl(getCachedClientInfo("online_client_" + username), toTopic)) {
+        if (isPass) {
             if (StringUtils.hasText(dataJson.getString("type"))) {
-                System.out.println("消息类型:" + dataJson.getString("type"));
+                //System.out.println("消息类型:" + dataJson.getString("type"));
                 /**
                  * 计费开始
                  */
@@ -465,7 +462,7 @@ public class ClientAuthPlugin extends AbstractAuthenticationBroker {
 
                 if (canCharging(clientId)) {
                     /**
-                     * Send charging message to RMQ
+                     * Send charging message to RMQ true
                      */
                     chargingJson.put("clientId", clientId);
                     chargingJson.put("type", "CHARGING");
@@ -474,13 +471,15 @@ public class ClientAuthPlugin extends AbstractAuthenticationBroker {
                     amqpTemplate.convertAndSend("client_charging", chargingJson.toJSONString());
                 } else {
                     /**
-                     * Send charging message to RMQ
+                     * Send charging message to RMQ false
                      */
                     chargingJson.put("clientId", clientId);
                     chargingJson.put("type", "CHARGING");
                     chargingJson.put("canCharging", false);
                     chargingJson.put("dataRows", stringRedisTemplate.opsForValue().get("data_rows_" + clientId));
                     amqpTemplate.convertAndSend("client_charging", chargingJson.toJSONString());
+                    throw new Exception("费用不足!");
+
                 }
 
 
@@ -503,7 +502,7 @@ public class ClientAuthPlugin extends AbstractAuthenticationBroker {
                                     super.send(producerExchange, messageSend);
                                 } catch (Exception e) {
                                     //
-                                    e.printStackTrace();
+                                    //e.printStackTrace();
                                     logger.error("Error:" + e.getMessage());
                                 }
                             });
