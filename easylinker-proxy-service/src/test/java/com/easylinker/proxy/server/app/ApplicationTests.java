@@ -10,10 +10,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest
 public class ApplicationTests {
 
-    //
+
     @Test
     public void test() {
-        System.out.println("Test success");
+        System.out.println("HelloWorld");
     }
 
 

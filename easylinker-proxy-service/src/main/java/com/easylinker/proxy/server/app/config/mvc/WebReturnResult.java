@@ -33,7 +33,7 @@ public class WebReturnResult {
 
     public static JSONObject returnDataMessage(int code, String tipMessage, JSONObject data) {
 
-        JSONObject returnJson = new JSONObject();
+        JSONObject returnJson = new JSONObject(true);
         returnJson.put("state", code);
         returnJson.put("message", tipMessage);
         returnJson.put("data", data);

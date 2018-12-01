@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: easylinker-rabbitmq-provider
+  rabbitmq:
+    host: 112.74.44.130
+    port: 5672
+    username: demo
+    password: 123456
+server:
+  port: 2600

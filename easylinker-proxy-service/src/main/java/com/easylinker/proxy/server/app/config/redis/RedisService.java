@@ -4,10 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.TimeUnit;
+
 @Service
 public class RedisService {
 
     private StringRedisTemplate stringRedisTemplate;
+
 
     @Autowired
     public RedisService(StringRedisTemplate stringRedisTemplate) {
@@ -42,10 +45,25 @@ public class RedisService {
      * @return
      * @throws Exception
      */
-    public String get(String key) throws Exception {
+    public String get(String key) {
 
-        return  stringRedisTemplate.opsForValue().get(key);
+        return stringRedisTemplate.opsForValue().get(key);
 
     }
 
+    /**
+     * 设置过期时间的K V
+     *
+     * @param key
+     * @param value
+     * @param time  过期时间，后面的参数是单位
+     */
+
+    public void setExpires(String key, String value, Long time, TimeUnit timeUnit) {
+        stringRedisTemplate.opsForValue().set(key, value, time, timeUnit);
+    }
+
+    public void increment(String k, Long v) {
+        stringRedisTemplate.opsForValue().increment(k, v);
+    }
 }

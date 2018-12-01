@@ -61,6 +61,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
@@ -81,7 +82,6 @@
             <artifactId>jedis</artifactId>
         </dependency>
 
-
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
@@ -91,36 +91,6 @@
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
         </dependency>
-
-        <!-- https://mvnrepository.com/artifact/com.google.zxing/core -->
-        <dependency>
-            <groupId>com.google.zxing</groupId>
-            <artifactId>core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.google.zxing</groupId>
-            <artifactId>javase</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.upyun</groupId>
-            <artifactId>java-sdk</artifactId>
-        </dependency>
-
-        <!-- Quartz Begin-->
-        <dependency>
-            <groupId>com.novemberain</groupId>
-            <artifactId>quartz-mongodb</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.quartz-scheduler</groupId>
-            <artifactId>quartz-jobs</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.quartz-scheduler</groupId>
-            <artifactId>quartz</artifactId>
-        </dependency>
-        <!-- Quartz End-->
 
         <!-- https://mvnrepository.com/artifact/org.apache.activemq/activemq-all -->
         <dependency>
@@ -160,38 +130,58 @@
         </dependency>
 
         <dependency>
-            <groupId>com.easylinker.application</groupId>
-            <artifactId>easylinker-schedule-service</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.eclipse.californium</groupId>
             <artifactId>californium-core</artifactId>
-            <version>2.0.0-M3</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.californium</groupId>
             <artifactId>element-connector</artifactId>
-            <version>2.0.0-M3</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.californium</groupId>
             <artifactId>scandium</artifactId>
-            <version>2.0.0-M3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- 支付宝支付 -->
+        <dependency>
+            <groupId>com.alipay.sdk</groupId>
+            <artifactId>alipay-sdk-java</artifactId>
+        </dependency>
+
+        <!-- 微信支付 -->
+        <dependency>
+            <groupId>com.github.wxpay</groupId>
+            <artifactId>wxpay-sdk</artifactId>
+        </dependency>
+
+        <!-- Properties 敏感信息加解密插件 -->
+        <dependency>
+            <groupId>com.github.ulisesbocchio</groupId>
+            <artifactId>jasypt-spring-boot-starter</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+
+        <!-- rabbit mq -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
 
 
-        <!-- 新版本阿里云云通信短信通知接口 -->
-
-        <!--<dependency>-->
-        <!--<groupId>org.springframework.cloud</groupId>-->
-        <!--<artifactId>spring-cloud-starter-eureka</artifactId>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-        <!--<groupId>org.springframework.cloud</groupId>-->
-        <!--<artifactId>spring-cloud-starter-feign</artifactId>-->
-        <!--</dependency>-->
     </dependencies>
 
     <build>
@@ -200,7 +190,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.easylinker.proxy.server.app.Main</mainClass>
+                    <mainClass>com.easylinker.proxy.server.app.ProxyServerApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>

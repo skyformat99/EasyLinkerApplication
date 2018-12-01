@@ -20,8 +20,8 @@ public class WebSocketConfig implements WebSocketConfigurer {
     String webSocketHost;
     @Value("${easylinker.websocket.server.path}")
     String webSocketPath;
-    private final JmsTemplate jmsTemplate;
 
+    private final JmsTemplate jmsTemplate;
     @Autowired
     public WebSocketConfig(JmsTemplate jmsTemplate) {
         this.jmsTemplate = jmsTemplate;
