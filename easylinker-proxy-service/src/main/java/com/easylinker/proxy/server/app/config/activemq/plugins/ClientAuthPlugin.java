@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.easylinker.proxy.server.app.config.thread.EasyThreadFactory;
 import com.easylinker.proxy.server.app.model.mqtt.ClientACLEntry;
-import com.easylinker.proxy.server.app.model.mqtt.ClientDataEntry;
 import com.easylinker.proxy.server.app.model.mqtt.MqttRemoteClient;
 import com.easylinker.proxy.server.app.service.ClientDataEntryService;
 import com.easylinker.proxy.server.app.service.MqttRemoteClientService;
@@ -485,27 +484,13 @@ public class ClientAuthPlugin extends AbstractAuthenticationBroker {
 
                 switch (dataJson.getString("type")) {
                     case "data":
-                        //是否是持久化数据
-                        //考虑到数据库持久化会浪费时间，所以开启多线程去保存数据，同时多线程又面临着上下文的问题，所以需要同步
+                        //这里设计稍微变化 ：所有的数据都进行保存，没有非持久化的选项
                         synchronized (this) {
-
-                            executorService.execute(() -> {
-                                if (dataJson.getBooleanValue("persistent")) {
-                                    ClientDataEntry clientDataEntry = new ClientDataEntry();
-                                    clientDataEntry.setClientId(clientId);
-                                    clientDataEntry.setData(dataJson.getJSONObject("data"));
-                                    clientDataEntry.setInfo(dataJson.getString("info"));
-                                    clientDataEntryService.save(clientDataEntry);
-                                    //System.out.println("持久化成功!");
-                                }
-                                try {
-                                    super.send(producerExchange, messageSend);
-                                } catch (Exception e) {
-                                    //
-                                    //e.printStackTrace();
-                                    logger.error("Error:" + e.getMessage());
-                                }
-                            });
+                            /**
+                             * MQ消息发送到持久化的队列里面去：client_data_persist
+                             */
+                            amqpTemplate.convertAndSend("client_data_persist", dataJson.getJSONObject("data").toJSONString());
+                            super.send(producerExchange, messageSend);
                         }
 
                         break;
@@ -636,7 +621,7 @@ public class ClientAuthPlugin extends AbstractAuthenticationBroker {
         for (Object o : aclsArray) {
             if (toTopic.equals(((JSONObject) o).getString("topic"))) {
                 int acl = ((JSONObject) o).getInteger("acl");
-                System.out.println("checkPubSubAcl:toTopic:" + toTopic + "|Acl:" + acl);
+                //System.out.println("checkPubSubAcl:toTopic:" + toTopic + "|Acl:" + acl);
                 if ((acl == PUB_PERMISSION) || (acl == PUB_AND_SUB_PERMISSION)) {
                     return true;
                 }

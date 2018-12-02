@@ -37,8 +37,6 @@ public class EasyLinkerMqttServer extends BrokerService implements InitializingB
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private final AmqpTemplate amqpTemplate;
-
     @Autowired
     public EasyLinkerMqttServer(@Value("${easylinker.mqtt.server.host}")
                                         String host,
@@ -85,8 +83,6 @@ public class EasyLinkerMqttServer extends BrokerService implements InitializingB
         policyMap.setPolicyEntries(policyEntryList);
         setDestinationPolicy(policyMap);
 
-
-        this.amqpTemplate = amqpTemplate;
     }
 
     @Override

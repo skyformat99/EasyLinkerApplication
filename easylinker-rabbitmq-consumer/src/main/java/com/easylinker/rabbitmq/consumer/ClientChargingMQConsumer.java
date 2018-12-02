@@ -38,7 +38,7 @@ public class ClientChargingMQConsumer {
     }
 
     @RabbitHandler
-    public void process(String msg) {
+    public void process(String message) {
 
     }
 }

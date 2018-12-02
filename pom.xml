@@ -19,7 +19,7 @@
         <module>easylinker-proxy-service</module>
         <module>easylinker-rabbitmq-provider</module>
         <module>easylinker-rabbitmq-consumer</module>
-        <module>easylinker-quartz</module>
+        <module>easylinker-quartz-service</module>
     </modules>
 
 
