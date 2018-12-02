@@ -52,6 +52,7 @@ public class ClientController {
         this.appUserService = appUserService;
     }
 
+
     /**
      * {
      * "name":"ESP8266",
