@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.easylinker.proxy.server.app.config.thread.EasyThreadFactory;
 import com.easylinker.proxy.server.app.model.mqtt.ClientACLEntry;
-import com.easylinker.proxy.server.app.model.mqtt.ClientDataEntry;
 import com.easylinker.proxy.server.app.model.mqtt.MqttRemoteClient;
 import com.easylinker.proxy.server.app.service.ClientDataEntryService;
 import com.easylinker.proxy.server.app.service.MqttRemoteClientService;
@@ -393,8 +392,7 @@ public class ClientAuthPlugin extends AbstractAuthenticationBroker {
     @Override
     public void send(ProducerBrokerExchange producerExchange,
                      Message messageSend) throws Exception {
-        System.out.println("send:来自消息Topic:" + messageSend.getDestination().getQualifiedName() +
-                " 消息内容:" + new String(messageSend.getContent().getData()).trim());
+        //System.out.println("send:来自消息Topic:" + messageSend.getDestination().getQualifiedName() +  " 消息内容:" + new String(messageSend.getContent().getData()).trim());
         String toTopic = replaceWildcardCharacter(messageSend.getDestination().getPhysicalName());
         String username = producerExchange.getConnectionContext().getConnectionState().getInfo().getUserName();
         String clientId = producerExchange.getConnectionContext().getConnectionState().getInfo().getClientId();
@@ -430,8 +428,8 @@ public class ClientAuthPlugin extends AbstractAuthenticationBroker {
                         break;
                 }
             } catch (Exception e) {
-                e.printStackTrace();
-                throw new SecurityException("非JSON数据不予处理!");
+                //e.printStackTrace();
+                throw e;
             }
 
 
@@ -453,11 +451,9 @@ public class ClientAuthPlugin extends AbstractAuthenticationBroker {
     private synchronized void handleSend(ProducerBrokerExchange producerExchange, Message messageSend, String toTopic, String username, String clientId, JSONObject dataJson) throws Exception {
 
         boolean isPass = checkPubSubAcl(getCachedClientInfo("online_client_" + username), toTopic);
-        System.out.println(isPass + "__" + getCachedClientInfo("online_client_" + username).toJSONString());
-
-        if (checkPubSubAcl(getCachedClientInfo("online_client_" + username), toTopic)) {
+        if (isPass) {
             if (StringUtils.hasText(dataJson.getString("type"))) {
-                System.out.println("消息类型:" + dataJson.getString("type"));
+                //System.out.println("消息类型:" + dataJson.getString("type"));
                 /**
                  * 计费开始
                  */
@@ -465,7 +461,7 @@ public class ClientAuthPlugin extends AbstractAuthenticationBroker {
 
                 if (canCharging(clientId)) {
                     /**
-                     * Send charging message to RMQ
+                     * Send charging message to RMQ true
                      */
                     chargingJson.put("clientId", clientId);
                     chargingJson.put("type", "CHARGING");
@@ -474,39 +470,27 @@ public class ClientAuthPlugin extends AbstractAuthenticationBroker {
                     amqpTemplate.convertAndSend("client_charging", chargingJson.toJSONString());
                 } else {
                     /**
-                     * Send charging message to RMQ
+                     * Send charging message to RMQ false
                      */
                     chargingJson.put("clientId", clientId);
                     chargingJson.put("type", "CHARGING");
                     chargingJson.put("canCharging", false);
                     chargingJson.put("dataRows", stringRedisTemplate.opsForValue().get("data_rows_" + clientId));
                     amqpTemplate.convertAndSend("client_charging", chargingJson.toJSONString());
+                    throw new Exception("费用不足!");
+
                 }
 
 
                 switch (dataJson.getString("type")) {
                     case "data":
-                        //是否是持久化数据
-                        //考虑到数据库持久化会浪费时间，所以开启多线程去保存数据，同时多线程又面临着上下文的问题，所以需要同步
+                        //这里设计稍微变化 ：所有的数据都进行保存，没有非持久化的选项
                         synchronized (this) {
-
-                            executorService.execute(() -> {
-                                if (dataJson.getBooleanValue("persistent")) {
-                                    ClientDataEntry clientDataEntry = new ClientDataEntry();
-                                    clientDataEntry.setClientId(clientId);
-                                    clientDataEntry.setData(dataJson.getJSONObject("data"));
-                                    clientDataEntry.setInfo(dataJson.getString("info"));
-                                    clientDataEntryService.save(clientDataEntry);
-                                    //System.out.println("持久化成功!");
-                                }
-                                try {
-                                    super.send(producerExchange, messageSend);
-                                } catch (Exception e) {
-                                    //
-                                    e.printStackTrace();
-                                    logger.error("Error:" + e.getMessage());
-                                }
-                            });
+                            /**
+                             * MQ消息发送到持久化的队列里面去：client_data_persist
+                             */
+                            amqpTemplate.convertAndSend("client_data_persist", dataJson.getJSONObject("data").toJSONString());
+                            super.send(producerExchange, messageSend);
                         }
 
                         break;
@@ -637,7 +621,7 @@ public class ClientAuthPlugin extends AbstractAuthenticationBroker {
         for (Object o : aclsArray) {
             if (toTopic.equals(((JSONObject) o).getString("topic"))) {
                 int acl = ((JSONObject) o).getInteger("acl");
-                System.out.println("checkPubSubAcl:toTopic:" + toTopic + "|Acl:" + acl);
+                //System.out.println("checkPubSubAcl:toTopic:" + toTopic + "|Acl:" + acl);
                 if ((acl == PUB_PERMISSION) || (acl == PUB_AND_SUB_PERMISSION)) {
                     return true;
                 }

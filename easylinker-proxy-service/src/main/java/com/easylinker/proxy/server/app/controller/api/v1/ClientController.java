@@ -1,5 +1,6 @@
 package com.easylinker.proxy.server.app.controller.api.v1;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.easylinker.proxy.server.app.config.jwt.JwtAuthRole;
 import com.easylinker.proxy.server.app.config.mvc.WebReturnResult;
@@ -51,7 +52,30 @@ public class ClientController {
         this.appUserService = appUserService;
     }
 
+
     /**
+     * {
+     * "name":"ESP8266",
+     * "info":"WIFI Dev Board.",
+     * "aclEntries" : [
+     * {
+     * "acl" : 2
+     * },
+     * {
+     * "acl" : 2
+     * }
+     * ],
+     * "group":[
+     * {
+     * "name":"g1",
+     * "acl":1
+     * },
+     * {
+     * "name":"g2",
+     * "acl":1
+     * }
+     * ]
+     * }
      * 用户默认只有10个设备权限，用完以后不让创建
      *
      * @param requestBody
@@ -61,8 +85,7 @@ public class ClientController {
     public JSONObject add(HttpServletRequest httpServletRequest, @RequestBody JSONObject requestBody) {
         if (StringUtils.hasText(requestBody.getString("name"))
                 && StringUtils.hasText(requestBody.getString("info"))
-                && StringUtils.hasText(requestBody.getString("topic"))
-                && StringUtils.hasText(requestBody.getString("acl"))
+                && StringUtils.hasText(requestBody.getString("aclEntries"))
                 && StringUtils.hasText(requestBody.getString("group"))) {
             //从缓存中拿出用户ID
             Long userId = cacheHelper.getCurrentUserIdFromRedisCache(httpServletRequest);
@@ -81,18 +104,20 @@ public class ClientController {
                     mqttRemoteClient.setName(requestBody.getString("name"));
                     mqttRemoteClient.setInfo(requestBody.getString("info"));
                     mqttRemoteClient.setUserId(userId);
+
                     //配置默认的ACL
-                    ClientACLEntry defaultACLEntry = new ClientACLEntry();
-                    defaultACLEntry.setTopic("/" + userId + "/" + mqttRemoteClient.getClientId() + "/" + UUID.randomUUID().toString().replace("-", "").substring(0, 10));
-                    //ACL加入组
+                    JSONArray aclEntriesArray = JSONArray.parseArray(requestBody.getString("aclEntries"));
                     List<ClientACLEntry> aclEntryList = new ArrayList<>();
-                    aclEntryList.add(defaultACLEntry);
+
+                    setACL(userId, mqttRemoteClient, aclEntriesArray, aclEntryList);
+
                     mqttRemoteClient.setAclEntries(aclEntryList);
                     //分组
+
+                    JSONArray groupArray = JSONArray.parseArray(requestBody.getString("group"));
                     List<ClientACLGroupEntry> clientACLGroupEntryList = new ArrayList<>();
-                    setACL(requestBody, clientACLGroupEntryList);
+                    setGroup(groupArray, clientACLGroupEntryList);
                     mqttRemoteClient.setClientACLGroupEntries(clientACLGroupEntryList);
-                    //保存
                     mqttRemoteClientService.save(mqttRemoteClient);
                     //用户客户端数目-1
                     appUser.setClientCount(appUser.getClientCount() - 1L);
@@ -150,11 +175,10 @@ public class ClientController {
 
     public JSONObject update(HttpServletRequest httpServletRequest, @RequestBody JSONObject requestBody) {
 
-        if (StringUtils.hasText(requestBody.getString("id"))
-                && StringUtils.hasText(requestBody.getString("name"))
+        if (StringUtils.hasText(requestBody.getString("id")) &&
+                StringUtils.hasText(requestBody.getString("name"))
                 && StringUtils.hasText(requestBody.getString("info"))
-                && StringUtils.hasText(requestBody.getString("topic"))
-                && StringUtils.hasText(requestBody.getString("acl"))
+                && StringUtils.hasText(requestBody.getString("aclEntries"))
                 && StringUtils.hasText(requestBody.getString("group"))) {
             //从缓存中拿出用户ID
             Long userId = cacheHelper.getCurrentUserIdFromRedisCache(httpServletRequest);
@@ -166,24 +190,26 @@ public class ClientController {
             if (mqttRemoteClient == null) {
                 return WebReturnResult.returnTipMessage(0, "客户端ID不存在!");
             }
+
+
             mqttRemoteClient.setName(requestBody.getString("name"));
             mqttRemoteClient.setInfo(requestBody.getString("info"));
             mqttRemoteClient.setUserId(userId);
+
             //配置默认的ACL
-            ClientACLEntry defaultACLEntry = new ClientACLEntry();
-            defaultACLEntry.setTopic("/" + userId + "/" + mqttRemoteClient.getClientId() + "/" + requestBody.getString("topic"));
-            //ACL加入组
+            JSONArray aclEntriesArray = JSONArray.parseArray(requestBody.getString("aclEntries"));
             List<ClientACLEntry> aclEntryList = new ArrayList<>();
-            aclEntryList.add(defaultACLEntry);
+
+            setACL(userId, mqttRemoteClient, aclEntriesArray, aclEntryList);
+
             mqttRemoteClient.setAclEntries(aclEntryList);
-
             //分组
-            List<ClientACLGroupEntry> clientACLGroupEntryList = new ArrayList<>();
-            setACL(requestBody, clientACLGroupEntryList);
 
+            JSONArray groupArray = JSONArray.parseArray(requestBody.getString("group"));
+            List<ClientACLGroupEntry> clientACLGroupEntryList = new ArrayList<>();
+            setGroup(groupArray, clientACLGroupEntryList);
             mqttRemoteClient.setClientACLGroupEntries(clientACLGroupEntryList);
             mqttRemoteClientService.save(mqttRemoteClient);
-
             return WebReturnResult.returnTipMessage(1, "更新成功!");
         } else {
             return WebReturnResult.returnTipMessage(0, "参数不全!");
@@ -193,19 +219,35 @@ public class ClientController {
     }
 
     /**
-     * 给客户端设置ACLø
-     *
-     * @param requestBody
+     * 设置设备的组
+     * @param groupArray
      * @param clientACLGroupEntryList
      */
-    private void setACL(JSONObject requestBody, List<ClientACLGroupEntry> clientACLGroupEntryList) {
-        for (Object o : requestBody.getJSONArray("group")) {
+    private void setGroup(JSONArray groupArray, List<ClientACLGroupEntry> clientACLGroupEntryList) {
+        for (Object o : groupArray) {
             ClientACLGroupEntry clientACLGroupEntry = new ClientACLGroupEntry();
-            clientACLGroupEntry.setName(((JSONObject) o).getString("name"));
             clientACLGroupEntry.setAcl(((JSONObject) o).getIntValue("acl"));
+            clientACLGroupEntry.setName(((JSONObject) o).getString("name"));
             clientACLGroupEntryList.add(clientACLGroupEntry);
         }
     }
+
+    /**
+     * 设置设备的ACL
+     * @param userId
+     * @param mqttRemoteClient
+     * @param aclEntriesArray
+     * @param aclEntryList
+     */
+    private void setACL(Long userId, MqttRemoteClient mqttRemoteClient, JSONArray aclEntriesArray, List<ClientACLEntry> aclEntryList) {
+        for (Object o : aclEntriesArray) {
+            ClientACLEntry clientACLEntry = new ClientACLEntry();
+            clientACLEntry.setTopic("/" + userId + "/" + mqttRemoteClient.getClientId() + "/" + UUID.randomUUID().toString().replace("-", "").substring(0, 10));
+            clientACLEntry.setAcl(((JSONObject) o).getIntValue("acl"));
+            aclEntryList.add(clientACLEntry);
+        }
+    }
+
 
     /**
      * 获取该用户所有的数据
