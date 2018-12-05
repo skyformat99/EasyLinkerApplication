@@ -47,7 +47,6 @@ public class EasyLinkerMqttServer extends BrokerService implements InitializingB
                                 MqttRemoteClientService service,
                                 StringRedisTemplate stringRedisTemplate,
                                 RedisService redisService,
-
                                 ClientDataEntryService clientDataEntryService,
                                 AmqpTemplate amqpTemplate) throws Exception {
         setPlugins(new BrokerPlugin[]{new AuthPluginInstaller(service, authType, stringRedisTemplate, clientDataEntryService, amqpTemplate),
@@ -82,6 +81,7 @@ public class EasyLinkerMqttServer extends BrokerService implements InitializingB
         PolicyMap policyMap = new PolicyMap();
         policyMap.setPolicyEntries(policyEntryList);
         setDestinationPolicy(policyMap);
+        
 
     }
 
