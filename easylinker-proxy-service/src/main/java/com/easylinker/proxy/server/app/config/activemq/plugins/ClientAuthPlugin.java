@@ -22,7 +22,6 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.StringUtils;
 
-import javax.jms.MessageNotWriteableException;
 import java.security.Principal;
 import java.security.cert.X509Certificate;
 import java.util.*;
@@ -321,7 +320,7 @@ public class ClientAuthPlugin extends AbstractAuthenticationBroker {
                 password.equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)
                 || username.equals(WEB_CONSOLE_PUSHER_USERNAME) &&
                 username.equals(WEB_CONSOLE_PUSHER_PASSWORD)
-        ) {
+                ) {
             logger.info("内部推送客户端消费");
             super.addConsumer(context, info);
 
@@ -401,7 +400,7 @@ public class ClientAuthPlugin extends AbstractAuthenticationBroker {
                 password.equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)
                 || username.equals(WEB_CONSOLE_PUSHER_USERNAME) &&
                 username.equals(WEB_CONSOLE_PUSHER_PASSWORD)
-        ) {
+                ) {
             System.out.println("MESSAGE_PUSHER");
             super.send(producerExchange, messageSend);
         } else {
@@ -453,33 +452,36 @@ public class ClientAuthPlugin extends AbstractAuthenticationBroker {
         boolean isPass = checkPubSubAcl(getCachedClientInfo("online_client_" + username), toTopic);
         if (isPass) {
             if (StringUtils.hasText(dataJson.getString("type"))) {
-                //System.out.println("消息类型:" + dataJson.getString("type"));
-                /**
-                 * 计费开始
-                 */
-                JSONObject chargingJson = new JSONObject();
+//                //System.out.println("消息类型:" + dataJson.getString("type"));
+//                /**
+//                 * 计费开始
+//                 */
+//                JSONObject chargingJson = new JSONObject();
+//                /**
+//                 * 计费的代码
+//                 */
 
-                if (canCharging(clientId)) {
-                    /**
-                     * Send charging message to RMQ true
-                     */
-                    chargingJson.put("clientId", clientId);
-                    chargingJson.put("type", "CHARGING");
-                    chargingJson.put("canCharging", true);
-                    chargingJson.put("dataRows", stringRedisTemplate.opsForValue().get("data_rows_" + clientId));
-                    amqpTemplate.convertAndSend("client_charging", chargingJson.toJSONString());
-                } else {
-                    /**
-                     * Send charging message to RMQ false
-                     */
-                    chargingJson.put("clientId", clientId);
-                    chargingJson.put("type", "CHARGING");
-                    chargingJson.put("canCharging", false);
-                    chargingJson.put("dataRows", stringRedisTemplate.opsForValue().get("data_rows_" + clientId));
-                    amqpTemplate.convertAndSend("client_charging", chargingJson.toJSONString());
-                    throw new Exception("费用不足!");
-
-                }
+//                if (canCharging(clientId)) {
+//                    /**
+//                     * Send charging message to RMQ true
+//                     */
+//                    chargingJson.put("clientId", clientId);
+//                    chargingJson.put("type", "CHARGING");
+//                    chargingJson.put("canCharging", true);
+//                    chargingJson.put("dataRows", stringRedisTemplate.opsForValue().get("data_rows_" + clientId));
+//                    amqpTemplate.convertAndSend("client_charging", chargingJson.toJSONString());
+//                } else {
+//                    /**
+//                     * Send charging message to RMQ false
+//                     */
+//                    chargingJson.put("clientId", clientId);
+//                    chargingJson.put("type", "CHARGING");
+//                    chargingJson.put("canCharging", false);
+//                    chargingJson.put("dataRows", stringRedisTemplate.opsForValue().get("data_rows_" + clientId));
+//                    amqpTemplate.convertAndSend("client_charging", chargingJson.toJSONString());
+//                    throw new Exception("费用不足!");
+//
+//                }
 
 
                 switch (dataJson.getString("type")) {
@@ -494,74 +496,74 @@ public class ClientAuthPlugin extends AbstractAuthenticationBroker {
                         }
 
                         break;
-                    case "echo":
-                        // Echo 专门发给一个通道 /system/echo/
-                        synchronized (this) {
-                            executorService.execute(() -> {
-                                //
-                                JSONObject echoMessageJson = new JSONObject();
-                                echoMessageJson.put("message", new String(messageSend.getContent().getData()));
-                                echoMessageJson.put("clientId", clientId);
-                                ActiveMQTextMessage echoMessage = new ActiveMQTextMessage();
-                                try {
-                                    echoMessage.setText(echoMessageJson.toJSONString());
-                                } catch (MessageNotWriteableException e) {
-                                    //e.printStackTrace();
-                                }
-                                ActiveMQTopic echoTopic = new ActiveMQTopic();
-                                echoTopic.setPhysicalName(".system.echo");
-                                //半路拦截 然后修改目标地址
-                                messageSend.setDestination(echoTopic);
-                                messageSend.setContent(echoMessage.getContent());
-                            });
-                        }
-
-                        super.send(producerExchange, messageSend);
-
-                        break;
-                    case "cmd":
-                        //Echo 专门发给一个通道 /system/cmd/
-                        synchronized (this) {
-                            executorService.execute(() -> {
-                                JSONObject cmdMessageJson = new JSONObject();
-
-                                ActiveMQTextMessage cmdMessage = new ActiveMQTextMessage();
-                                ActiveMQTopic cmdTopic = new ActiveMQTopic();
-                                cmdTopic.setPhysicalName(toTopic.replace("/", "."));
-                                System.out.println("CMD:" + cmdTopic);
-
-                                try {
-                                    cmdMessage.setText(cmdMessageJson.toJSONString());
-                                } catch (MessageNotWriteableException e) {
-                                    // e.printStackTrace();
-
-                                }
-                                JSONObject cmdJson = dataJson.getJSONObject("data").getJSONObject("data");
-                                System.out.println(cmdJson.toJSONString());
-                                // 这里默认仅仅支持两个命令：time，返回时间戳，version：返回版本
-                                switch (cmdJson.getString("cmd")) {
-                                    case "time":
-                                        cmdMessageJson.put("message", System.currentTimeMillis());
-                                        cmdMessageJson.put("clientId", clientId);
-                                        messageSend.setContent(cmdMessage.getContent());
-
-                                        break;
-                                    case "version":
-                                        cmdMessageJson.put("message", "V3.0.0.0");
-                                        cmdMessageJson.put("clientId", clientId);
-                                        messageSend.setContent(cmdMessage.getContent());
-
-                                        break;
-                                    default:
-                                        break;
-
-                                }
-
-                            });
-                        }
-
-                        super.send(producerExchange, messageSend);
-                        break;
+//                    case "echo":
+//                        // Echo 专门发给一个通道 /system/echo/
+//                        synchronized (this) {
+//                            executorService.execute(() -> {
+//                                //
+//                                JSONObject echoMessageJson = new JSONObject();
+//                                echoMessageJson.put("message", new String(messageSend.getContent().getData()));
+//                                echoMessageJson.put("clientId", clientId);
+//                                ActiveMQTextMessage echoMessage = new ActiveMQTextMessage();
+//                                try {
+//                                    echoMessage.setText(echoMessageJson.toJSONString());
+//                                } catch (MessageNotWriteableException e) {
+//                                    //e.printStackTrace();
+//                                }
+//                                ActiveMQTopic echoTopic = new ActiveMQTopic();
+//                                echoTopic.setPhysicalName(".system.echo");
+//                                //半路拦截 然后修改目标地址
+//                                messageSend.setDestination(echoTopic);
+//                                messageSend.setContent(echoMessage.getContent());
+//                            });
+//                        }
+//
+//                        super.send(producerExchange, messageSend);
+//
+//                        break;
+//                    case "cmd":
+//                        //Echo 专门发给一个通道 /system/cmd/
+//                        synchronized (this) {
+//                            executorService.execute(() -> {
+//                                JSONObject cmdMessageJson = new JSONObject();
+//
+//                                ActiveMQTextMessage cmdMessage = new ActiveMQTextMessage();
+//                                ActiveMQTopic cmdTopic = new ActiveMQTopic();
+//                                cmdTopic.setPhysicalName(toTopic.replace("/", "."));
+//                                System.out.println("CMD:" + cmdTopic);
+//
+//                                try {
+//                                    cmdMessage.setText(cmdMessageJson.toJSONString());
+//                                } catch (MessageNotWriteableException e) {
+//                                    // e.printStackTrace();
+//
+//                                }
+//                                JSONObject cmdJson = dataJson.getJSONObject("data").getJSONObject("data");
+//                                System.out.println(cmdJson.toJSONString());
+//                                // 这里默认仅仅支持两个命令：time，返回时间戳，version：返回版本
+//                                switch (cmdJson.getString("cmd")) {
+//                                    case "time":
+//                                        cmdMessageJson.put("message", System.currentTimeMillis());
+//                                        cmdMessageJson.put("clientId", clientId);
+//                                        messageSend.setContent(cmdMessage.getContent());
+//
+//                                        break;
+//                                    case "version":
+//                                        cmdMessageJson.put("message", "V3.0.0.0");
+//                                        cmdMessageJson.put("clientId", clientId);
+//                                        messageSend.setContent(cmdMessage.getContent());
+//
+//                                        break;
+//                                    default:
+//                                        break;
+//
+//                                }
+//
+//                            });
+//                        }
+//
+//                        super.send(producerExchange, messageSend);
+//                        break;
                     default:
                         break;
                 }
@@ -644,7 +646,7 @@ public class ClientAuthPlugin extends AbstractAuthenticationBroker {
                 password.equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)
                 || username.equals(WEB_CONSOLE_PUSHER_USERNAME) &&
                 username.equals(WEB_CONSOLE_PUSHER_PASSWORD)
-        ) {
+                ) {
             logger.info("内部推送客户断开端连接");
             super.removeConnection(context, info, error);
 
