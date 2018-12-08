@@ -461,6 +461,7 @@ public class ClientAuthPlugin extends AbstractAuthenticationBroker {
 //                 * 计费的代码
 //                 */
 
+
 //                if (canCharging(clientId)) {
 //                    /**
 //                     * Send charging message to RMQ true
