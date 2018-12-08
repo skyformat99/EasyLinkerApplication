@@ -10,10 +10,10 @@
         <relativePath>../easylinker-dependencies/pom.xml</relativePath>
     </parent>
 
-    <artifactId>easylinker-quartz</artifactId>
+    <artifactId>easylinker-service-quartz</artifactId>
     <packaging>jar</packaging>
 
-    <name>easylinker-quartz</name>
+    <name>easylinker-service-quartz</name>
     <description>定时任务服务</description>
 
     <dependencies>

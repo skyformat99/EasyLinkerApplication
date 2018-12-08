@@ -10,10 +10,10 @@
         <relativePath>../easylinker-dependencies/pom.xml</relativePath>
     </parent>
 
-    <artifactId>easylinker-proxy-service</artifactId>
+    <artifactId>easylinker-service-proxy</artifactId>
     <packaging>jar</packaging>
 
-    <name>easylinker-proxy-service</name>
+    <name>easylinker-service-proxy</name>
     <description>通用后台</description>
 
     <dependencies>

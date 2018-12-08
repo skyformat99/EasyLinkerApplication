@@ -16,10 +16,10 @@
 
     <modules>
         <module>easylinker-dependencies</module>
-        <module>easylinker-proxy-service</module>
         <module>easylinker-rabbitmq-provider</module>
         <module>easylinker-rabbitmq-consumer</module>
-        <module>easylinker-quartz-service</module>
+        <module>easylinker-service-proxy</module>
+        <module>easylinker-service-quartz</module>
     </modules>
 
 
