@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.easylinker.application</groupId>
+        <groupId>com.easyiot</groupId>
         <artifactId>easylinker-dependencies</artifactId>
         <version>3.0.0-A</version>
         <relativePath>../easylinker-dependencies/pom.xml</relativePath>
@@ -51,7 +51,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.easylinker.rabbitmq.consumer.RabbitMQConsumerApplication</mainClass>
+                    <mainClass>com.easyiot.easylinker.rabbitmq.consumer.RabbitMQConsumerApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>

@@ -9,8 +9,8 @@
         <version>2.1.0.RELEASE</version>
     </parent>
 
-    <groupId>com.easylinker.application</groupId>
-    <artifactId>EasyLinkerApplication</artifactId>
+    <groupId>com.easyiot</groupId>
+    <artifactId>easylinker</artifactId>
     <version>3.0.0-A</version>
     <packaging>pom</packaging>
 
