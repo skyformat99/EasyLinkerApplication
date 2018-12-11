@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.easyiot</groupId>
         <artifactId>easylinker</artifactId>
-        <version>3.0.0-A</version>
+        <version>3.0.0.RELEASE</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -50,11 +50,6 @@
         <wxpay-sdk.version>0.0.3</wxpay-sdk.version>
         <apache-commons-lang3.version>3.8.1</apache-commons-lang3.version>
         <ulisesbocchio-jasypt.version>2.0.0</ulisesbocchio-jasypt.version>
-        <alibaba-druid.version>1.1.10</alibaba-druid.version>
-        <mysql-connector-java.version>5.1.47</mysql-connector-java.version>
-        <hutool-all.version>4.2.1</hutool-all.version>
-        <tk-mybatis-mapper.version>2.0.4</tk-mybatis-mapper.version>
-        <github-pagehelper.version>1.2.10</github-pagehelper.version>
     </properties>
 
     <dependencyManagement>
@@ -208,35 +203,6 @@
                 <groupId>com.github.ulisesbocchio</groupId>
                 <artifactId>jasypt-spring-boot-starter</artifactId>
                 <version>${ulisesbocchio-jasypt.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>druid-spring-boot-starter</artifactId>
-                <version>${alibaba-druid.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>mysql</groupId>
-                <artifactId>mysql-connector-java</artifactId>
-                <version>${mysql-connector-java.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>cn.hutool</groupId>
-                <artifactId>hutool-all</artifactId>
-                <version>${hutool-all.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>tk.mybatis</groupId>
-                <artifactId>mapper-spring-boot-starter</artifactId>
-                <version>${tk-mybatis-mapper.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.github.pagehelper</groupId>
-                <artifactId>pagehelper-spring-boot-starter</artifactId>
-                <version>${github-pagehelper.version}</version>
             </dependency>
 
         </dependencies>

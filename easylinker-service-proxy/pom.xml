@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.easyiot</groupId>
         <artifactId>easylinker-dependencies</artifactId>
-        <version>3.0.0-A</version>
+        <version>3.0.0.RELEASE</version>
         <relativePath>../easylinker-dependencies/pom.xml</relativePath>
     </parent>
 

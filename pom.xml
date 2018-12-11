@@ -11,15 +11,12 @@
 
     <groupId>com.easyiot</groupId>
     <artifactId>easylinker</artifactId>
-    <version>3.0.0-A</version>
+    <version>3.0.0.RELEASE</version>
     <packaging>pom</packaging>
 
     <modules>
         <module>easylinker-dependencies</module>
-        <module>easylinker-rabbitmq-provider</module>
-        <module>easylinker-rabbitmq-consumer</module>
         <module>easylinker-service-proxy</module>
-        <module>easylinker-service-quartz</module>
     </modules>
 
 
