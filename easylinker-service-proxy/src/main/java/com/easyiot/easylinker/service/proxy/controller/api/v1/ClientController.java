@@ -2,16 +2,16 @@ package com.easyiot.easylinker.service.proxy.controller.api.v1;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.easyiot.easylinker.service.proxy.config.security.user.model.AppUser;
-import com.easyiot.easylinker.service.proxy.config.security.user.service.AppUserService;
-import com.easyiot.easylinker.service.proxy.service.ClientDataEntryService;
-import com.easyiot.easylinker.service.proxy.service.MqttRemoteClientService;
 import com.easyiot.easylinker.service.proxy.config.jwt.JwtAuthRole;
 import com.easyiot.easylinker.service.proxy.config.mvc.WebReturnResult;
-import com.easyiot.easylinker.service.proxy.model.mqtt.ClientACLEntry;
-import com.easyiot.easylinker.service.proxy.model.mqtt.ClientACLGroupEntry;
-import com.easyiot.easylinker.service.proxy.model.mqtt.ClientDataEntry;
-import com.easyiot.easylinker.service.proxy.model.mqtt.MqttRemoteClient;
+import com.easyiot.easylinker.service.proxy.config.security.user.model.AppUser;
+import com.easyiot.easylinker.service.proxy.config.security.user.service.AppUserService;
+import com.easyiot.easylinker.service.proxy.model.client.ClientACLEntry;
+import com.easyiot.easylinker.service.proxy.model.client.ClientACLGroupEntry;
+import com.easyiot.easylinker.service.proxy.model.client.ClientDataEntry;
+import com.easyiot.easylinker.service.proxy.model.client.MqttRemoteClient;
+import com.easyiot.easylinker.service.proxy.service.ClientDataEntryService;
+import com.easyiot.easylinker.service.proxy.service.MqttRemoteClientService;
 import com.easyiot.easylinker.service.proxy.utils.CacheHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -83,52 +83,67 @@ public class ClientController {
      */
     @RequestMapping(value = "/", method = RequestMethod.POST)
     public JSONObject add(HttpServletRequest httpServletRequest, @RequestBody JSONObject requestBody) {
+
         if (StringUtils.hasText(requestBody.getString("name"))
                 && StringUtils.hasText(requestBody.getString("info"))
+                && StringUtils.hasText(requestBody.getString("type"))
                 && StringUtils.hasText(requestBody.getString("aclEntries"))
                 && StringUtils.hasText(requestBody.getString("group"))) {
             //从缓存中拿出用户ID
             Long userId = cacheHelper.getCurrentUserIdFromRedisCache(httpServletRequest);
             if (userId == null) {
-                return WebReturnResult.returnTipMessage(401, "Token已过期!");
+                return WebReturnResult.returnTipMessage(402, "Token已过期!");
             }
             //数目-1
             AppUser appUser = appUserService.findById(userId);
             if (appUser != null) {
-                Long clientCount = appUser.getClientCount();
-                if (clientCount <= 0L) {
-                    return WebReturnResult.returnTipMessage(0, "创建次数已经用完，请充值!");
-                } else {
-                    //构建数据
-                    MqttRemoteClient mqttRemoteClient = new MqttRemoteClient();
-                    mqttRemoteClient.setName(requestBody.getString("name"));
-                    mqttRemoteClient.setInfo(requestBody.getString("info"));
-                    mqttRemoteClient.setUserId(userId);
 
-                    //配置默认的ACL
-                    JSONArray aclEntriesArray = JSONArray.parseArray(requestBody.getString("aclEntries"));
-                    List<ClientACLEntry> aclEntryList = new ArrayList<>();
+                switch (requestBody.getString("type")) {
+                    case "COAP":
+                        break;
+                    case "HTTP":
+                        break;
+                    case "MQTT":
+                        break;
+                    case "UDP":
+                        break;
+                    default:
+                        break;
 
-                    setACL(userId, mqttRemoteClient, aclEntriesArray, aclEntryList);
-
-                    mqttRemoteClient.setAclEntries(aclEntryList);
-                    //分组
-
-                    JSONArray groupArray = JSONArray.parseArray(requestBody.getString("group"));
-                    List<ClientACLGroupEntry> clientACLGroupEntryList = new ArrayList<>();
-                    setGroup(groupArray, clientACLGroupEntryList);
-                    mqttRemoteClient.setClientACLGroupEntries(clientACLGroupEntryList);
-                    mqttRemoteClientService.save(mqttRemoteClient);
-                    //用户客户端数目-1
-                    appUser.setClientCount(appUser.getClientCount() - 1L);
-                    appUserService.save(appUser);
-                    return WebReturnResult.returnTipMessage(1, "客户端创建成功!");
                 }
+
+
+                //构建数据
+                MqttRemoteClient mqttRemoteClient = new MqttRemoteClient();
+                mqttRemoteClient.setName(requestBody.getString("name"));
+                mqttRemoteClient.setInfo(requestBody.getString("info"));
+                mqttRemoteClient.setUserId(userId);
+
+                //配置默认的ACL
+                JSONArray aclEntriesArray = requestBody.getJSONArray("aclEntries");
+                List<ClientACLEntry> aclEntryList = new ArrayList<>();
+
+                setACL(userId, mqttRemoteClient, aclEntriesArray, aclEntryList);
+
+                mqttRemoteClient.setAclEntries(aclEntryList);
+                //分组
+
+                JSONArray groupArray = (requestBody.getJSONArray("group"));
+                List<ClientACLGroupEntry> clientACLGroupEntryList = new ArrayList<>();
+                setGroup(groupArray, clientACLGroupEntryList);
+                mqttRemoteClient.setClientACLGroupEntries(clientACLGroupEntryList);
+                mqttRemoteClientService.save(mqttRemoteClient);
+                //用户客户端数目-1
+                //appUser.setClientCount(appUser.getClientCount() - 1L);
+                appUserService.save(appUser);
+                return WebReturnResult.returnTipMessage(1, "客户端创建成功!");
+
 
             } else {
                 return WebReturnResult.returnTipMessage(0, "用户不存在!");
 
             }
+
 
         } else {
             return WebReturnResult.returnTipMessage(0, "参数不全!");
@@ -149,7 +164,7 @@ public class ClientController {
     public JSONObject delete(HttpServletRequest httpServletRequest, @RequestBody JSONObject requestBody) {
         Long userId = cacheHelper.getCurrentUserIdFromRedisCache(httpServletRequest);
         if (userId == null) {
-            return WebReturnResult.returnTipMessage(401, "Token已过期!");
+            return WebReturnResult.returnTipMessage(402, "Token已过期!");
         }
         if (StringUtils.hasText(requestBody.getString("ids"))) {
             for (Object o : requestBody.getJSONArray("ids")) {
@@ -183,7 +198,7 @@ public class ClientController {
             //从缓存中拿出用户ID
             Long userId = cacheHelper.getCurrentUserIdFromRedisCache(httpServletRequest);
             if (userId == null) {
-                return WebReturnResult.returnTipMessage(401, "Token已过期!");
+                return WebReturnResult.returnTipMessage(402, "Token已过期!");
             }
             //
             MqttRemoteClient mqttRemoteClient = mqttRemoteClientService.findOneById(requestBody.getLongValue("id"));
@@ -220,6 +235,7 @@ public class ClientController {
 
     /**
      * 设置设备的组
+     *
      * @param groupArray
      * @param clientACLGroupEntryList
      */
@@ -234,6 +250,7 @@ public class ClientController {
 
     /**
      * 设置设备的ACL
+     *
      * @param userId
      * @param mqttRemoteClient
      * @param aclEntriesArray
@@ -262,7 +279,7 @@ public class ClientController {
                        @PathVariable int size) {
         Long userId = cacheHelper.getCurrentUserIdFromRedisCache(httpServletRequest);
         if (userId == null) {
-            return WebReturnResult.returnTipMessage(401, "Token已过期!");
+            return WebReturnResult.returnTipMessage(402, "Token已过期!");
         }
         Page<MqttRemoteClient> mqttRemoteClientPage = mqttRemoteClientService.findAllByUserId(
                 userId,
@@ -284,7 +301,7 @@ public class ClientController {
     public Object getById(HttpServletRequest httpServletRequest, @PathVariable Long id) {
         Long userId = cacheHelper.getCurrentUserIdFromRedisCache(httpServletRequest);
         if (userId == null) {
-            return WebReturnResult.returnTipMessage(401, "Token已过期!");
+            return WebReturnResult.returnTipMessage(402, "Token已过期!");
         }
         MqttRemoteClient mqttRemoteClient = mqttRemoteClientService.findOneById(id);
         if (mqttRemoteClient == null) {
@@ -311,7 +328,7 @@ public class ClientController {
         Long userId = cacheHelper.getCurrentUserIdFromRedisCache(httpServletRequest);
 
         if (userId == null) {
-            return WebReturnResult.returnTipMessage(401, "Token已过期!");
+            return WebReturnResult.returnTipMessage(402, "Token已过期!");
         }
         MqttRemoteClient mqttRemoteClient = mqttRemoteClientService.findOneById(id);
         if (mqttRemoteClient == null) {

@@ -1,4 +1,4 @@
-package com.easyiot.easylinker.service.proxy.model.mqtt;
+package com.easyiot.easylinker.service.proxy.model.client;
 
 import com.easyiot.easylinker.service.proxy.model.BaseEntity;
 
@@ -12,19 +12,21 @@ import java.util.UUID;
 
 public class MqttRemoteClient extends BaseEntity {
 
-    //MQTT 协议本身支持的鉴权：username password
-    //本设计为了实现统计在线效果，扩展了一个是否在线标记
-    //同时增加了ACL属性
+
+    /**
+     * //MQTT 协议本身支持的鉴权：username password
+     * //本设计为了实现统计在线效果，扩展了一个是否在线标记
+     * //同时增加了ACL属性
+     */
     private String username = UUID.randomUUID().toString().replace("-", "");
     private String password = UUID.randomUUID().toString().replace("-", "");
     private String clientId = UUID.randomUUID().toString().replace("-", "");
     private Boolean onLine = false;
-    //下面是一些业务逻辑级别的扩展字段
     private String name = UUID.randomUUID().toString().substring(0, 10);
     private String info = "Nothing";
     private Long userId;
 
-    private Long dataRows=10000L;
+    private Long dataRows = 10000L;
 
     public Long getDataRows() {
         return dataRows;
@@ -37,7 +39,7 @@ public class MqttRemoteClient extends BaseEntity {
     //ACL 描述
     private List<ClientACLEntry> aclEntries;
     //
-    private List<ClientACLGroupEntry>  clientACLGroupEntries;
+    private List<ClientACLGroupEntry> clientACLGroupEntries;
 
 
     public String getName() {

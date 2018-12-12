@@ -1,4 +1,4 @@
-package com.easyiot.easylinker.service.proxy.model.mqtt;
+package com.easyiot.easylinker.service.proxy.model.client;
 
 import com.easyiot.easylinker.service.proxy.model.BaseEntity;
 

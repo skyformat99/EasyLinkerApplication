@@ -24,6 +24,7 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public JSONObject defaultErrorHandler(Exception e) {
         logger.error("出现了异常:" + e.getClass() + "=====" + e.getMessage());
+        //e.printStackTrace();
         JSONObject resultJson = new JSONObject();
         if (e instanceof io.jsonwebtoken.ExpiredJwtException) {
 

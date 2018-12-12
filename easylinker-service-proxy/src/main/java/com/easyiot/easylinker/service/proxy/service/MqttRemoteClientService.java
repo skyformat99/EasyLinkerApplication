@@ -1,7 +1,7 @@
 package com.easyiot.easylinker.service.proxy.service;
 
 import com.easyiot.easylinker.service.proxy.dao.MqttRemoteClientRepository;
-import com.easyiot.easylinker.service.proxy.model.mqtt.MqttRemoteClient;
+import com.easyiot.easylinker.service.proxy.model.client.MqttRemoteClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

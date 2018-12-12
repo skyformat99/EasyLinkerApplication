@@ -1,4 +1,4 @@
-package com.easyiot.easylinker.service.proxy.model.mqtt;
+package com.easyiot.easylinker.service.proxy.model.client;
 
 import com.alibaba.fastjson.JSONObject;
 import com.easyiot.easylinker.service.proxy.model.BaseEntity;
@@ -19,7 +19,7 @@ public class ClientDataEntry extends BaseEntity {
     /**
      * 关联的客户端的ID
      */
-    private String clientId;
+    private Long clientId;
 
     public String getInfo() {
         return info;
@@ -37,11 +37,11 @@ public class ClientDataEntry extends BaseEntity {
         this.data = data;
     }
 
-    public String getClientId() {
+    public Long getClientId() {
         return clientId;
     }
 
-    public void setClientId(String clientId) {
+    public void setClientId(Long clientId) {
         this.clientId = clientId;
     }
 }

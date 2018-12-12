@@ -3,7 +3,7 @@ package com.easyiot.easylinker.service.proxy.config.coap;
 import com.alibaba.fastjson.JSONObject;
 import com.easyiot.easylinker.service.proxy.config.mvc.WebReturnResult;
 import com.easyiot.easylinker.service.proxy.config.thread.EasyThreadFactory;
-import com.easyiot.easylinker.service.proxy.model.mqtt.ClientDataEntry;
+import com.easyiot.easylinker.service.proxy.model.client.ClientDataEntry;
 import com.easyiot.easylinker.service.proxy.service.ClientDataEntryService;
 import com.easyiot.easylinker.service.proxy.service.MqttRemoteClientService;
 import org.eclipse.californium.core.CoapResource;
@@ -67,7 +67,6 @@ public class EasyLinkerCOAPServer extends CoapServer implements InitializingBean
     }
 
     /**
-     *
      * @param resources
      * @return
      */
@@ -110,7 +109,7 @@ public class EasyLinkerCOAPServer extends CoapServer implements InitializingBean
                             executorService.execute(() -> {
                                 if (requestBody.getBooleanValue("persistent")) {
                                     ClientDataEntry clientDataEntry = new ClientDataEntry();
-                                    clientDataEntry.setClientId(requestBody.getString("clientId"));
+                                    clientDataEntry.setClientId(requestBody.getLongValue("clientId"));
                                     clientDataEntry.setData(requestBody.getJSONObject("data"));
                                     clientDataEntry.setInfo(requestBody.getString("info"));
                                     clientDataEntryService.save(clientDataEntry);
@@ -144,7 +143,7 @@ public class EasyLinkerCOAPServer extends CoapServer implements InitializingBean
                         executorService.execute(() -> {
                             if (Boolean.valueOf(exchange.getQueryParameter("persistent"))) {
                                 ClientDataEntry clientDataEntry = new ClientDataEntry();
-                                clientDataEntry.setClientId(exchange.getQueryParameter("clientId"));
+                                clientDataEntry.setClientId(Long.valueOf(exchange.getQueryParameter("clientId")));
                                 try {
                                     clientDataEntry.setData(JSONObject.parseObject(exchange.getQueryParameter("data")));
 

@@ -50,7 +50,6 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         redisService.delete("user_info_" + appUser.getId());
         //redisService.delete("user_roles_" + appUser.getId().toString());
         ///
-        //redisService.set("user_roles_" + appUser.getId().toString(), jsonArray.toJSONString());
         redisService.set("user_" + appUser.getId().toString(), JwtHelper.generateToken(appUser.getId()));
         redisService.set("user_info_" + appUser.getId(), JSONObject.toJSONString(appUser));
         ///
