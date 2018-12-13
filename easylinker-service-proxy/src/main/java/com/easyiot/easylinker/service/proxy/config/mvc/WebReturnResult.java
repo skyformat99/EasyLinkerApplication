@@ -15,7 +15,7 @@ public class WebReturnResult {
      * @return
      */
     public static JSONObject returnTipMessage(int code, String tipMessage) {
-        JSONObject returnJson = new JSONObject();
+        JSONObject returnJson = new JSONObject(true);
         returnJson.put("state", code);
         returnJson.put("message", tipMessage);
         return returnJson;
@@ -50,7 +50,7 @@ public class WebReturnResult {
      */
     public static JSONObject returnDataMessage(int code, String tipMessage, JSONArray data) {
 
-        JSONObject returnJson = new JSONObject();
+        JSONObject returnJson = new JSONObject(true);
         returnJson.put("state", code);
         returnJson.put("data", data);
         returnJson.put("message", tipMessage);
@@ -66,10 +66,10 @@ public class WebReturnResult {
      */
     public static JSONObject returnDataMessage(int code, String tipMessage, Object data) {
 
-        JSONObject returnJson = new JSONObject();
+        JSONObject returnJson = new JSONObject(true);
         returnJson.put("state", code);
-        returnJson.put("data", data);
         returnJson.put("message", tipMessage);
+        returnJson.put("data", data);
         return returnJson;
     }
 
