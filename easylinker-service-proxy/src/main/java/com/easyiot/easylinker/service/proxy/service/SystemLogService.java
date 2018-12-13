@@ -34,4 +34,9 @@ public class SystemLogService implements BaseService<SystemLog> {
     public Page<SystemLog> getAll(Pageable pageable) {
         return systemLogRepository.findAll(pageable);
     }
+
+    @Override
+    public Page<SystemLog> findAllByUserId(Long userId, Pageable pageable) {
+        return null;
+    }
 }

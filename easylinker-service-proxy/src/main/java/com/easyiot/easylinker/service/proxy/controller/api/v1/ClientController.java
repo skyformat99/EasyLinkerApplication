@@ -6,15 +6,13 @@ import com.easyiot.easylinker.service.proxy.config.jwt.JwtAuthRole;
 import com.easyiot.easylinker.service.proxy.config.mvc.WebReturnResult;
 import com.easyiot.easylinker.service.proxy.config.security.user.model.AppUser;
 import com.easyiot.easylinker.service.proxy.config.security.user.service.AppUserService;
-import com.easyiot.easylinker.service.proxy.model.client.ClientACLEntry;
-import com.easyiot.easylinker.service.proxy.model.client.ClientACLGroupEntry;
-import com.easyiot.easylinker.service.proxy.model.client.ClientDataEntry;
-import com.easyiot.easylinker.service.proxy.model.client.MqttRemoteClient;
+import com.easyiot.easylinker.service.proxy.model.client.*;
+import com.easyiot.easylinker.service.proxy.service.COAPRemoteClientService;
 import com.easyiot.easylinker.service.proxy.service.ClientDataEntryService;
+import com.easyiot.easylinker.service.proxy.service.HttpRemoteClientService;
 import com.easyiot.easylinker.service.proxy.service.MqttRemoteClientService;
 import com.easyiot.easylinker.service.proxy.utils.CacheHelper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.StringUtils;
@@ -41,6 +39,10 @@ public class ClientController {
     private final CacheHelper cacheHelper;
     private final ClientDataEntryService clientDataEntryService;
     private final AppUserService appUserService;
+    @Autowired
+    COAPRemoteClientService coapRemoteClientService;
+    @Autowired
+    HttpRemoteClientService httpRemoteClientService;
 
 
     @Autowired
@@ -100,43 +102,56 @@ public class ClientController {
 
                 switch (requestBody.getString("type")) {
                     case "COAP":
-                        break;
+                        COAPRemoteClient coapRemoteClient = new COAPRemoteClient();
+                        coapRemoteClient.setUserId(userId);
+                        coapRemoteClient.setName(requestBody.getString("name"));
+                        coapRemoteClient.setInfo(requestBody.getString("info"));
+                        coapRemoteClientService.save(coapRemoteClient);
+                        return WebReturnResult.returnTipMessage(1, "客户端创建成功!");
+
                     case "HTTP":
-                        break;
+                        HttpRemoteClient httpRemoteClient = new HttpRemoteClient();
+                        httpRemoteClient.setUserId(userId);
+                        httpRemoteClient.setName(requestBody.getString("name"));
+                        httpRemoteClient.setInfo(requestBody.getString("info"));
+                        httpRemoteClientService.save(httpRemoteClient);
+                        return WebReturnResult.returnTipMessage(1, "客户端创建成功!");
+
                     case "MQTT":
-                        break;
+
+                        //构建数据
+                        MqttRemoteClient mqttRemoteClient = new MqttRemoteClient();
+                        mqttRemoteClient.setName(requestBody.getString("name"));
+                        mqttRemoteClient.setInfo(requestBody.getString("info"));
+                        mqttRemoteClient.setUserId(userId);
+
+                        //配置默认的ACL
+                        JSONArray aclEntriesArray = requestBody.getJSONArray("aclEntries");
+                        List<ClientACLEntry> aclEntryList = new ArrayList<>();
+
+                        setACL(userId, mqttRemoteClient, aclEntriesArray, aclEntryList);
+
+                        mqttRemoteClient.setAclEntries(aclEntryList);
+                        //分组
+                        JSONArray groupArray = (requestBody.getJSONArray("group"));
+                        List<ClientACLGroupEntry> clientACLGroupEntryList = new ArrayList<>();
+                        setGroup(groupArray, clientACLGroupEntryList);
+                        mqttRemoteClient.setClientACLGroupEntries(clientACLGroupEntryList);
+                        mqttRemoteClientService.save(mqttRemoteClient);
+                        //用户客户端数目-1
+                        //appUser.setClientCount(appUser.getClientCount() - 1L);
+                        appUserService.save(appUser);
+                        return WebReturnResult.returnTipMessage(1, "客户端创建成功!");
+
                     case "UDP":
-                        break;
+                        return WebReturnResult.returnTipMessage(0, "暂不支持UDP!");
+
+
                     default:
-                        break;
+                        return WebReturnResult.returnTipMessage(0, "暂不支持!");
+
 
                 }
-
-
-                //构建数据
-                MqttRemoteClient mqttRemoteClient = new MqttRemoteClient();
-                mqttRemoteClient.setName(requestBody.getString("name"));
-                mqttRemoteClient.setInfo(requestBody.getString("info"));
-                mqttRemoteClient.setUserId(userId);
-
-                //配置默认的ACL
-                JSONArray aclEntriesArray = requestBody.getJSONArray("aclEntries");
-                List<ClientACLEntry> aclEntryList = new ArrayList<>();
-
-                setACL(userId, mqttRemoteClient, aclEntriesArray, aclEntryList);
-
-                mqttRemoteClient.setAclEntries(aclEntryList);
-                //分组
-
-                JSONArray groupArray = (requestBody.getJSONArray("group"));
-                List<ClientACLGroupEntry> clientACLGroupEntryList = new ArrayList<>();
-                setGroup(groupArray, clientACLGroupEntryList);
-                mqttRemoteClient.setClientACLGroupEntries(clientACLGroupEntryList);
-                mqttRemoteClientService.save(mqttRemoteClient);
-                //用户客户端数目-1
-                //appUser.setClientCount(appUser.getClientCount() - 1L);
-                appUserService.save(appUser);
-                return WebReturnResult.returnTipMessage(1, "客户端创建成功!");
 
 
             } else {
@@ -267,26 +282,50 @@ public class ClientController {
 
 
     /**
-     * 获取该用户所有的数据
+     * 获取该用户所有的客户端
      *
      * @param httpServletRequest
      * @return
      */
 
-    @RequestMapping(value = "/{page}/{size}", method = RequestMethod.GET)
+    @RequestMapping(value = "/{type}/{page}/{size}", method = RequestMethod.GET)
     public Object list(HttpServletRequest httpServletRequest,
+                       @PathVariable String type,
                        @PathVariable int page,
                        @PathVariable int size) {
         Long userId = cacheHelper.getCurrentUserIdFromRedisCache(httpServletRequest);
         if (userId == null) {
             return WebReturnResult.returnTipMessage(402, "Token已过期!");
         }
-        Page<MqttRemoteClient> mqttRemoteClientPage = mqttRemoteClientService.findAllByUserId(
-                userId,
-                PageRequest.of(page,
-                        size,
-                        Sort.by(Sort.Direction.DESC, "id")));
-        return WebReturnResult.returnDataMessage(1, "查询成功!", mqttRemoteClientPage);
+
+        switch (type) {
+            case "MQTT":
+                return WebReturnResult.returnDataMessage(1, "查询成功!", mqttRemoteClientService.findAllByUserId(
+                        userId,
+                        PageRequest.of(page,
+                                size,
+                                Sort.by(Sort.Direction.DESC, "id"))));
+
+            case "HTTP":
+                return WebReturnResult.returnDataMessage(1, "查询成功!", httpRemoteClientService.findAllByUserId(
+                        userId,
+                        PageRequest.of(page,
+                                size,
+                                Sort.by(Sort.Direction.DESC, "id"))));
+
+
+            case "COAP":
+                return WebReturnResult.returnDataMessage(1, "查询成功!", coapRemoteClientService.findAllByUserId(
+                        userId,
+                        PageRequest.of(page,
+                                size,
+                                Sort.by(Sort.Direction.DESC, "id"))));
+
+            default:
+                return WebReturnResult.returnTipMessage(0, "暂不支持该类型设备!");
+
+        }
+
 
     }
 
@@ -297,17 +336,51 @@ public class ClientController {
      * @return
      */
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public Object getById(HttpServletRequest httpServletRequest, @PathVariable Long id) {
+    @RequestMapping(value = "/{type}/{id}", method = RequestMethod.GET)
+    public Object getById(HttpServletRequest httpServletRequest,
+                          @PathVariable String type,
+                          @PathVariable Long id) {
         Long userId = cacheHelper.getCurrentUserIdFromRedisCache(httpServletRequest);
         if (userId == null) {
             return WebReturnResult.returnTipMessage(402, "Token已过期!");
         }
-        MqttRemoteClient mqttRemoteClient = mqttRemoteClientService.findOneById(id);
-        if (mqttRemoteClient == null) {
-            return WebReturnResult.returnTipMessage(0, "客户端不存在!");
+
+
+        switch (type) {
+            case "MQTT":
+
+                MqttRemoteClient mqttRemoteClient = mqttRemoteClientService.findOneById(id);
+                if (mqttRemoteClient == null) {
+                    return WebReturnResult.returnTipMessage(0, "客户端不存在!");
+                } else {
+                    return WebReturnResult.returnDataMessage(1, "查询成功!", mqttRemoteClient);
+                }
+
+            case "HTTP":
+
+                HttpRemoteClient httpRemoteClient = httpRemoteClientService.findOneById(id);
+                if (httpRemoteClient == null) {
+                    return WebReturnResult.returnTipMessage(0, "客户端不存在!");
+                } else {
+                    return WebReturnResult.returnDataMessage(1, "查询成功!", httpRemoteClient);
+                }
+
+
+            case "COAP":
+
+                COAPRemoteClient coapRemoteClient = coapRemoteClientService.findOneById(id);
+                if (coapRemoteClient == null) {
+                    return WebReturnResult.returnTipMessage(0, "客户端不存在!");
+                } else {
+                    return WebReturnResult.returnDataMessage(1, "查询成功!", coapRemoteClient);
+                }
+
+
+            default:
+                return WebReturnResult.returnTipMessage(0, "暂不支持该类型设备!");
+
         }
-        return WebReturnResult.returnDataMessage(1, "查询成功!", mqttRemoteClient);
+
 
     }
 
@@ -320,8 +393,9 @@ public class ClientController {
      * @param size
      * @return
      */
-    @RequestMapping(value = "/data/{id}/{page}/{size}", method = RequestMethod.GET)
+    @RequestMapping(value = "/data/{type}/{id}/{page}/{size}", method = RequestMethod.GET)
     public Object data(HttpServletRequest httpServletRequest,
+                       @PathVariable String type,
                        @PathVariable Long id,
                        @PathVariable int page,
                        @PathVariable int size) {
@@ -330,15 +404,44 @@ public class ClientController {
         if (userId == null) {
             return WebReturnResult.returnTipMessage(402, "Token已过期!");
         }
-        MqttRemoteClient mqttRemoteClient = mqttRemoteClientService.findOneById(id);
-        if (mqttRemoteClient == null) {
-            return WebReturnResult.returnTipMessage(0, "客户端不存在!");
+
+
+        switch (type) {
+            case "MQTT":
+                MqttRemoteClient mqttRemoteClient = mqttRemoteClientService.findOneById(id);
+                if (mqttRemoteClient == null) {
+                    return WebReturnResult.returnTipMessage(0, "客户端不存在!");
+                }
+                return WebReturnResult.returnDataMessage(1, "查询成功!", clientDataEntryService.getByClientId(mqttRemoteClient.getId(), PageRequest.of(page,
+                        size,
+                        Sort.by(Sort.Direction.DESC, "id"))));
+
+            case "HTTP":
+                HttpRemoteClient httpRemoteClient = httpRemoteClientService.findOneById(id);
+
+                if (httpRemoteClient == null) {
+                    return WebReturnResult.returnTipMessage(0, "客户端不存在!");
+                }
+                return WebReturnResult.returnDataMessage(1, "查询成功!", clientDataEntryService.getByClientId(httpRemoteClient.getId(), PageRequest.of(page,
+                        size,
+                        Sort.by(Sort.Direction.DESC, "id"))));
+
+
+            case "COAP":
+                COAPRemoteClient coapRemoteClient = coapRemoteClientService.findOneById(id);
+                if (coapRemoteClient == null) {
+                    return WebReturnResult.returnTipMessage(0, "客户端不存在!");
+                }
+                return WebReturnResult.returnDataMessage(1, "查询成功!", clientDataEntryService.getByClientId(coapRemoteClient.getId(), PageRequest.of(page,
+                        size,
+                        Sort.by(Sort.Direction.DESC, "id"))));
+
+
+            default:
+                return WebReturnResult.returnTipMessage(0, "暂不支持该类型设备!");
+
         }
-        //查找数据
-        Page<ClientDataEntry> mqttRemoteClientPage = clientDataEntryService.getByClientId(mqttRemoteClient.getId(), PageRequest.of(page,
-                size,
-                Sort.by(Sort.Direction.DESC, "id")));
-        return WebReturnResult.returnDataMessage(1, "查询成功!", mqttRemoteClientPage);
+
 
     }
 

@@ -30,6 +30,11 @@ public class ClientDataEntryService implements BaseService<ClientDataEntry> {
         return clientDataEntryRepository.findAll(pageable);
     }
 
+    @Override
+    public Page<ClientDataEntry> findAllByUserId(Long userId, Pageable pageable) {
+        return null;
+    }
+
     /**
      * 根据客户端的ID查找数据
      *

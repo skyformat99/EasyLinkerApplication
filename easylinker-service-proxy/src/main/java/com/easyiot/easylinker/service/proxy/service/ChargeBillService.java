@@ -33,4 +33,9 @@ public class ChargeBillService implements BaseService<ChargeBill> {
     public Page<ChargeBill> getAll(Pageable pageable) {
         return chargeBillRepository.findAll(pageable);
     }
+
+    @Override
+    public Page<ChargeBill> findAllByUserId(Long userId, Pageable pageable) {
+        return null;
+    }
 }

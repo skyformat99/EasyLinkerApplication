@@ -41,6 +41,11 @@ public class AppUserService implements BaseService<AppUser> {
         return appUserRepository.findAll(pageable);
     }
 
+    @Override
+    public Page<AppUser> findAllByUserId(Long userId, Pageable pageable) {
+        return null;
+    }
+
 
     public AppUser findById(Long id) {
         return appUserRepository.findTopById(id);
