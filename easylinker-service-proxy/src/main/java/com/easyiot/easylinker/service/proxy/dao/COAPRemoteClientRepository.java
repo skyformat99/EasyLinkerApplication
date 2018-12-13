@@ -9,4 +9,6 @@ public interface COAPRemoteClientRepository extends MongoRepository<COAPRemoteCl
      Page<COAPRemoteClient> findAllByUserId(Long userId, Pageable pageable);
 
     COAPRemoteClient findTopById(Long id);
+
+    Long countAllByUserId(Long userId);
 }

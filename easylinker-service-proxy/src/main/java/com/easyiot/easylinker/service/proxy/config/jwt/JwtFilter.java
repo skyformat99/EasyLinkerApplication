@@ -32,6 +32,7 @@ public class JwtFilter extends OncePerRequestFilter {
         response.setCharacterEncoding("UTF-8");
         response.setHeader("content-type","application/json;charset=UTF-8");
         String token = request.getHeader("token");
+
         if (token != null) {
             try {
                 /**
@@ -43,7 +44,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
                 String cacheToken = redisService.get("user_" + JwtHelper.validateToken(token).get("userId").toString());
                 if (!token.equals(cacheToken)){
-                    //redisService.delete("user_" + JwtHelper.validateToken(token).get("userId").toString());
+                    redisService.delete("user_" + JwtHelper.validateToken(token).get("userId").toString());
                     try {
                         response.getWriter().write(WebReturnResult.returnTipMessage(402, "令牌过期!请重新登录获取").toJSONString());
                         response.getWriter().flush();

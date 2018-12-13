@@ -1,16 +1,21 @@
-package com.easyiot.easylinker.service.proxy.controller;
+package com.easyiot.easylinker.service.proxy.controller.api.v1;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyuncs.exceptions.ClientException;
-import com.easyiot.easylinker.service.proxy.config.security.user.model.AppUser;
-import com.easyiot.easylinker.service.proxy.config.security.user.service.AppUserService;
+import com.easyiot.easylinker.service.proxy.config.jwt.JwtAuthRole;
 import com.easyiot.easylinker.service.proxy.config.jwt.JwtHelper;
 import com.easyiot.easylinker.service.proxy.config.mvc.WebReturnResult;
 import com.easyiot.easylinker.service.proxy.config.redis.RedisService;
+import com.easyiot.easylinker.service.proxy.config.security.user.model.AppUser;
+import com.easyiot.easylinker.service.proxy.config.security.user.service.AppUserService;
+import com.easyiot.easylinker.service.proxy.service.COAPRemoteClientService;
+import com.easyiot.easylinker.service.proxy.service.HttpRemoteClientService;
+import com.easyiot.easylinker.service.proxy.service.MqttRemoteClientService;
 import com.easyiot.easylinker.service.proxy.utils.AliYunSMSHelper;
 import com.easyiot.easylinker.service.proxy.utils.CacheHelper;
 import com.easyiot.easylinker.service.proxy.utils.Md5Util;
+import com.sun.management.OperatingSystemMXBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.transaction.annotation.Propagation;
@@ -22,13 +27,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import java.lang.management.ManagementFactory;
+import java.util.Date;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 /**
  * 用户相关
  */
 @RestController
-@RequestMapping(value = "/user")
+@JwtAuthRole
+@RequestMapping(value = "/api/v_1_0/user")
 public class UserController {
 
     private final AliYunSMSHelper aliYunSMSHelper;
@@ -273,7 +282,7 @@ public class UserController {
 
 
     @RequestMapping(value = "/active", method = RequestMethod.POST)
-    public JSONObject active(@RequestBody JSONObject requestBody) throws Exception {
+    public JSONObject active(@RequestBody JSONObject requestBody) {
 
         if (StringUtils.hasText(requestBody.getString("phone"))
                 && StringUtils.hasText(requestBody.getString("code"))) {
@@ -301,4 +310,56 @@ public class UserController {
         }
     }
 
+    @Autowired
+    MqttRemoteClientService mqttRemoteClientService;
+    @Autowired
+    HttpRemoteClientService httpRemoteClientService;
+    @Autowired
+    COAPRemoteClientService coapRemoteClientService;
+
+    /**
+     * @return 设备信息概览
+     */
+    @RequestMapping(value = "/deviceOverViewInfo", method = RequestMethod.GET)
+    public JSONObject deviceOverViewInfo(HttpServletRequest httpServletRequest) {
+        Long userId = cacheHelper.getCurrentUserIdFromRedisCache(httpServletRequest);
+        if (userId == null) {
+            return WebReturnResult.returnTipMessage(401, "Token已过期!");
+        }
+        JSONObject returnDataJson = new JSONObject();
+        JSONObject mqttInfo = new JSONObject();
+        mqttInfo.put("total", mqttRemoteClientService.count(userId));
+        mqttInfo.put("online", mqttRemoteClientService.onlineCount(userId));
+        returnDataJson.put("mqtt", mqttInfo);
+        returnDataJson.put("http", httpRemoteClientService.count(userId));
+        returnDataJson.put("coap", coapRemoteClientService.count(userId));
+        return WebReturnResult.returnDataMessage(1, "查询成功", returnDataJson);
+
+
+    }
+
+    /**
+     * 获取当前服务器的一些状态
+     *
+     * @return
+     */
+    @RequestMapping(value = "/serverInfo", method = RequestMethod.GET)
+    public JSONObject serverInfo() {
+        JSONObject systemProperty = new JSONObject();
+        OperatingSystemMXBean mem = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+        Properties sysProperty = System.getProperties();
+        systemProperty.put("javaVersion", sysProperty.getProperty("java.version"));
+        systemProperty.put("javaVendor", sysProperty.getProperty("java.vendor"));
+        systemProperty.put("javaHome", sysProperty.getProperty("java.home").replace("\\", "_"));
+        systemProperty.put("os", sysProperty.getProperty("os.name"));
+        systemProperty.put("osArch", sysProperty.getProperty("os.arch"));
+        systemProperty.put("osVersion", sysProperty.getProperty("os.version"));
+        systemProperty.put("totalRAM", mem.getTotalPhysicalMemorySize() / 1024 / 1024);
+        systemProperty.put("availableRAM", mem.getFreePhysicalMemorySize() / 1024 / 1024);
+        systemProperty.put("totalMemory", mem.getFreePhysicalMemorySize() / 1024 / 1024);
+        systemProperty.put("freeMemory", Runtime.getRuntime().freeMemory() / 1024);
+        systemProperty.put("maxMemory", Runtime.getRuntime().maxMemory() / 1024);
+        systemProperty.put("time", new Date());
+        return WebReturnResult.returnDataMessage(1, "获取成功!", systemProperty);
+    }
 }

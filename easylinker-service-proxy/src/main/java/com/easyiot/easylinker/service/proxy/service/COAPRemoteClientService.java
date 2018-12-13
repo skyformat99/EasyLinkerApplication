@@ -39,4 +39,8 @@ public class COAPRemoteClientService implements BaseService<COAPRemoteClient> {
     public COAPRemoteClient findOneById(Long id) {
         return coapRemoteClientRepository.findTopById(id);
     }
+
+    public Object count(Long userId) {
+        return coapRemoteClientRepository.countAllByUserId(userId);
+    }
 }

@@ -37,4 +37,8 @@ public class HttpRemoteClientService implements BaseService<HttpRemoteClient> {
     public HttpRemoteClient findOneById(Long id) {
         return httpRemoteClientRepository.findTopById(id);
     }
+
+    public Long count(Long userId) {
+        return httpRemoteClientRepository.countAllByUserId(userId);
+    }
 }

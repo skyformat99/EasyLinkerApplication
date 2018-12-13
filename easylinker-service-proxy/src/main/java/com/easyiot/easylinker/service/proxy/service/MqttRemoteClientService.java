@@ -58,8 +58,17 @@ public class MqttRemoteClientService implements BaseService<MqttRemoteClient> {
     public MqttRemoteClient findOneByClientId(String clientId) {
         return mqttRemoteClientRepository.findTopByClientId(clientId);
     }
+
     @Override
     public Page<MqttRemoteClient> findAllByUserId(Long userId, Pageable pageable) {
         return mqttRemoteClientRepository.findAllByUserId(userId, pageable);
+    }
+
+    public Long count(Long userId) {
+        return mqttRemoteClientRepository.countAllByUserId(userId);
+    }
+
+    public Long onlineCount(Long userId) {
+        return mqttRemoteClientRepository.countAllByUserIdAndOnLine(userId, false);
     }
 }

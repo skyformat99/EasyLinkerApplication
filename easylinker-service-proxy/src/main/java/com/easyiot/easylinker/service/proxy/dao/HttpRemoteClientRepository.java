@@ -10,4 +10,6 @@ public interface HttpRemoteClientRepository extends MongoRepository<HttpRemoteCl
     Page<HttpRemoteClient> findAllByUserId(Long userId, Pageable pageable);
 
     HttpRemoteClient findTopById(Long id);
+    Long countAllByUserId(Long userId);
+
 }

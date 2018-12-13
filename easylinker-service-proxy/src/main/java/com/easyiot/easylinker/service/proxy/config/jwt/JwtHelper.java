@@ -21,10 +21,10 @@ public class JwtHelper {
     }
 
     public static Map validateToken(String token) throws IllegalStateException {
-        System.out.println("JWT验证Token ：" + Jwts.parser()
-                .setSigningKey(SECRET)
-                .parseClaimsJws(token)
-                .getBody());
+//        System.out.println("JWT验证Token ：" + Jwts.parser()
+//                .setSigningKey(SECRET)
+//                .parseClaimsJws(token)
+//                .getBody());
 
         return Jwts.parser()
                 .setSigningKey(SECRET)

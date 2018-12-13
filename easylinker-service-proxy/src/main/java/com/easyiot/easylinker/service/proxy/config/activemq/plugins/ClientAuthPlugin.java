@@ -132,7 +132,7 @@ public class ClientAuthPlugin extends AbstractAuthenticationBroker {
 
     @Override
     public void addConnection(ConnectionContext context, ConnectionInfo info) throws Exception {
-        //System.out.println("客户端请求连接: " + info.toString());
+        System.out.println("客户端请求连接: " + info.toString());
         //放行推送的客户端
         if (info.getUserName().equals(INTERNAL_MESSAGE_PUSHER_USERNAME) &&
                 info.getPassword().equals(INTERNAL_MESSAGE_PUSHER_PASSWORD)) {
