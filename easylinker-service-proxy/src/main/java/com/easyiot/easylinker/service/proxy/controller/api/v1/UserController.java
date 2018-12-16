@@ -12,19 +12,19 @@ import com.easyiot.easylinker.service.proxy.config.security.user.service.AppUser
 import com.easyiot.easylinker.service.proxy.service.COAPRemoteClientService;
 import com.easyiot.easylinker.service.proxy.service.HttpRemoteClientService;
 import com.easyiot.easylinker.service.proxy.service.MqttRemoteClientService;
+import com.easyiot.easylinker.service.proxy.service.SystemLogService;
 import com.easyiot.easylinker.service.proxy.utils.AliYunSMSHelper;
 import com.easyiot.easylinker.service.proxy.utils.CacheHelper;
 import com.easyiot.easylinker.service.proxy.utils.Md5Util;
 import com.sun.management.OperatingSystemMXBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.lang.management.ManagementFactory;
@@ -362,4 +362,30 @@ public class UserController {
         systemProperty.put("time", new Date());
         return WebReturnResult.returnDataMessage(1, "获取成功!", systemProperty);
     }
+
+    /**
+     * 获取系统日志
+     *
+     * @return
+     */
+    @Autowired
+    SystemLogService systemLogService;
+
+    @RequestMapping(value = "/getLog/{page}/{size}", method = RequestMethod.GET)
+    public JSONObject getLog(HttpServletRequest httpServletRequest,
+                             @PathVariable int page,
+                             @PathVariable int size) {
+        Long userId = cacheHelper.getCurrentUserIdFromRedisCache(httpServletRequest);
+        if (userId == null) {
+            return WebReturnResult.returnTipMessage(402, "Token已过期!");
+        }
+
+        return WebReturnResult.returnDataMessage(1, "查询成功!", systemLogService.findAllByUserId(
+                userId,
+                PageRequest.of(page,
+                        size,
+                        Sort.by(Sort.Direction.DESC, "create_time"))));
+
+    }
+
 }

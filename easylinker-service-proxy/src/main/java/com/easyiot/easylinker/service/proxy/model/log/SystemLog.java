@@ -19,6 +19,16 @@ public class SystemLog extends BaseEntity {
      */
     private String cause;
 
+    private long userId;
+
+    public long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(long userId) {
+        this.userId = userId;
+    }
+
     public SystemLogType getSystemLogType() {
         return systemLogType;
     }

@@ -289,10 +289,10 @@ public class ClientController {
      */
 
     @RequestMapping(value = "/{type}/{page}/{size}", method = RequestMethod.GET)
-    public Object list(HttpServletRequest httpServletRequest,
-                       @PathVariable String type,
-                       @PathVariable int page,
-                       @PathVariable int size) {
+    public JSONObject list(HttpServletRequest httpServletRequest,
+                           @PathVariable String type,
+                           @PathVariable int page,
+                           @PathVariable int size) {
         Long userId = cacheHelper.getCurrentUserIdFromRedisCache(httpServletRequest);
         if (userId == null) {
             return WebReturnResult.returnTipMessage(402, "Token已过期!");
