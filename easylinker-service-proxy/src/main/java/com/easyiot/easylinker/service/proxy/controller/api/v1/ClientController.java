@@ -102,7 +102,7 @@ public class ClientController {
 
                 switch (requestBody.getString("type")) {
                     case "COAP":
-                        COAPRemoteClient coapRemoteClient = new COAPRemoteClient();
+                        CoapRemoteClient coapRemoteClient = new CoapRemoteClient();
                         coapRemoteClient.setUserId(userId);
                         coapRemoteClient.setName(requestBody.getString("name"));
                         coapRemoteClient.setInfo(requestBody.getString("info"));
@@ -389,7 +389,7 @@ public class ClientController {
 
             case "COAP":
 
-                COAPRemoteClient coapRemoteClient = coapRemoteClientService.findOneById(id);
+                CoapRemoteClient coapRemoteClient = coapRemoteClientService.findOneById(id);
                 if (coapRemoteClient == null) {
                     return WebReturnResult.returnTipMessage(0, "客户端不存在!");
                 } else {
@@ -449,7 +449,7 @@ public class ClientController {
 
 
             case "COAP":
-                COAPRemoteClient coapRemoteClient = coapRemoteClientService.findOneById(id);
+                CoapRemoteClient coapRemoteClient = coapRemoteClientService.findOneById(id);
                 if (coapRemoteClient == null) {
                     return WebReturnResult.returnTipMessage(0, "客户端不存在!");
                 }

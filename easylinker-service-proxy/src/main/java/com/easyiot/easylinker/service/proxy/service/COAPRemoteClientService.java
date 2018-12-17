@@ -1,42 +1,42 @@
 package com.easyiot.easylinker.service.proxy.service;
 
 import com.easyiot.easylinker.service.proxy.dao.COAPRemoteClientRepository;
-import com.easyiot.easylinker.service.proxy.model.client.COAPRemoteClient;
+import com.easyiot.easylinker.service.proxy.model.client.CoapRemoteClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
-public class COAPRemoteClientService implements BaseService<COAPRemoteClient> {
+public class COAPRemoteClientService implements BaseService<CoapRemoteClient> {
     @Autowired
     COAPRemoteClientRepository coapRemoteClientRepository;
 
 
     @Override
-    public void save(COAPRemoteClient coapRemoteClient) {
+    public void save(CoapRemoteClient coapRemoteClient) {
         coapRemoteClientRepository.save(coapRemoteClient);
 
     }
 
     @Override
-    public void delete(COAPRemoteClient coapRemoteClient) {
+    public void delete(CoapRemoteClient coapRemoteClient) {
         coapRemoteClientRepository.delete(coapRemoteClient);
 
     }
 
     @Override
-    public Page<COAPRemoteClient> getAll(Pageable pageable) {
+    public Page<CoapRemoteClient> getAll(Pageable pageable) {
         return coapRemoteClientRepository.findAll(pageable);
     }
 
 
     @Override
-    public Page<COAPRemoteClient> findAllByUserId(Long userId, Pageable pageable) {
+    public Page<CoapRemoteClient> findAllByUserId(Long userId, Pageable pageable) {
         return coapRemoteClientRepository.findAllByUserId(userId, pageable);
     }
 
-    public COAPRemoteClient findOneById(Long id) {
+    public CoapRemoteClient findOneById(Long id) {
         return coapRemoteClientRepository.findTopById(id);
     }
 

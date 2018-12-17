@@ -13,6 +13,15 @@ public class HttpRemoteClient extends BaseEntity {
     private Long userId;
     private String name = UUID.randomUUID().toString().substring(0, 10);
     private String info = "Nothing";
+    private String type = "HTTP";
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 
     public String getName() {
         return name;

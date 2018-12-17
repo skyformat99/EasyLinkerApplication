@@ -25,6 +25,15 @@ public class MqttRemoteClient extends BaseEntity {
     private String name = UUID.randomUUID().toString().substring(0, 10);
     private String info = "Nothing";
     private Long userId;
+    private String type="MQTT";
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 
     private Long dataRows = 10000L;
 
