@@ -181,14 +181,35 @@ public class ClientController {
         if (userId == null) {
             return WebReturnResult.returnTipMessage(402, "Token已过期!");
         }
-        if (StringUtils.hasText(requestBody.getString("ids"))) {
-            for (Object o : requestBody.getJSONArray("ids")) {
-                mqttRemoteClientService.delete(((JSONObject) o).getLongValue("id"));
-            }
+        if (StringUtils.hasText(requestBody.getString("ids"))
+                && StringUtils.hasText(requestBody.getString("type"))) {
+            String type = requestBody.getString("type");
+            switch (type) {
+                /**
+                 * 数据删除以后再说
+                 */
+                case "MQTT":
+                    for (Object o : requestBody.getJSONArray("ids")) {
+                        mqttRemoteClientService.delete(((JSONObject) o).getLongValue("id"));
+                    }
+                    break;
+                case "HTTP":
+                    for (Object o : requestBody.getJSONArray("ids")) {
+                        httpRemoteClientService.delete(((JSONObject) o).getLongValue("id"));
+                    }
+                    break;
+                case "COAP":
+                    for (Object o : requestBody.getJSONArray("ids")) {
+                        coapRemoteClientService.delete(((JSONObject) o).getLongValue("id"));
+                    }
+                    break;
+                default:
+                    break;
 
+            }
             return WebReturnResult.returnTipMessage(1, "删除成功!");
         } else {
-            return WebReturnResult.returnTipMessage(1, "参数缺少!");
+            return WebReturnResult.returnTipMessage(0, "参数缺少!");
 
         }
 

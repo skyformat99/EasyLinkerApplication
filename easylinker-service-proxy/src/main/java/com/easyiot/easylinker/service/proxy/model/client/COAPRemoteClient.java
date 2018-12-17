@@ -9,7 +9,7 @@ import java.util.UUID;
  */
 public class COAPRemoteClient extends BaseEntity {
     private String token = UUID.randomUUID().toString().replace("-", "");
-    private String clientId = UUID.randomUUID().toString().replace("-", "");
+    private String clientId = UUID.randomUUID().toString().split("-")[4];
     private Long userId;
     private String name = UUID.randomUUID().toString().substring(0, 10);
     private String info = "Nothing";

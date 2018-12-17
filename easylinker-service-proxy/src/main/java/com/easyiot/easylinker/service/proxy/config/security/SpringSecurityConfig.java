@@ -15,9 +15,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
-import org.springframework.session.security.web.authentication.SpringSessionRememberMeServices;
 
 
 /**
@@ -91,20 +89,20 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and().rememberMe().alwaysRemember(true).tokenValiditySeconds(2592000)
                 // 配置UserDetailsService
                 .and().exceptionHandling().authenticationEntryPoint(anonymousHandler)
-                .and().csrf().disable().rememberMe().rememberMeServices(rememberMeServices())
+                .and().csrf().disable().rememberMe()
                 .and().headers()
                 .frameOptions();
 
     }
 
 
-    @Bean
-    public static RememberMeServices rememberMeServices() {
-
-        SpringSessionRememberMeServices rememberMeServices = new SpringSessionRememberMeServices();
-        rememberMeServices.setValiditySeconds(3600000);//过期时间
-        return rememberMeServices;
-    }
+//    @Bean
+//    public static RememberMeServices rememberMeServices() {
+//
+//        SpringSessionRememberMeServices rememberMeServices = new SpringSessionRememberMeServices();
+//        rememberMeServices.setValiditySeconds(3600000);//过期时间
+//        return rememberMeServices;
+//    }
 
     /**
      * 自定义认证过程

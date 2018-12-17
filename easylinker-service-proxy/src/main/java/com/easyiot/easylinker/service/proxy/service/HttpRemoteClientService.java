@@ -41,4 +41,10 @@ public class HttpRemoteClientService implements BaseService<HttpRemoteClient> {
     public Long count(Long userId) {
         return httpRemoteClientRepository.countAllByUserId(userId);
     }
+
+    public void delete(Long id) {
+        httpRemoteClientRepository.deleteById(id);
+
+    }
+
 }

@@ -20,7 +20,7 @@ public class MqttRemoteClient extends BaseEntity {
      */
     private String username = UUID.randomUUID().toString().replace("-", "");
     private String password = UUID.randomUUID().toString().replace("-", "");
-    private String clientId = UUID.randomUUID().toString().replace("-", "");
+    private String clientId = UUID.randomUUID().toString().split("-")[4];
     private Boolean onLine = false;
     private String name = UUID.randomUUID().toString().substring(0, 10);
     private String info = "Nothing";
