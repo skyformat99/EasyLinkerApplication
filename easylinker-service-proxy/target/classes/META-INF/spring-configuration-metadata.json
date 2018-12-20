@@ -1,0 +1,122 @@
+{
+  "groups": [
+    {
+      "name": "pay.alipay",
+      "type": "com.easyiot.easylinker.service.proxy.config.pay.alipay.AliPayConfig",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.pay.PayConfiguration",
+      "sourceMethod": "alipayConfig()"
+    },
+    {
+      "name": "pay.weixin",
+      "type": "com.easyiot.easylinker.service.proxy.config.pay.wxpay.WXPayConfig",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.pay.PayConfiguration",
+      "sourceMethod": "wechatPayConfig()"
+    },
+    {
+      "name": "sms.aliyun",
+      "type": "com.easyiot.easylinker.service.proxy.config.sms.aliyunsms.AliYunSMSConfig",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.sms.SMSConfiguration",
+      "sourceMethod": "aliYunSMSConfig()"
+    }
+  ],
+  "properties": [
+    {
+      "name": "pay.alipay.app-id",
+      "type": "java.lang.String",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.pay.alipay.AliPayConfig"
+    },
+    {
+      "name": "pay.alipay.charset",
+      "type": "java.lang.String",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.pay.alipay.AliPayConfig"
+    },
+    {
+      "name": "pay.alipay.format",
+      "type": "java.lang.String",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.pay.alipay.AliPayConfig"
+    },
+    {
+      "name": "pay.alipay.gateway",
+      "type": "java.lang.String",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.pay.alipay.AliPayConfig"
+    },
+    {
+      "name": "pay.alipay.notify-url",
+      "type": "java.lang.String",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.pay.alipay.AliPayConfig"
+    },
+    {
+      "name": "pay.alipay.private-key",
+      "type": "java.lang.String",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.pay.alipay.AliPayConfig"
+    },
+    {
+      "name": "pay.alipay.public-key",
+      "type": "java.lang.String",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.pay.alipay.AliPayConfig"
+    },
+    {
+      "name": "pay.alipay.return-url",
+      "type": "java.lang.String",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.pay.alipay.AliPayConfig"
+    },
+    {
+      "name": "pay.alipay.sign-type",
+      "type": "java.lang.String",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.pay.alipay.AliPayConfig"
+    },
+    {
+      "name": "pay.weixin.app-i-d",
+      "type": "java.lang.String",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.pay.wxpay.WXPayConfig"
+    },
+    {
+      "name": "pay.weixin.http-connect-timeout-ms",
+      "type": "java.lang.Integer",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.pay.wxpay.WXPayConfig",
+      "defaultValue": 0
+    },
+    {
+      "name": "pay.weixin.http-read-timeout-ms",
+      "type": "java.lang.Integer",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.pay.wxpay.WXPayConfig",
+      "defaultValue": 0
+    },
+    {
+      "name": "pay.weixin.key",
+      "type": "java.lang.String",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.pay.wxpay.WXPayConfig"
+    },
+    {
+      "name": "pay.weixin.mch-i-d",
+      "type": "java.lang.String",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.pay.wxpay.WXPayConfig"
+    },
+    {
+      "name": "pay.weixin.notify-url",
+      "type": "java.lang.String",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.pay.wxpay.WXPayConfig"
+    },
+    {
+      "name": "sms.aliyun.access-key-id",
+      "type": "java.lang.String",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.sms.aliyunsms.AliYunSMSConfig"
+    },
+    {
+      "name": "sms.aliyun.access-key-secret",
+      "type": "java.lang.String",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.sms.aliyunsms.AliYunSMSConfig"
+    },
+    {
+      "name": "sms.aliyun.sign-name",
+      "type": "java.lang.String",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.sms.aliyunsms.AliYunSMSConfig"
+    },
+    {
+      "name": "sms.aliyun.template",
+      "type": "java.lang.String",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.sms.aliyunsms.AliYunSMSConfig"
+    }
+  ],
+  "hints": []
+}
