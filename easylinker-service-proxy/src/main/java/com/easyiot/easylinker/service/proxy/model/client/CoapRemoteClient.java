@@ -7,7 +7,7 @@ import java.util.UUID;
 /**
  * COAP 设备
  */
-public class COAPRemoteClient extends BaseEntity {
+public class CoapRemoteClient extends BaseEntity {
     private String token = UUID.randomUUID().toString().replace("-", "");
     private String clientId = UUID.randomUUID().toString().split("-")[4];
     private Long userId;
