@@ -19,7 +19,7 @@ public class ClientDataEntry extends BaseEntity {
     /**
      * 关联的客户端的ID
      */
-    private Long clientId;
+    private Long remoteDeviceId;
 
     public String getInfo() {
         return info;
@@ -38,10 +38,10 @@ public class ClientDataEntry extends BaseEntity {
     }
 
     public Long getClientId() {
-        return clientId;
+        return remoteDeviceId;
     }
 
     public void setClientId(Long clientId) {
-        this.clientId = clientId;
+        this.remoteDeviceId = clientId;
     }
 }
