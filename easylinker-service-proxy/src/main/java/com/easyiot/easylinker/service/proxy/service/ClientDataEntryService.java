@@ -43,6 +43,6 @@ public class ClientDataEntryService implements BaseService<ClientDataEntry> {
      * @return
      */
     public Page<ClientDataEntry> getByClientId(Long clientId, Pageable pageable) {
-        return clientDataEntryRepository.findAllByClientId(clientId, pageable);
+        return clientDataEntryRepository.findAllByRemoteDeviceId(clientId, pageable);
     }
 }

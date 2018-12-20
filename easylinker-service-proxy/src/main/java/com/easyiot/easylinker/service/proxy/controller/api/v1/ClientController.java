@@ -430,6 +430,7 @@ public class ClientController {
         switch (type) {
             case "MQTT":
                 MqttRemoteClient mqttRemoteClient = mqttRemoteClientService.findOneById(id);
+
                 if (mqttRemoteClient == null) {
                     return WebReturnResult.returnTipMessage(0, "客户端不存在!");
                 }

@@ -6,5 +6,5 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 public interface ClientDataEntryRepository extends MongoRepository<ClientDataEntry, Long> {
-    Page<ClientDataEntry> findAllByClientId(Long clientId, Pageable pageable);
+    Page<ClientDataEntry> findAllByRemoteDeviceId(Long clientId, Pageable pageable);
 }
