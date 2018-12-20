@@ -12,6 +12,7 @@ import com.easyiot.easylinker.service.proxy.service.ClientDataEntryService;
 import com.easyiot.easylinker.service.proxy.service.HttpRemoteClientService;
 import com.easyiot.easylinker.service.proxy.service.MqttRemoteClientService;
 import com.easyiot.easylinker.service.proxy.utils.CacheHelper;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -90,7 +91,9 @@ public class ClientController {
                 && StringUtils.hasText(requestBody.getString("info"))
                 && StringUtils.hasText(requestBody.getString("type"))
                 && StringUtils.hasText(requestBody.getString("aclEntries"))
-                && StringUtils.hasText(requestBody.getString("group"))) {
+                && StringUtils.hasText(requestBody.getString("group"))
+                && ArrayUtils.isNotEmpty(requestBody.getJSONArray("location").toArray())
+        ) {
             //从缓存中拿出用户ID
             Long userId = cacheHelper.getCurrentUserIdFromRedisCache(httpServletRequest);
             if (userId == null) {
@@ -106,6 +109,7 @@ public class ClientController {
                         coapRemoteClient.setUserId(userId);
                         coapRemoteClient.setName(requestBody.getString("name"));
                         coapRemoteClient.setInfo(requestBody.getString("info"));
+                        coapRemoteClient.setLocation(requestBody.getJSONArray("location"));
                         coapRemoteClientService.save(coapRemoteClient);
                         return WebReturnResult.returnTipMessage(1, "客户端创建成功!");
 
@@ -114,6 +118,7 @@ public class ClientController {
                         httpRemoteClient.setUserId(userId);
                         httpRemoteClient.setName(requestBody.getString("name"));
                         httpRemoteClient.setInfo(requestBody.getString("info"));
+                        httpRemoteClient.setLocation(requestBody.getJSONArray("location"));
                         httpRemoteClientService.save(httpRemoteClient);
                         return WebReturnResult.returnTipMessage(1, "客户端创建成功!");
 
@@ -123,6 +128,7 @@ public class ClientController {
                         MqttRemoteClient mqttRemoteClient = new MqttRemoteClient();
                         mqttRemoteClient.setName(requestBody.getString("name"));
                         mqttRemoteClient.setInfo(requestBody.getString("info"));
+                        mqttRemoteClient.setLocation(requestBody.getJSONArray("location"));
                         mqttRemoteClient.setUserId(userId);
 
                         //配置默认的ACL

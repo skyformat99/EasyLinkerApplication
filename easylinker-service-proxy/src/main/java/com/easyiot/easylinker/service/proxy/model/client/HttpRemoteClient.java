@@ -2,6 +2,7 @@ package com.easyiot.easylinker.service.proxy.model.client;
 
 import com.easyiot.easylinker.service.proxy.model.BaseEntity;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -14,6 +15,18 @@ public class HttpRemoteClient extends BaseEntity {
     private String name = UUID.randomUUID().toString().substring(0, 10);
     private String info = "Nothing";
     private String type = "HTTP";
+
+    private List location;
+
+    public List getLocation() {
+        return location;
+    }
+
+    public void setLocation(List location) {
+        this.location = location;
+    }
+
+
 
     public String getType() {
         return type;

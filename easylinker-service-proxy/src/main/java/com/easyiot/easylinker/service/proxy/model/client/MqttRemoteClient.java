@@ -27,6 +27,16 @@ public class MqttRemoteClient extends BaseEntity {
     private Long userId;
     private String type="MQTT";
 
+    private List location;
+
+    public List getLocation() {
+        return location;
+    }
+
+    public void setLocation(List location) {
+        this.location = location;
+    }
+
     public String getType() {
         return type;
     }
@@ -124,6 +134,7 @@ public class MqttRemoteClient extends BaseEntity {
     public void setClientACLGroupEntries(List<ClientACLGroupEntry> clientACLGroupEntries) {
         this.clientACLGroupEntries = clientACLGroupEntries;
     }
+
 
     @Override
     public String toString() {
