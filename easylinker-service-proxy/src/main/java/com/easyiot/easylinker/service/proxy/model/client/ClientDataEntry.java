@@ -18,8 +18,25 @@ public class ClientDataEntry extends BaseEntity {
 
     /**
      * 关联的客户端的ID
+     * 将数据库原来的字段clientId改为了remoteDeviceId，
+     * 但是在系统调用的方法内没有进行修改，依然使用clientId
+     * 从下面的Getter和Setter方法里也可以明显的看出来
+     * TODO 这里是个坑，但是不影响使用
      */
     private Long remoteDeviceId;
+
+    /**
+     * 关联设备的类型
+     */
+    private String remoteDeviceType;
+
+    public String getRemoteDeviceType() {
+        return remoteDeviceType;
+    }
+
+    public void setRemoteDeviceType(String remoteDeviceType) {
+        this.remoteDeviceType = remoteDeviceType;
+    }
 
     public String getInfo() {
         return info;
