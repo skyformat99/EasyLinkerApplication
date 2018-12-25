@@ -41,19 +41,25 @@ public class ClientController {
     private final CacheHelper cacheHelper;
     private final ClientDataEntryService clientDataEntryService;
     private final AppUserService appUserService;
-    @Autowired
-    COAPRemoteClientService coapRemoteClientService;
-    @Autowired
-    HttpRemoteClientService httpRemoteClientService;
+    private COAPRemoteClientService coapRemoteClientService;
+    private HttpRemoteClientService httpRemoteClientService;
 
 
     @Autowired
-    public ClientController(CacheHelper cacheHelper, MqttRemoteClientService mqttRemoteClientService, ClientDataEntryService clientDataEntryService, AppUserService appUserService) {
+    public ClientController(CacheHelper cacheHelper,
+                            MqttRemoteClientService mqttRemoteClientService,
+                            ClientDataEntryService clientDataEntryService,
+                            AppUserService appUserService,
+                            COAPRemoteClientService coapRemoteClientService,
+                            HttpRemoteClientService httpRemoteClientService
+    ) {
 
         this.cacheHelper = cacheHelper;
         this.mqttRemoteClientService = mqttRemoteClientService;
         this.clientDataEntryService = clientDataEntryService;
         this.appUserService = appUserService;
+        this.coapRemoteClientService = coapRemoteClientService;
+        this.httpRemoteClientService = httpRemoteClientService;
     }
 
 
