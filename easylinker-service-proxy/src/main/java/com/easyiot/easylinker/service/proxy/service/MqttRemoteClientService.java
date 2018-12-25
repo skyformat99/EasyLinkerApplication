@@ -4,13 +4,14 @@ import com.easyiot.easylinker.service.proxy.dao.MqttRemoteClientRepository;
 import com.easyiot.easylinker.service.proxy.model.client.MqttRemoteClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
 public class MqttRemoteClientService implements BaseService<MqttRemoteClient> {
-    private final
-    MqttRemoteClientRepository mqttRemoteClientRepository;
+
+    private final MqttRemoteClientRepository mqttRemoteClientRepository;
 
     @Autowired
     public MqttRemoteClientService(MqttRemoteClientRepository mqttRemoteClientRepository) {
@@ -70,5 +71,10 @@ public class MqttRemoteClientService implements BaseService<MqttRemoteClient> {
 
     public Long onlineCount(Long userId) {
         return mqttRemoteClientRepository.countAllByUserIdAndOnLine(userId, false);
+    }
+
+    public Page<MqttRemoteClient> findByNameLike(String name, Long userId, int pageNum, int pageSize){
+        PageRequest pageRequest = PageRequest.of(pageNum-1, pageSize);
+        return mqttRemoteClientRepository.findByNameLikeAndUserId(name, userId, pageRequest);
     }
 }

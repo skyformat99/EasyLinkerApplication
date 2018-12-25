@@ -14,6 +14,7 @@ import com.easyiot.easylinker.service.proxy.service.MqttRemoteClientService;
 import com.easyiot.easylinker.service.proxy.utils.CacheHelper;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.StringUtils;
@@ -471,6 +472,51 @@ public class ClientController {
         }
 
 
+    }
+
+
+    /**
+     * 设备模糊查询
+     * @param request
+     * @param searchEntry
+     * @return
+     */
+    @GetMapping(value = "/search")
+    public Object deviceSearch(HttpServletRequest request,
+                               @RequestBody DeviceSearchEntry searchEntry
+    ) {
+        Long userId = cacheHelper.getCurrentUserIdFromRedisCache(request);
+        if (userId == null) {
+            return WebReturnResult.returnTipMessage(402, "Token已过期");
+        }
+
+        if (org.apache.commons.lang3.StringUtils.isBlank(searchEntry.getType())
+                || org.apache.commons.lang3.StringUtils.isBlank(searchEntry.getMode())
+                || org.apache.commons.lang3.StringUtils.isBlank(searchEntry.getKeyword())
+                || searchEntry.getPageNum() == 0
+                || searchEntry.getPageSize() == 0
+        ) {
+            return WebReturnResult.returnTipMessage(0, "参数不完整或有误");
+        }
+
+        switch (searchEntry.getType()) {
+            case "ALL":
+
+            case "MQTT":
+                Page<MqttRemoteClient> nameLike = mqttRemoteClientService.findByNameLike(
+                        searchEntry.getKeyword(),
+                        userId,
+                        searchEntry.getPageSize(),
+                        searchEntry.getPageNum()
+                );
+                return WebReturnResult.returnDataMessage(1, "ok", nameLike);
+            case "HTTP":
+
+            case "COAP":
+
+            default:
+                return WebReturnResult.returnTipMessage(0, "参数有误，暂不支持");
+        }
     }
 
 }

@@ -18,4 +18,13 @@ public interface MqttRemoteClientRepository extends MongoRepository<MqttRemoteCl
     Long countAllByUserId(Long userId);
 
     Long countAllByUserIdAndOnLine(Long userId, boolean online);
+
+
+    /**
+     * 根据设备名称模糊查找设备
+     * @param name keyword
+     * @param pageable pageParam
+     * @return
+     */
+    Page<MqttRemoteClient> findByNameLikeAndUserId(String name, Long userId, Pageable pageable);
 }
