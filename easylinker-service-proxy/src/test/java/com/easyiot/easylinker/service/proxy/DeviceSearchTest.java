@@ -12,11 +12,10 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
-public class DeviceSearch {
+public class DeviceSearchTest {
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -26,9 +25,11 @@ public class DeviceSearch {
 
     @Test
     public void demo() {
-        Pattern pattern = Pattern.compile("^.*t.*$", Pattern.CASE_INSENSITIVE);
-        Criteria criteria = new Criteria().orOperator(Criteria.where("name").regex(pattern),
-                Criteria.where("info").regex(pattern));
+        Long id = 1543584572005L;
+        Criteria criteria = Criteria
+                .where("name").regex("^.*t.*$", "i")
+                .and("info").regex("^.*t.*$", "i")
+                .and("userId").is(id);
         Query query = Query.query(criteria);
         List<MqttRemoteClient> mqttRemoteClients = mongoTemplate.find(query, MqttRemoteClient.class);
         System.out.println(mqttRemoteClients);

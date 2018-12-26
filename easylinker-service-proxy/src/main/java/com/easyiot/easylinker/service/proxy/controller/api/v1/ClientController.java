@@ -7,14 +7,10 @@ import com.easyiot.easylinker.service.proxy.config.mvc.WebReturnResult;
 import com.easyiot.easylinker.service.proxy.config.security.user.model.AppUser;
 import com.easyiot.easylinker.service.proxy.config.security.user.service.AppUserService;
 import com.easyiot.easylinker.service.proxy.model.client.*;
-import com.easyiot.easylinker.service.proxy.service.COAPRemoteClientService;
-import com.easyiot.easylinker.service.proxy.service.ClientDataEntryService;
-import com.easyiot.easylinker.service.proxy.service.HttpRemoteClientService;
-import com.easyiot.easylinker.service.proxy.service.MqttRemoteClientService;
+import com.easyiot.easylinker.service.proxy.service.*;
 import com.easyiot.easylinker.service.proxy.utils.CacheHelper;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.StringUtils;
@@ -481,10 +477,12 @@ public class ClientController {
     }
 
 
+    @Autowired
+    private DeviceSearchService deviceSearchService;
     /**
      * 设备模糊查询
-     * @param request
-     * @param searchEntry
+     * @param request 请求头
+     * @param searchEntry 请求参数
      * @return
      */
     @GetMapping(value = "/search")
@@ -507,19 +505,16 @@ public class ClientController {
 
         switch (searchEntry.getType()) {
             case "ALL":
-
+                return WebReturnResult.returnTipMessage(1, "暂不支持所有类型设备查询");
             case "MQTT":
-                Page<MqttRemoteClient> nameLike = mqttRemoteClientService.findByNameLike(
-                        searchEntry.getKeyword(),
-                        userId,
-                        searchEntry.getPageSize(),
-                        searchEntry.getPageNum()
-                );
-                return WebReturnResult.returnDataMessage(1, "ok", nameLike);
+                List<MqttRemoteClient> mqttRemoteClients = deviceSearchService.queryMQTT(searchEntry, userId);
+                return WebReturnResult.returnDataMessage(1, "ok", mqttRemoteClients);
             case "HTTP":
-
+                List<HttpRemoteClient> httpRemoteClients = deviceSearchService.queryHTTP(searchEntry, userId);
+                return WebReturnResult.returnDataMessage(1, "ok", httpRemoteClients);
             case "COAP":
-
+                List<CoapRemoteClient> coapRemoteClients = deviceSearchService.queryCOAP(searchEntry, userId);
+                return WebReturnResult.returnDataMessage(1, "ok", coapRemoteClients);
             default:
                 return WebReturnResult.returnTipMessage(0, "参数有误，暂不支持");
         }
