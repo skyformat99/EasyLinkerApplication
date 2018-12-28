@@ -1,0 +1,33 @@
+{
+  "groups": [
+    {
+      "name": "sms.aliyun",
+      "type": "com.easyiot.easylinker.service.proxy.config.sms.aliyunsms.AliYunSMSConfig",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.sms.SMSConfiguration",
+      "sourceMethod": "aliYunSMSConfig()"
+    }
+  ],
+  "properties": [
+    {
+      "name": "sms.aliyun.access-key-id",
+      "type": "java.lang.String",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.sms.aliyunsms.AliYunSMSConfig"
+    },
+    {
+      "name": "sms.aliyun.access-key-secret",
+      "type": "java.lang.String",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.sms.aliyunsms.AliYunSMSConfig"
+    },
+    {
+      "name": "sms.aliyun.sign-name",
+      "type": "java.lang.String",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.sms.aliyunsms.AliYunSMSConfig"
+    },
+    {
+      "name": "sms.aliyun.template",
+      "type": "java.lang.String",
+      "sourceType": "com.easyiot.easylinker.service.proxy.config.sms.aliyunsms.AliYunSMSConfig"
+    }
+  ],
+  "hints": []
+}

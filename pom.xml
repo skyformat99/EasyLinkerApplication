@@ -9,17 +9,14 @@
         <version>2.1.0.RELEASE</version>
     </parent>
 
-    <groupId>com.easylinker.application</groupId>
-    <artifactId>EasyLinkerApplication</artifactId>
-    <version>3.0.0-A</version>
+    <groupId>com.easyiot</groupId>
+    <artifactId>easylinker</artifactId>
+    <version>3.0.0.RELEASE</version>
     <packaging>pom</packaging>
 
     <modules>
         <module>easylinker-dependencies</module>
-        <module>easylinker-proxy-service</module>
-        <module>easylinker-rabbitmq-provider</module>
-        <module>easylinker-rabbitmq-consumer</module>
-        <module>easylinker-quartz-service</module>
+        <module>easylinker-service-proxy</module>
     </modules>
 
 
