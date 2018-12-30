@@ -24,3 +24,10 @@ rebel.xml
 /dist/
 /nbdist/
 /.nb-gradle/
+easylinker-service-proxy/Californium.properties
+easylinker-service-proxy/target/classes/com/easyiot/easylinker/service/proxy/model/client/DeviceSearchEntry.class
+easylinker-service-proxy/target/classes/com/easyiot/easylinker/service/proxy/service/DeviceSearchService.class
+easylinker-service-proxy/target/generated-sources/
+easylinker-service-proxy/target/generated-test-sources/
+easylinker-service-proxy/target/test-classes/META-INF/
+easylinker-service-proxy/target/test-classes/com/easyiot/easylinker/service/proxy/DeviceSearchTest.class
