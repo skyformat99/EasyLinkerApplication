@@ -51,6 +51,7 @@ public class DeviceSearchService {
     public List<HttpRemoteClient> queryHTTP(DeviceSearchEntry deviceSearchEntry, Long userId) {
 
         Query query = queryHelper(deviceSearchEntry, userId);
+        mongoTemplate.find(query, HttpRemoteClient.class);
         return mongoTemplate.find(query, HttpRemoteClient.class);
     }
 

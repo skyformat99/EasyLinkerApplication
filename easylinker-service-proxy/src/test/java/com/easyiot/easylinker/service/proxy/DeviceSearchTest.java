@@ -31,8 +31,12 @@ public class DeviceSearchTest {
                 .and("info").regex("^.*t.*$", "i")
                 .and("userId").is(id);
         Query query = Query.query(criteria);
+        query.skip(0);
+        query.limit(10);
+        long count = mongoTemplate.count(query, MqttRemoteClient.class);
         List<MqttRemoteClient> mqttRemoteClients = mongoTemplate.find(query, MqttRemoteClient.class);
         System.out.println(mqttRemoteClients);
+        System.out.println(count);
     }
 
     @Test
